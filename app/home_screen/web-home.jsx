@@ -9,14 +9,16 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, ArrowRight, Star, CircleCheck as CheckCircle, Shield, Zap, Target, Activity } from 'lucide-react-native';
+import { Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, ArrowRight, Star, CheckCircle, Shield, Zap, Target, Activity, BarChart3, Plus, Bell } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
+import { responsive, isBreakpoint, getGridColumns, responsiveSpacing } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
 export default function WebHomeScreen() {
+  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  
   const navigateToScreen = (screen) => {
     switch (screen) {
       case 'events':
@@ -42,174 +44,212 @@ export default function WebHomeScreen() {
     }
   };
 
-  const heroFeatures = [
+  const dashboardCards = [
     {
-      title: 'Mental Health Assessments',
-      description: 'Take scientifically-backed assessments including GAD-7 and PHQ-9 to understand your mental health status with professional-grade screening tools.',
-      icon: Brain,
-      color: Colors.PRIMARY,
-      action: () => navigateToScreen('quizzes'),
-      stats: '5,000+ completed',
-    },
-    {
-      title: 'Daily Wellness Tracking',
-      description: 'Monitor your mood, sleep quality, and stress levels with intuitive daily check-ins and comprehensive visual analytics.',
+      title: 'Daily Check-in',
+      description: 'Track your mood and wellness',
       icon: Heart,
-      color: Colors.ERROR,
+      color: '#EF4444',
+      bgColor: '#FEF2F2',
       action: () => navigateToScreen('daily'),
-      stats: '89% user retention',
+      status: 'Complete today',
+      progress: 85,
     },
     {
-      title: 'Campus Resources Hub',
-      description: 'Access comprehensive mental health resources, counseling services, and support programs specifically for Cal State LA students.',
+      title: 'Assessments',
+      description: 'Mental health screenings',
+      icon: Brain,
+      color: '#3B82F6',
+      bgColor: '#EFF6FF',
+      action: () => navigateToScreen('quizzes'),
+      status: '2 available',
+      progress: null,
+    },
+    {
+      title: 'Resources',
+      description: 'Campus support & guides',
       icon: BookOpen,
-      color: Colors.SUCCESS,
+      color: '#10B981',
+      bgColor: '#F0FDF4',
       action: () => navigateToScreen('resources'),
-      stats: '127 resources available',
+      status: '127 resources',
+      progress: null,
+    },
+    {
+      title: 'Progress',
+      description: 'View your wellness trends',
+      icon: BarChart3,
+      color: '#8B5CF6',
+      bgColor: '#F5F3FF',
+      action: () => navigateToScreen('progress'),
+      status: 'Updated today',
+      progress: null,
     },
   ];
 
-  const quickStats = [
-    { label: 'Active Students', value: '2,847', icon: Users, color: Colors.PRIMARY, change: '+12%' },
-    { label: 'Assessments Completed', value: '15,293', icon: Brain, color: Colors.SECONDARY, change: '+8%' },
-    { label: 'Daily Check-ins', value: '8,456', icon: Heart, color: Colors.ERROR, change: '+15%' },
-    { label: 'Resources Accessed', value: '23,891', icon: BookOpen, color: Colors.SUCCESS, change: '+22%' },
+  const weeklyStats = [
+    { label: 'Mood Score', value: '7.2', icon: Heart, color: '#EF4444', change: '+0.8', unit: '/10' },
+    { label: 'Check-ins', value: '5', icon: Calendar, color: '#3B82F6', change: '+2', unit: '/7' },
+    { label: 'Streak', value: '12', icon: Target, color: '#10B981', change: '+3', unit: 'days' },
+    { label: 'Progress', value: '85', icon: TrendingUp, color: '#8B5CF6', change: '+12%', unit: '%' },
   ];
 
-  const testimonials = [
+  const quickActions = [
     {
-      text: "This platform helped me understand my anxiety patterns and connect with the right resources on campus.",
-      author: "Sarah M.",
-      role: "Psychology Major, Junior",
-      rating: 5,
+      title: 'Start Check-in',
+      description: 'Log your mood today',
+      icon: Plus,
+      color: '#EF4444',
+      action: () => navigateToScreen('daily'),
     },
     {
-      text: "The daily check-ins became part of my routine and really helped me track my mental health journey.",
-      author: "Marcus T.",
-      role: "Engineering Student, Senior",
-      rating: 5,
+      title: 'Take Assessment',
+      description: 'PHQ-9 available',
+      icon: Brain,
+      color: '#3B82F6',
+      action: () => navigateToScreen('quizzes'),
     },
     {
-      text: "Having access to professional assessments and campus resources in one place is incredibly valuable.",
-      author: "Elena R.",
-      role: "Business Major, Sophomore",
-      rating: 5,
+      title: 'Browse Resources',
+      description: 'Find support',
+      icon: BookOpen,
+      color: '#10B981',
+      action: () => navigateToScreen('resources'),
     },
   ];
 
-  const features = [
+  const recentActivities = [
     {
-      icon: Shield,
-      title: 'Confidential & Secure',
-      description: 'Your mental health data is encrypted and protected with enterprise-grade security.',
-    },
-    {
+      title: 'Daily Check-in Completed',
+      time: '2 hours ago',
       icon: CheckCircle,
-      title: 'Clinically Validated',
-      description: 'All assessments are based on established psychological screening tools used by professionals.',
+      color: '#10B981',
     },
     {
-      icon: Zap,
-      title: 'Real-time Insights',
-      description: 'Get immediate feedback and personalized recommendations based on your responses.',
+      title: 'GAD-7 Assessment',
+      time: 'Yesterday',
+      icon: Brain,
+      color: '#3B82F6',
     },
     {
+      title: 'Resource Viewed: Stress Management',
+      time: '2 days ago',
+      icon: BookOpen,
+      color: '#8B5CF6',
+    },
+  ];
+
+  const wellnessTips = [
+    {
+      title: 'Take Deep Breaths',
+      description: 'Practice 4-7-8 breathing for instant calm',
+      icon: Heart,
+    },
+    {
+      title: 'Stay Hydrated',
+      description: 'Drink water regularly throughout the day',
       icon: Target,
-      title: 'Goal Tracking',
-      description: 'Set wellness goals and track your progress with detailed analytics and trends.',
+    },
+    {
+      title: 'Move Your Body',
+      description: 'Even 5 minutes of movement helps',
+      icon: Activity,
     },
   ];
 
   return (
     <WebLayout>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Hero Section */}
-        <LinearGradient
-          colors={['#003DA5', '#1e40af', '#FFB81C']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroSection}
-        >
-          <View style={styles.heroContent}>
-            <View style={styles.heroText}>
-              <Text style={styles.heroTitle}>
-                Transform Your Mental Wellness Journey
-              </Text>
-              <Text style={styles.heroSubtitle}>
-                Comprehensive mental health platform designed specifically for Cal State LA Golden Eagles. 
-                Access professional assessments, track your progress, and connect with campus resources.
-              </Text>
-              <View style={styles.heroButtons}>
-                <TouchableOpacity
-                  style={styles.ctaButton}
-                  onPress={() => navigateToScreen('daily')}
-                >
-                  <Text style={styles.ctaButtonText}>Start Your Journey</Text>
-                  <ArrowRight size={20} color={Colors.PRIMARY} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={() => navigateToScreen('quizzes')}
-                >
-                  <Text style={styles.secondaryButtonText}>Take Assessment</Text>
-                  <Brain size={18} color="white" />
-                </TouchableOpacity>
-              </View>
+        {/* Dashboard Header */}
+        <View style={styles.dashboardHeader}>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.welcomeText}>Welcome back!</Text>
+              <Text style={styles.dashboardTitle}>Your Wellness Dashboard</Text>
             </View>
-            
-            <View style={styles.heroStatsContainer}>
-              <View style={styles.heroStats}>
-                {quickStats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <View key={index} style={styles.statCard}>
-                      <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
-                        <IconComponent size={28} color="white" />
-                      </View>
-                      <Text style={styles.statValue}>{stat.value}</Text>
-                      <Text style={styles.statLabel}>{stat.label}</Text>
-                      <Text style={styles.statChange}>{stat.change} this month</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Bell size={20} color="#6B7280" />
+            </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
 
-        {/* Features Section */}
-        <View style={styles.section}>
+        {/* Stats Overview */}
+        <View style={styles.statsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Comprehensive Mental Health Support</Text>
-            <Text style={styles.sectionSubtitle}>
-              Evidence-based tools and resources designed to support your mental wellness throughout your academic journey
-            </Text>
+            <Text style={styles.sectionTitle}>This Week</Text>
+            <View style={styles.periodSelector}>
+              {['week', 'month'].map((period) => (
+                <TouchableOpacity
+                  key={period}
+                  style={[
+                    styles.periodButton,
+                    selectedPeriod === period && styles.periodButtonActive
+                  ]}
+                  onPress={() => setSelectedPeriod(period)}
+                >
+                  <Text style={[
+                    styles.periodButtonText,
+                    selectedPeriod === period && styles.periodButtonTextActive
+                  ]}>
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
           
-          <View style={styles.featuresGrid}>
-            {heroFeatures.map((feature, index) => {
-              const IconComponent = feature.icon;
+          <View style={styles.statsGrid}>
+            {weeklyStats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <View key={index} style={styles.statCard}>
+                  <View style={styles.statHeader}>
+                    <View style={[styles.statIcon, { backgroundColor: stat.color + '15' }]}>
+                      <IconComponent size={16} color={stat.color} />
+                    </View>
+                    <Text style={styles.statChange}>{stat.change}</Text>
+                  </View>
+                  <Text style={styles.statValue}>{stat.value}<Text style={styles.statUnit}>{stat.unit}</Text></Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Main Dashboard Cards */}
+        <View style={styles.mainSection}>
+          <Text style={styles.sectionTitle}>Quick Access</Text>
+          
+          <View style={styles.dashboardGrid}>
+            {dashboardCards.map((card, index) => {
+              const IconComponent = card.icon;
               return (
                 <TouchableOpacity
                   key={index}
-                  style={styles.featureCard}
-                  onPress={feature.action}
+                  style={styles.dashboardCard}
+                  onPress={card.action}
                 >
-                  <View style={styles.featureHeader}>
-                    <View style={[styles.featureIcon, { backgroundColor: feature.color + '15' }]}>
-                      <IconComponent size={36} color={feature.color} />
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.cardIcon, { backgroundColor: card.bgColor }]}>
+                      <IconComponent size={24} color={card.color} />
                     </View>
-                    <View style={styles.featureStats}>
-                      <Text style={styles.featureStatsText}>{feature.stats}</Text>
-                    </View>
+                    {card.progress && (
+                      <View style={styles.progressContainer}>
+                        <View style={styles.progressBar}>
+                          <View style={[styles.progressFill, { width: `${card.progress}%`, backgroundColor: card.color }]} />
+                        </View>
+                        <Text style={styles.progressText}>{card.progress}%</Text>
+                      </View>
+                    )}
                   </View>
                   
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={styles.featureDescription}>{feature.description}</Text>
+                  <Text style={styles.cardTitle}>{card.title}</Text>
+                  <Text style={styles.cardDescription}>{card.description}</Text>
                   
-                  <View style={styles.featureAction}>
-                    <Text style={styles.featureActionText}>Get Started</Text>
-                    <ArrowRight size={18} color={feature.color} />
+                  <View style={styles.cardFooter}>
+                    <Text style={[styles.cardStatus, { color: card.color }]}>{card.status}</Text>
+                    <ArrowRight size={16} color="#9CA3AF" />
                   </View>
                 </TouchableOpacity>
               );
@@ -217,20 +257,49 @@ export default function WebHomeScreen() {
           </View>
         </View>
 
-        {/* Benefits Section */}
-        <View style={styles.benefitsSection}>
-          <View style={styles.benefitsContent}>
-            <Text style={styles.benefitsTitle}>Why Choose WeGoToCalStateLA?</Text>
-            <View style={styles.benefitsGrid}>
-              {features.map((feature, index) => {
-                const IconComponent = feature.icon;
+        {/* Two Column Layout */}
+        <View style={styles.twoColumnSection}>
+          {/* Quick Actions */}
+          <View style={styles.leftColumn}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.quickActionsContainer}>
+              {quickActions.map((action, index) => {
+                const IconComponent = action.icon;
                 return (
-                  <View key={index} style={styles.benefitCard}>
-                    <View style={[styles.benefitIcon, { backgroundColor: Colors.PRIMARY + '15' }]}>
-                      <IconComponent size={24} color={Colors.PRIMARY} />
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.quickActionCard}
+                    onPress={action.action}
+                  >
+                    <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
+                      <IconComponent size={20} color={action.color} />
                     </View>
-                    <Text style={styles.benefitTitle}>{feature.title}</Text>
-                    <Text style={styles.benefitDescription}>{feature.description}</Text>
+                    <View style={styles.quickActionContent}>
+                      <Text style={styles.quickActionTitle}>{action.title}</Text>
+                      <Text style={styles.quickActionDescription}>{action.description}</Text>
+                    </View>
+                    <ArrowRight size={16} color="#9CA3AF" />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Recent Activities */}
+          <View style={styles.rightColumn}>
+            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <View style={styles.activitiesContainer}>
+              {recentActivities.map((activity, index) => {
+                const IconComponent = activity.icon;
+                return (
+                  <View key={index} style={styles.activityCard}>
+                    <View style={[styles.activityIcon, { backgroundColor: activity.color + '15' }]}>
+                      <IconComponent size={16} color={activity.color} />
+                    </View>
+                    <View style={styles.activityContent}>
+                      <Text style={styles.activityTitle}>{activity.title}</Text>
+                      <Text style={styles.activityTime}>{activity.time}</Text>
+                    </View>
                   </View>
                 );
               })}
@@ -238,106 +307,27 @@ export default function WebHomeScreen() {
           </View>
         </View>
 
-        {/* Testimonials Section */}
-        <View style={styles.testimonialsSection}>
-          <Text style={styles.testimonialsTitle}>What Golden Eagles Are Saying</Text>
-          <View style={styles.testimonialsGrid}>
-            {testimonials.map((testimonial, index) => (
-              <View key={index} style={styles.testimonialCard}>
-                <View style={styles.testimonialRating}>
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} size={16} color={Colors.SECONDARY} fill={Colors.SECONDARY} />
-                  ))}
-                </View>
-                <Text style={styles.testimonialText}>"{testimonial.text}"</Text>
-                <View style={styles.testimonialAuthor}>
-                  <Text style={styles.authorName}>{testimonial.author}</Text>
-                  <Text style={styles.authorRole}>{testimonial.role}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* CTA Section */}
-        <LinearGradient
-          colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
-          style={styles.ctaSection}
-        >
-          <View style={styles.ctaContent}>
-            <Text style={styles.ctaTitle}>Ready to Start Your Wellness Journey?</Text>
-            <Text style={styles.ctaSubtitle}>
-              Join thousands of Cal State LA students who are taking control of their mental health
-            </Text>
-            <View style={styles.ctaButtons}>
-              <TouchableOpacity
-                style={styles.ctaPrimaryButton}
-                onPress={() => navigateToScreen('daily')}
-              >
-                <Text style={styles.ctaPrimaryText}>Begin Daily Check-in</Text>
-                <Heart size={20} color={Colors.PRIMARY} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.ctaSecondaryButton}
-                onPress={() => navigateToScreen('quizzes')}
-              >
-                <Text style={styles.ctaSecondaryText}>Take Assessment</Text>
-                <Brain size={18} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </LinearGradient>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <View style={styles.footerContent}>
-            <View style={styles.footerSection}>
-              <Text style={styles.footerTitle}>WeGoToCalStateLA</Text>
-              <Text style={styles.footerText}>
-                Supporting the mental health and wellbeing of Cal State LA students through 
-                evidence-based tools and comprehensive campus resources.
-              </Text>
-              <View style={styles.footerStats}>
-                <Text style={styles.footerStat}>2,847+ Active Users</Text>
-                <Text style={styles.footerStat}>15,293+ Assessments</Text>
-                <Text style={styles.footerStat}>127 Resources</Text>
-              </View>
-            </View>
-            
-            <View style={styles.footerSection}>
-              <Text style={styles.footerSectionTitle}>Quick Links</Text>
-              <TouchableOpacity onPress={() => navigateToScreen('quizzes')}>
-                <Text style={styles.footerLink}>Mental Health Assessments</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigateToScreen('daily')}>
-                <Text style={styles.footerLink}>Daily Check-in</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigateToScreen('resources')}>
-                <Text style={styles.footerLink}>Campus Resources</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigateToScreen('chat')}>
-                <Text style={styles.footerLink}>Chat Support</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.footerSection}>
-              <Text style={styles.footerSectionTitle}>Support</Text>
-              <Text style={styles.footerLink}>Crisis Hotline: 988</Text>
-              <Text style={styles.footerLink}>Campus Counseling: (323) 343-3371</Text>
-              <Text style={styles.footerLink}>Emergency: 911</Text>
-              <Text style={styles.footerLink}>help@calstatela.edu</Text>
-            </View>
-          </View>
+        {/* Wellness Tips Section */}
+        <View style={styles.wellnessSection}>
+          <Text style={styles.sectionTitle}>Daily Wellness Tips</Text>
           
-          <View style={styles.footerBottom}>
-            <Text style={styles.footerBottomText}>
-              © 2024 California State University, Los Angeles. All rights reserved.
-            </Text>
-            <Text style={styles.footerBottomText}>
-              Mental Health & Wellness Platform for Golden Eagles
-            </Text>
+          <View style={styles.wellnessGrid}>
+            {wellnessTips.map((tip, index) => {
+              const IconComponent = tip.icon;
+              return (
+                <View key={index} style={styles.wellnessTipCard}>
+                  <View style={[styles.wellnessTipIcon, { backgroundColor: Colors.PRIMARY + '15' }]}>
+                    <IconComponent size={20} color={Colors.PRIMARY} />
+                  </View>
+                  <Text style={styles.wellnessTipTitle}>{tip.title}</Text>
+                  <Text style={styles.wellnessTipDescription}>{tip.description}</Text>
+                </View>
+              );
+            })}
           </View>
         </View>
+
+
       </ScrollView>
     </WebLayout>
   );
@@ -346,509 +336,336 @@ export default function WebHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafbfc',
+    backgroundColor: '#f8fafc',
   },
-  heroSection: {
-    minHeight: 700,
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-  },
-  heroContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    maxWidth: 1400,
-    alignSelf: 'center',
-    width: '100%',
-    gap: 80,
-  },
-  heroText: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  heroTitle: {
-    fontSize: 64,
-    fontWeight: '900',
-    color: 'white',
-    textAlign: 'left',
-    marginBottom: 32,
-    lineHeight: 72,
-    letterSpacing: -1.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  heroSubtitle: {
-    fontSize: 24,
-    color: 'rgba(255, 255, 255, 0.95)',
-    textAlign: 'left',
-    lineHeight: 36,
-    marginBottom: 48,
-    fontWeight: '400',
-    maxWidth: 600,
-  },
-  heroButtons: {
-    flexDirection: 'row',
-    gap: 24,
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-  },
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Dashboard Header
+  dashboardHeader: {
+    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
+    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
     backgroundColor: 'white',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    borderRadius: 20,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    flexDirection: responsive({ xs: 'column', sm: 'row' }),
+    justifyContent: 'space-between',
+    alignItems: responsive({ xs: 'flex-start', sm: 'center' }),
+    gap: responsive({ xs: 12, sm: 0 }),
   },
-  ctaButtonText: {
-    color: Colors.PRIMARY,
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    gap: 12,
-  },
-  secondaryButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-    letterSpacing: -0.3,
-  },
-  heroStatsContainer: {
+  welcomeSection: {
     flex: 1,
-    justifyContent: 'center',
   },
-  heroStats: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 32,
-    padding: 40,
-    backdropFilter: 'blur(20px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  statCard: {
-    alignItems: 'center',
-    marginBottom: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  statIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statValue: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: 'white',
-    marginBottom: 8,
-    letterSpacing: -1,
-  },
-  statLabel: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    fontWeight: '500',
+  welcomeText: {
+    fontSize: 14,
+    color: '#64748b',
     marginBottom: 4,
   },
-  statChange: {
-    fontSize: 14,
-    color: Colors.SECONDARY,
-    fontWeight: '600',
+  welcomeTitle: {
+    fontSize: responsive({ xs: 24, sm: 26, md: 28 }),
+    fontWeight: '700',
+    color: '#1e293b',
   },
-  section: {
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-    maxWidth: 1400,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    marginBottom: 80,
-  },
-  sectionTitle: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: Colors.PRIMARY,
-    marginBottom: 24,
-    textAlign: 'center',
-    letterSpacing: -1,
-    lineHeight: 56,
-  },
-  sectionSubtitle: {
-    fontSize: 20,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 32,
-    maxWidth: 800,
-    fontWeight: '400',
-  },
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 40,
-  },
-  featureCard: {
-    backgroundColor: 'white',
-    borderRadius: 32,
-    padding: 48,
-    width: '30%',
-    minWidth: 380,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.08,
-    shadowRadius: 32,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    transform: [{ translateY: 0 }],
-  },
-  featureHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  featureIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f1f5f9',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
   },
-  featureStats: {
-    backgroundColor: Colors.SECONDARY + '15',
+  // Stats Overview
+  statsSection: {
+    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
+    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    backgroundColor: 'white',
+    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+  },
+  statsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  periodSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 4,
+  },
+  periodButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 6,
   },
-  featureStatsText: {
-    fontSize: 14,
-    color: Colors.SECONDARY,
-    fontWeight: '600',
-  },
-  featureTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.PRIMARY,
-    marginBottom: 20,
-    letterSpacing: -0.5,
-    lineHeight: 36,
-  },
-  featureDescription: {
-    fontSize: 18,
-    color: '#64748b',
-    lineHeight: 28,
-    marginBottom: 32,
-    fontWeight: '400',
-    letterSpacing: -0.1,
-  },
-  featureAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: Colors.PRIMARY + '10',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-  },
-  featureActionText: {
-    fontSize: 18,
-    color: Colors.PRIMARY,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  benefitsSection: {
-    backgroundColor: '#f8fafc',
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-  },
-  benefitsContent: {
-    maxWidth: 1400,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  benefitsTitle: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: Colors.PRIMARY,
-    textAlign: 'center',
-    marginBottom: 80,
-    letterSpacing: -1,
-  },
-  benefitsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 32,
-  },
-  benefitCard: {
+  periodButtonActive: {
     backgroundColor: 'white',
-    borderRadius: 24,
-    padding: 40,
-    width: '48%',
-    minWidth: 320,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  periodButtonText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  periodButtonTextActive: {
+    color: '#1e293b',
+    fontWeight: '600',
+  },
+  statsGrid: {
+    flexDirection: responsive({ xs: 'column', sm: 'row' }),
+    gap: responsive({ xs: 12, sm: 16, md: 20 }),
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
-  benefitIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  statHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
   },
-  benefitTitle: {
+  statChange: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.PRIMARY,
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
-  benefitDescription: {
-    fontSize: 17,
-    color: '#64748b',
-    lineHeight: 26,
-    fontWeight: '400',
-  },
-  testimonialsSection: {
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-    backgroundColor: 'white',
-  },
-  testimonialsTitle: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: Colors.PRIMARY,
-    textAlign: 'center',
-    marginBottom: 80,
-    letterSpacing: -1,
-  },
-  testimonialsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 32,
-    maxWidth: 1400,
-    alignSelf: 'center',
-  },
-  testimonialCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 24,
-    padding: 40,
-    width: '30%',
-    minWidth: 320,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  testimonialRating: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 20,
-  },
-  testimonialText: {
-    fontSize: 18,
-    color: '#334155',
-    lineHeight: 28,
-    marginBottom: 24,
-    fontStyle: 'italic',
-    fontWeight: '400',
-  },
-  testimonialAuthor: {
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 20,
-  },
-  authorName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.PRIMARY,
+    color: '#1e293b',
     marginBottom: 4,
   },
-  authorRole: {
+  statLabel: {
     fontSize: 14,
     color: '#64748b',
   },
-  ctaSection: {
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-  },
-  ctaContent: {
-    maxWidth: 900,
-    alignSelf: 'center',
-    alignItems: 'center',
-  },
-  ctaTitle: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 24,
-    letterSpacing: -1,
-    lineHeight: 56,
-  },
-  ctaSubtitle: {
-    fontSize: 22,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    lineHeight: 32,
-    marginBottom: 48,
-    fontWeight: '400',
-  },
-  ctaButtons: {
-    flexDirection: 'row',
-    gap: 24,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  ctaPrimaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Main Sections
+  mainSection: {
+    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
+    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
     backgroundColor: 'white',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    borderRadius: 20,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
+    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
   },
-  ctaPrimaryText: {
-    color: Colors.PRIMARY,
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  ctaSecondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    gap: 12,
-  },
-  ctaSecondaryText: {
-    color: 'white',
+  sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    letterSpacing: -0.3,
+    color: '#1e293b',
+    marginBottom: 16,
   },
-  footer: {
-    backgroundColor: '#0f172a',
-    paddingVertical: 80,
-    paddingHorizontal: 60,
+  // Dashboard Cards
+  dashboardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: responsive({ xs: 12, sm: 16, md: 20 }),
   },
-  footerContent: {
-    maxWidth: 1400,
-    alignSelf: 'center',
-    width: '100%',
+  dashboardCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: responsive({ xs: 16, sm: 18, md: 20 }),
+    width: responsive({ xs: '100%', sm: '48%', lg: '31%' }),
+    minWidth: responsive({ xs: 0, sm: 280 }),
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 60,
-    marginBottom: 60,
-  },
-  footerSection: {
-    flex: 1,
-    minWidth: 280,
-  },
-  footerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: 'white',
-    marginBottom: 24,
-    letterSpacing: -0.5,
-  },
-  footerSectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: 'white',
-    marginBottom: 24,
-    letterSpacing: -0.3,
-  },
-  footerText: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    lineHeight: 26,
-    marginBottom: 24,
-    fontWeight: '400',
-  },
-  footerStats: {
-    gap: 8,
-  },
-  footerStat: {
-    fontSize: 14,
-    color: Colors.SECONDARY,
-    fontWeight: '600',
-  },
-  footerLink: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 16,
-    fontWeight: '500',
-    letterSpacing: -0.1,
   },
-  footerBottom: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    paddingTop: 40,
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  footerBottomText: {
+  progressContainer: {
+    alignItems: 'flex-end',
+  },
+  progressBar: {
+    width: 60,
+    height: 4,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 2,
+    marginBottom: 4,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  cardDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
-    fontWeight: '400',
+    color: '#64748b',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardStatus: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  // Two Column Layout
+  twoColumnSection: {
+    flexDirection: responsive({ xs: 'column', md: 'row' }),
+    gap: responsive({ xs: 16, sm: 20, md: 24 }),
+    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
+    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+  },
+  leftColumn: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  rightColumn: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  // Quick Actions
+  quickActionsContainer: {
+    gap: 12,
+  },
+  quickActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 12,
+  },
+  quickActionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quickActionContent: {
+    flex: 1,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  quickActionDescription: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  // Recent Activities
+  activitiesContainer: {
+    gap: 12,
+  },
+  activityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 12,
+  },
+  activityIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  activityTime: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  // Wellness Tips
+  wellnessSection: {
+    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
+    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    backgroundColor: 'white',
+    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+  },
+  wellnessGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: responsive({ xs: 12, sm: 14, md: 16 }),
+  },
+  wellnessTipCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: responsive({ xs: 12, sm: 14, md: 16 }),
+    width: responsive({ xs: '100%', sm: '48%', lg: '31%' }),
+    minWidth: responsive({ xs: 0, sm: 200 }),
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  wellnessTipIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  wellnessTipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  wellnessTipDescription: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 16,
   },
 });

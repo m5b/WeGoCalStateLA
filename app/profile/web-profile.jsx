@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2, Save, Mail, GraduationCap, Calendar, Award, Activity, Target, TrendingUp, Heart, Brain, CircleCheck as CheckCircle, Star, Trophy, Zap, Clock, ChartBar as BarChart } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
+import { responsive, isBreakpoint, getContainerMaxWidth } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -532,18 +533,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafbfc',
   },
   heroSection: {
-    paddingVertical: 80,
-    paddingHorizontal: 60,
+    ...responsive({
+      paddingVertical: { xs: 40, sm: 60, md: 80 },
+      paddingHorizontal: { xs: 20, sm: 40, md: 60 },
+    }),
   },
   heroContent: {
-    maxWidth: 1200,
+    maxWidth: getContainerMaxWidth(),
     alignSelf: 'center',
     width: '100%',
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 48,
+    ...responsive({
+      flexDirection: { xs: 'column', md: 'row' },
+      alignItems: { xs: 'center', md: 'center' },
+      gap: { xs: 24, sm: 32, md: 48 },
+      textAlign: { xs: 'center', md: 'left' },
+    }),
   },
   profileImageSection: {
     alignItems: 'center',
@@ -552,9 +558,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    ...responsive({
+      width: { xs: 100, sm: 120, md: 140 },
+      height: { xs: 100, sm: 120, md: 140 },
+      borderRadius: { xs: 50, sm: 60, md: 70 },
+    }),
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -588,27 +596,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    fontSize: 42,
+    ...responsive({
+      fontSize: { xs: 28, sm: 36, md: 42 },
+      textAlign: { xs: 'center', md: 'left' },
+    }),
     fontWeight: '800',
     color: Colors.WHITE,
     marginBottom: 12,
     letterSpacing: -1,
   },
   profileRole: {
-    fontSize: 22,
+    ...responsive({
+      fontSize: { xs: 18, sm: 20, md: 22 },
+      textAlign: { xs: 'center', md: 'left' },
+    }),
     color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: 8,
     fontWeight: '500',
   },
   profileEmail: {
-    fontSize: 18,
+    ...responsive({
+      fontSize: { xs: 16, sm: 17, md: 18 },
+      textAlign: { xs: 'center', md: 'left' },
+    }),
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 20,
     fontWeight: '400',
   },
   profileMeta: {
-    flexDirection: 'row',
-    gap: 32,
+    ...responsive({
+      flexDirection: { xs: 'column', sm: 'row' },
+      gap: { xs: 16, sm: 24, md: 32 },
+      alignItems: { xs: 'center', sm: 'flex-start' },
+    }),
   },
   metaItem: {
     flexDirection: 'row',
@@ -641,17 +661,21 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   mainContent: {
-    maxWidth: 1200,
+    maxWidth: getContainerMaxWidth(),
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 60,
-    paddingBottom: 80,
+    ...responsive({
+      paddingHorizontal: { xs: 20, sm: 40, md: 60 },
+      paddingBottom: { xs: 60, sm: 70, md: 80 },
+    }),
   },
   section: {
     backgroundColor: Colors.WHITE,
-    borderRadius: 24,
-    padding: 40,
-    marginBottom: 40,
+    ...responsive({
+      borderRadius: { xs: 16, sm: 20, md: 24 },
+      padding: { xs: 24, sm: 32, md: 40 },
+      marginBottom: { xs: 24, sm: 32, md: 40 },
+    }),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
@@ -689,15 +713,20 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 24,
+    ...responsive({
+      gap: { xs: 16, sm: 20, md: 24 },
+      justifyContent: { xs: 'center', sm: 'flex-start' },
+    }),
     flexWrap: 'wrap',
   },
   statCard: {
     backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    padding: 28,
-    width: '23%',
-    minWidth: 220,
+    ...responsive({
+      borderRadius: { xs: 16, sm: 18, md: 20 },
+      padding: { xs: 20, sm: 24, md: 28 },
+      width: { xs: '100%', sm: '48%', lg: '23%' },
+      minWidth: { xs: 280, sm: 220 },
+    }),
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -751,12 +780,16 @@ const styles = StyleSheet.create({
   formGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 32,
-    marginBottom: 32,
+    ...responsive({
+      gap: { xs: 20, sm: 24, md: 32 },
+      marginBottom: { xs: 24, sm: 28, md: 32 },
+    }),
   },
   inputGroup: {
-    width: '48%',
-    minWidth: 280,
+    ...responsive({
+      width: { xs: '100%', md: '48%' },
+      minWidth: { xs: 260, sm: 280 },
+    }),
   },
   inputLabel: {
     fontSize: 16,
@@ -895,14 +928,19 @@ const styles = StyleSheet.create({
   achievementsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 24,
+    ...responsive({
+      gap: { xs: 16, sm: 20, md: 24 },
+      justifyContent: { xs: 'center', sm: 'flex-start' },
+    }),
   },
   achievementCard: {
     backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    padding: 28,
-    width: '31%',
-    minWidth: 300,
+    ...responsive({
+      borderRadius: { xs: 16, sm: 18, md: 20 },
+      padding: { xs: 20, sm: 24, md: 28 },
+      width: { xs: '100%', sm: '48%', lg: '31%' },
+      minWidth: { xs: 280, sm: 300 },
+    }),
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -992,15 +1030,20 @@ const styles = StyleSheet.create({
   },
   settingsGrid: {
     flexDirection: 'row',
-    gap: 32,
+    ...responsive({
+      gap: { xs: 20, sm: 24, md: 32 },
+      justifyContent: { xs: 'center', sm: 'flex-start' },
+    }),
     flexWrap: 'wrap',
   },
   settingCard: {
     backgroundColor: '#f8fafc',
-    borderRadius: 20,
-    padding: 32,
-    width: '48%',
-    minWidth: 320,
+    ...responsive({
+      borderRadius: { xs: 16, sm: 18, md: 20 },
+      padding: { xs: 24, sm: 28, md: 32 },
+      width: { xs: '100%', md: '48%' },
+      minWidth: { xs: 300, sm: 320 },
+    }),
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
@@ -1029,17 +1072,22 @@ const styles = StyleSheet.create({
   supportGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 24,
+    ...responsive({
+      gap: { xs: 16, sm: 20, md: 24 },
+      justifyContent: { xs: 'center', sm: 'flex-start' },
+    }),
   },
   supportCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    ...responsive({
+      gap: { xs: 12, sm: 14, md: 16 },
+      borderRadius: { xs: 12, sm: 14, md: 16 },
+      padding: { xs: 20, sm: 22, md: 24 },
+      width: { xs: '100%', md: '48%' },
+      minWidth: { xs: 300, sm: 320 },
+    }),
     backgroundColor: '#f8fafc',
-    borderRadius: 16,
-    padding: 24,
-    width: '48%',
-    minWidth: 320,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,17 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Brain, Heart, ChevronRight, Clock, Users, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Star, Award, Activity, Target, Zap, TrendingUp } from 'lucide-react-native';
+import { Brain, Heart, ChevronRight, Clock, Users, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Star, Award, Activity, Target, Zap, TrendingUp, ArrowRight, FileText, Phone, MessageCircle, AlertTriangle } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import { Typography, Spacing, BorderRadius, Shadows } from '../../constant/DesignSystem';
 import WebLayout from '../../components/WebLayout';
+import { responsive, isBreakpoint, getContainerMaxWidth } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
 export default function WebQuizListScreen() {
+  const [hoveredQuiz, setHoveredQuiz] = useState(null);
+
   const quizzes = [
     {
       id: 'gad7',
@@ -177,66 +181,81 @@ export default function WebQuizListScreen() {
             </Text>
           </View>
           
-          <View style={styles.quizzesContainer}>
-            {quizzes.map((quiz, index) => {
+          <View style={styles.quizzesGrid}>
+            {quizzes.map((quiz) => {
               const IconComponent = quiz.icon;
+              const isHovered = hoveredQuiz === quiz.id;
               return (
                 <TouchableOpacity
-                  key={index}
-                  style={styles.quizCard}
+                  key={quiz.id}
+                  style={[
+                    styles.modernQuizCard,
+                    isHovered && styles.modernQuizCardHovered
+                  ]}
                   onPress={() => handleQuizPress(quiz.route)}
+                  onMouseEnter={() => Platform.OS === 'web' && setHoveredQuiz(quiz.id)}
+                  onMouseLeave={() => Platform.OS === 'web' && setHoveredQuiz(null)}
+                  activeOpacity={0.95}
                 >
-                  <View style={styles.quizHeader}>
-                    <View style={styles.quizCategory}>
-                      <Text style={styles.categoryText}>{quiz.category}</Text>
+                  {/* Card Header */}
+                  <View style={styles.modernCardHeader}>
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryBadgeText}>{quiz.category}</Text>
                     </View>
-                    <View style={styles.quizBadges}>
-                      <View style={styles.badge}>
-                        <Star size={14} color={Colors.SECONDARY} />
-                        <Text style={styles.badgeText}>{quiz.accuracy}</Text>
-                      </View>
-                      <View style={styles.badge}>
-                        <Users size={14} color={Colors.SUCCESS} />
-                        <Text style={styles.badgeText}>{quiz.completions}</Text>
-                      </View>
+                    <View style={styles.ratingContainer}>
+                      <Star size={14} color={Colors.SECONDARY} fill={Colors.SECONDARY} />
+                      <Text style={styles.ratingText}>{quiz.accuracy}</Text>
                     </View>
                   </View>
-                  
-                  <View style={styles.quizContent}>
-                    <View style={styles.quizTitleRow}>
-                      <View style={[styles.quizIconContainer, { backgroundColor: quiz.color + '12' }]}>
-                        <IconComponent size={36} color={quiz.color} />
-                      </View>
-                      <View style={styles.quizTitleContent}>
-                        <Text style={styles.quizTitle}>{quiz.title}</Text>
-                        <Text style={styles.quizDescription}>{quiz.description}</Text>
-                      </View>
-                    </View>
-                    
-                    <Text style={styles.quizLongDescription}>{quiz.longDescription}</Text>
-                    
-                    <View style={styles.quizMeta}>
-                      <View style={styles.metaItem}>
-                        <Clock size={18} color={Colors.GRAY} />
-                        <Text style={styles.metaText}>{quiz.duration}</Text>
-                      </View>
-                      <View style={styles.metaItem}>
-                        <Brain size={18} color={Colors.GRAY} />
-                        <Text style={styles.metaText}>{quiz.questions}</Text>
-                      </View>
-                      <View style={styles.metaItem}>
-                        <Award size={18} color={Colors.GRAY} />
-                        <Text style={styles.metaText}>{quiz.difficulty}</Text>
-                      </View>
-                    </View>
-                    
-                    <TouchableOpacity 
-                      style={[styles.quizAction, { backgroundColor: quiz.color }]}
-                      onPress={() => handleQuizPress(quiz.route)}
+
+                  {/* Icon and Title */}
+                  <View style={styles.modernCardContent}>
+                    <LinearGradient
+                      colors={[quiz.color, quiz.color + 'CC']}
+                      style={styles.modernIconContainer}
                     >
-                      <Text style={styles.actionText}>Start Assessment</Text>
-                      <ChevronRight size={20} color="white" />
-                    </TouchableOpacity>
+                      <IconComponent size={32} color="white" />
+                    </LinearGradient>
+                    
+                    <Text style={styles.modernQuizTitle}>{quiz.title}</Text>
+                    <Text style={styles.modernQuizDescription}>{quiz.description}</Text>
+                  </View>
+
+                  {/* Stats Row */}
+                  <View style={styles.statsRow}>
+                    <View style={styles.statItem}>
+                      <Clock size={14} color="#64748b" />
+                      <Text style={styles.statText}>{quiz.duration}</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <FileText size={14} color="#64748b" />
+                      <Text style={styles.statText}>{quiz.questions}</Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Users size={14} color="#64748b" />
+                      <Text style={styles.statText}>{quiz.completions}</Text>
+                    </View>
+                  </View>
+
+                  {/* Action Button */}
+                  <View style={styles.modernActionContainer}>
+                    <LinearGradient
+                      colors={[quiz.color, quiz.color + 'CC']}
+                      style={[
+                        styles.modernActionButton,
+                        isHovered && styles.modernActionButtonHovered
+                      ]}
+                    >
+                      <Text style={styles.modernActionText}>Start Assessment</Text>
+                      <ArrowRight 
+                        size={18} 
+                        color="white" 
+                        style={[
+                          styles.actionArrow,
+                          isHovered && styles.actionArrowHovered
+                        ]} 
+                      />
+                    </LinearGradient>
                   </View>
                 </TouchableOpacity>
               );
@@ -313,31 +332,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafbfc',
   },
   heroSection: {
-    paddingVertical: 120,
-    paddingHorizontal: 60,
+    paddingVertical: responsive({ xs: 60, sm: 80, md: 120 }),
+    paddingHorizontal: responsive({ xs: 16, sm: 32, md: 60 }),
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
   },
   heroContent: {
-    flexDirection: 'row',
+    flexDirection: responsive({ xs: 'column', lg: 'row' }),
     alignItems: 'center',
-    maxWidth: 1200,
+    maxWidth: getContainerMaxWidth(),
     alignSelf: 'center',
     width: '100%',
-    gap: 80,
+    gap: responsive({ xs: 40, sm: 60, lg: 80 }),
   },
   heroText: {
     flex: 1,
   },
   heroTitle: {
-    fontSize: 56,
+    fontSize: responsive({ xs: 32, sm: 42, md: 56 }),
     fontWeight: '900',
     color: Colors.PRIMARY,
-    textAlign: 'left',
-    marginBottom: 32,
+    textAlign: responsive({ xs: 'center', lg: 'left' }),
+    marginBottom: responsive({ xs: 20, sm: 24, md: 32 }),
     letterSpacing: -1.5,
-    lineHeight: 64,
+    lineHeight: responsive({ xs: 40, sm: 50, md: 64 }),
   },
   heroSubtitle: {
     fontSize: 22,
@@ -401,9 +420,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   section: {
-    paddingVertical: 100,
-    paddingHorizontal: 60,
-    maxWidth: 1200,
+    paddingVertical: responsive({ xs: 60, sm: 80, md: 100 }),
+    paddingHorizontal: responsive({ xs: 16, sm: 32, md: 60 }),
+    maxWidth: getContainerMaxWidth(),
     alignSelf: 'center',
     width: '100%',
   },
@@ -431,15 +450,15 @@ const styles = StyleSheet.create({
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 32,
+    justifyContent: responsive({ xs: 'center', sm: 'space-between' }),
+    gap: responsive({ xs: 20, sm: 24, md: 32 }),
   },
   featureCard: {
     backgroundColor: 'white',
     borderRadius: 24,
-    padding: 40,
-    width: '48%',
-    minWidth: 320,
+    padding: responsive({ xs: 24, sm: 32, md: 40 }),
+    width: responsive({ xs: '100%', sm: '48%' }),
+    minWidth: responsive({ xs: 0, sm: 320 }),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
@@ -474,44 +493,63 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   assessmentsSection: {
-    backgroundColor: '#f8fafc',
-    paddingVertical: 100,
-    paddingHorizontal: 60,
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    paddingVertical: Spacing[20],
+    paddingHorizontal: Spacing[16],
   },
-  quizzesContainer: {
-    gap: 48,
-    maxWidth: 1200,
+  quizzesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: responsive({ xs: Spacing[6], sm: Spacing[8], md: Spacing[12] }),
+    maxWidth: getContainerMaxWidth(),
     alignSelf: 'center',
+    justifyContent: 'center',
   },
-  quizCard: {
+  modernQuizCard: {
     backgroundColor: 'white',
-    borderRadius: 32,
-    padding: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.08,
-    shadowRadius: 32,
-    elevation: 16,
+    borderRadius: BorderRadius.xl,
+    padding: responsive({ xs: Spacing[6], sm: Spacing[8], md: Spacing[12] }),
+    width: responsive({ xs: '100%', sm: '48%', lg: '31%' }),
+    minWidth: responsive({ xs: 0, sm: 320, md: 380 }),
+    maxWidth: responsive({ xs: '100%', sm: 480 }),
+    ...Shadows.web.lg,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.BORDER,
+    transition: 'all 0.3s ease',
   },
-  quizHeader: {
+  modernQuizCardHovered: {
+    transform: [{ translateY: -8 }],
+    ...Shadows.web.xl,
+    borderColor: Colors.PRIMARY_300,
+  },
+  modernCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 32,
+    alignItems: 'center',
+    marginBottom: Spacing[8],
   },
-  quizCategory: {
-    backgroundColor: Colors.SECONDARY + '15',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  categoryBadge: {
+    backgroundColor: Colors.PRIMARY_100,
+    paddingHorizontal: Spacing[2],
+    paddingVertical: Spacing[1],
+    borderRadius: BorderRadius.full,
   },
-  categoryText: {
-    fontSize: 14,
-    color: Colors.SECONDARY,
-    fontWeight: '600',
-    letterSpacing: -0.1,
+  categoryBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.PRIMARY_700,
+    fontWeight: Typography.fontWeight.semibold,
+    letterSpacing: Typography.letterSpacing.wide,
+    textTransform: 'uppercase',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+  },
+  ratingText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.TEXT_SECONDARY,
+    fontWeight: Typography.fontWeight.medium,
   },
   quizBadges: {
     flexDirection: 'row',
@@ -531,42 +569,58 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontWeight: '600',
   },
-  quizContent: {
-    flex: 1,
+  modernCardContent: {
+    alignItems: 'center',
+    marginBottom: Spacing[8],
   },
-  quizTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 24,
-    marginBottom: 24,
-  },
-  quizIconContainer: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+  modernIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: BorderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    marginBottom: Spacing[6],
+    ...Shadows.web.sm,
   },
-  quizTitleContent: {
-    flex: 1,
+  modernQuizTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.TEXT,
+    marginBottom: Spacing[1],
+    textAlign: 'center',
+    letterSpacing: Typography.letterSpacing.tight,
   },
-  quizTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: Colors.PRIMARY,
-    marginBottom: 12,
-    letterSpacing: -0.5,
-    lineHeight: 40,
+  modernQuizSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.TEXT_SECONDARY,
+    marginBottom: Spacing[2],
+    textAlign: 'center',
+    fontWeight: Typography.fontWeight.medium,
   },
-  quizDescription: {
-    fontSize: 19,
-    color: '#64748b',
-    lineHeight: 28,
-    fontWeight: '400',
+  modernQuizDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.relaxed,
+    marginBottom: Spacing[6],
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[1],
+    justifyContent: 'center',
+    marginBottom: Spacing[8],
+  },
+  tag: {
+    backgroundColor: Colors.GRAY_100,
+    paddingHorizontal: Spacing[2],
+    paddingVertical: Spacing[1],
+    borderRadius: BorderRadius.md,
+  },
+  tagText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.TEXT,
+    fontWeight: Typography.fontWeight.medium,
   },
   quizLongDescription: {
     fontSize: 16,
@@ -579,44 +633,52 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: Colors.PRIMARY,
   },
-  quizMeta: {
+  statsRow: {
     flexDirection: 'row',
-    gap: 32,
-    marginBottom: 40,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    justifyContent: 'space-around',
+    paddingVertical: Spacing[6],
+    paddingHorizontal: Spacing[2],
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing[8],
   },
-  metaItem: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing[1],
   },
-  metaText: {
-    fontSize: 16,
-    color: '#64748b',
-    fontWeight: '500',
+  statText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.TEXT_SECONDARY,
+    fontWeight: Typography.fontWeight.medium,
   },
-  quizAction: {
+  modernActionContainer: {
+    marginTop: 'auto',
+  },
+  modernActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    gap: Spacing[2],
+    paddingVertical: Spacing[6],
+    paddingHorizontal: Spacing[8],
+    borderRadius: BorderRadius.lg,
+    ...Shadows.web.sm,
   },
-  actionText: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: '700',
-    letterSpacing: -0.2,
+  modernActionButtonHovered: {
+    ...Shadows.web.md,
+  },
+  modernActionText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.white,
+    fontWeight: Typography.fontWeight.semibold,
+    letterSpacing: Typography.letterSpacing.wide,
+  },
+  actionArrow: {
+    transition: 'transform 0.2s ease',
+  },
+  actionArrowHovered: {
+    transform: [{ translateX: 4 }],
   },
   benefitsSection: {
     paddingVertical: 100,
