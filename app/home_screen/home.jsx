@@ -7,15 +7,22 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import WebHomeScreen from './web-home';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
+  // Return web version for web platform
+  if (Platform.OS === 'web') {
+    return <WebHomeScreen />;
+  }
+
   const [activeTab, setActiveTab] = useState('home');
 
   const navigateToScreen = (screen) => {
@@ -30,10 +37,13 @@ export default function HomeScreen() {
         router.push('/resources/resource');
         break;
       case 'profile':
-        router.push('/user_profile/profile');
+        router.push('/profile');
         break;
       case 'daily':
         router.push('/daily_check_in/daily');
+        break;
+      case 'progress':
+        router.push('/daily_check_in/progress');
         break;
       case 'chat':
         router.push('/chat_bot/chatbotui');

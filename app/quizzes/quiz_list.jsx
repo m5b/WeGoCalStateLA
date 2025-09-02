@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,10 +21,16 @@ import {
   Shield
 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import WebQuizListScreen from './web-quiz-list';
 
 const { width } = Dimensions.get('window');
 
 export default function QuizListScreen() {
+  // Render web version on web platform
+  if (Platform.OS === 'web') {
+    return <WebQuizListScreen />;
+  }
+
   const quizzes = [
     {
       id: 'gad7',
@@ -33,7 +40,7 @@ export default function QuizListScreen() {
       questions: '7 questions',
       icon: Brain,
       color: Colors.PRIMARY,
-      route: '/quizzes/GAD7/gad_7Disclaimer'
+      route: '/quizzes/gad_7Disclaimer'
     },
     {
       id: 'phq9',
@@ -43,7 +50,7 @@ export default function QuizListScreen() {
       questions: '9 questions',
       icon: Heart,
       color: Colors.ERROR,
-      route: '/quizzes/PHQ9/phq_9Disclaimer'
+      route: '/quizzes/phq_9Disclaimer'
     }
   ];
 
