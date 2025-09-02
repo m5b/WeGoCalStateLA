@@ -10,23 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Calendar,
-  Brain,
-  BookOpen,
-  Heart,
-  TrendingUp,
-  Clock,
-  Users,
-  Award,
-  ArrowRight,
-  Star,
-  CheckCircle,
-  Shield,
-  Zap,
-  Target,
-  Activity,
-} from 'lucide-react-native';
+import { Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, ArrowRight, Star, CircleCheck as CheckCircle, Shield, Zap, Target, Activity } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 

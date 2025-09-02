@@ -13,32 +13,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  User,
-  Settings,
-  Bell,
-  Shield,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
-  Edit2,
-  Save,
-  Mail,
-  GraduationCap,
-  Calendar,
-  Award,
-  Activity,
-  Target,
-  TrendingUp,
-  Heart,
-  Brain,
-  CheckCircle,
-  Star,
-  Trophy,
-  Zap,
-  Clock,
-  BarChart,
-} from 'lucide-react-native';
+import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2, Save, Mail, GraduationCap, Calendar, Award, Activity, Target, TrendingUp, Heart, Brain, CircleCheck as CheckCircle, Star, Trophy, Zap, Clock, ChartBar as BarChart } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
