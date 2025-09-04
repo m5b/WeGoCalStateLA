@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,9 +18,16 @@ import {
   Send,
   Bot,
   User,
-  Heart
+  Heart,
+  Sparkles,
+  MessageCircle,
+  Shield
 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import WebLayout from '../../components/WebLayout';
+
+const { width } = Dimensions.get('window');
+const isWeb = Platform.OS === 'web';
 
 export default function ChatBotScreen() {
   const [message, setMessage] = useState('');
@@ -95,6 +103,94 @@ export default function ChatBotScreen() {
     </View>
   );
 
+  if (isWeb) {
+    return (
+      <WebLayout>
+        <View style={styles.webContainer}>
+          {/* Chat Header */}
+          <View style={styles.webChatHeader}>
+            <View style={styles.webHeaderContent}>
+              <View style={styles.webHeaderLeft}>
+                <View style={styles.webBotAvatar}>
+                  <Sparkles size={24} color={Colors.PRIMARY} />
+                </View>
+                <View>
+                  <Text style={styles.webChatTitle}>WeGo AI Assistant</Text>
+                  <View style={styles.webStatusIndicator}>
+                    <View style={styles.webOnlineStatus} />
+                    <Text style={styles.webStatusText}>Online • Ready to help</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.webHeaderRight}>
+                <View style={styles.webSafetyBadge}>
+                  <Shield size={16} color={Colors.SUCCESS} />
+                  <Text style={styles.webSafetyText}>Safe & Confidential</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Chat Messages */}
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.webMessagesContainer}
+            contentContainerStyle={styles.webMessagesContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.webChatContent}>
+              {messages.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} />
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Support Notice */}
+          <View style={styles.webSupportNotice}>
+            <Heart size={16} color={Colors.SECONDARY} />
+            <Text style={styles.webSupportNoticeText}>
+              Remember: This is a support tool. For emergencies, please contact 988 or campus safety at (323) 343-3700.
+            </Text>
+          </View>
+
+          {/* Input Area */}
+          <View style={styles.webInputContainer}>
+            <View style={styles.webInputContent}>
+              <View style={styles.webInputRow}>
+                <TextInput
+                  style={styles.webTextInput}
+                  placeholder="Type your message here..."
+                  placeholderTextColor="#9CA3AF"
+                  value={message}
+                  onChangeText={setMessage}
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity
+                  style={[styles.webSendButton, !message.trim() && styles.webDisabledSendButton]}
+                  onPress={sendMessage}
+                  disabled={!message.trim()}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={message.trim() ? [Colors.PRIMARY, '#1e40af'] : ['#d1d5db', '#9ca3af']}
+                    style={styles.webSendButtonGradient}
+                  >
+                    <Send size={20} color={Colors.WHITE} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.webInputHint}>
+                Press Enter to send • Shift + Enter for new line
+              </Text>
+            </View>
+          </View>
+        </View>
+      </WebLayout>
+    );
+  }
+
+  // Mobile version (existing code)
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -177,6 +273,165 @@ export default function ChatBotScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Web Styles
+  webContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    maxHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  webChatHeader: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 20,
+  },
+  webHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: width < 640 ? 16 : 32,
+  },
+  webHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  webBotAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.PRIMARY + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webChatTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  webStatusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  webOnlineStatus: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.SUCCESS,
+  },
+  webStatusText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  webHeaderRight: {
+    // Header right content
+  },
+  webSafetyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.SUCCESS + '10',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  webSafetyText: {
+    fontSize: 12,
+    color: Colors.SUCCESS,
+    fontWeight: '600',
+  },
+  webMessagesContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  webMessagesContent: {
+    paddingVertical: 20,
+  },
+  webChatContent: {
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: width < 640 ? 16 : 32,
+  },
+  webSupportNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  webSupportNoticeText: {
+    fontSize: 14,
+    color: '#92400e',
+    flex: 1,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  webInputContainer: {
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingVertical: 20,
+  },
+  webInputContent: {
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: width < 640 ? 16 : 32,
+  },
+  webInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 16,
+    marginBottom: 8,
+  },
+  webTextInput: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: '#1e293b',
+    maxHeight: 120,
+    backgroundColor: '#f8fafc',
+    fontWeight: '400',
+  },
+  webSendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  webSendButtonGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webDisabledSendButton: {
+    opacity: 0.5,
+  },
+  webInputHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontWeight: '400',
+  },
+  
+  // Mobile Styles (existing)
   container: {
     flex: 1,
     backgroundColor: Colors.LIGHT_GRAY,
@@ -239,6 +494,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 16,
     alignItems: 'flex-end',
+    maxWidth: width < 640 ? '100%' : '80%',
+    alignSelf: width < 640 ? 'stretch' : 'center',
   },
   botMessageContainer: {
     justifyContent: 'flex-start',
@@ -246,6 +503,7 @@ const styles = StyleSheet.create({
   userMessageContainer: {
     justifyContent: 'flex-end',
     flexDirection: 'row-reverse',
+    alignSelf: 'flex-end',
   },
   messageAvatar: {
     width: 40,

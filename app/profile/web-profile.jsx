@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2, Save, Mail, GraduationCap, Calendar, Award, Activity, Target, TrendingUp, Heart, Brain, CircleCheck as CheckCircle, Star, Trophy, Zap, Clock, ChartBar as BarChart } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
-import { responsive, isBreakpoint, getContainerMaxWidth } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -130,7 +129,7 @@ export default function WebProfileScreen() {
               <View style={styles.profileImageSection}>
                 <View style={styles.profileImageContainer}>
                   <View style={styles.profileImage}>
-                    <User size={72} color={Colors.WHITE} />
+                    <User size={width < 640 ? 48 : width < 1024 ? 60 : 72} color={Colors.WHITE} />
                   </View>
                   <TouchableOpacity style={styles.changePhotoButton}>
                     <Edit2 size={16} color={Colors.PRIMARY} />
@@ -172,14 +171,16 @@ export default function WebProfileScreen() {
           {/* Wellness Dashboard */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Activity size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Wellness Dashboard</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Activity size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Wellness Dashboard</Text>
+              </View>
               <TouchableOpacity 
                 style={styles.viewAllButton}
                 onPress={() => router.push('/daily_check_in/progress')}
               >
                 <BarChart size={16} color={Colors.PRIMARY} />
-                <Text style={styles.viewAllText}>View Detailed Analytics</Text>
+                <Text style={styles.viewAllText}>View Analytics</Text>
               </TouchableOpacity>
             </View>
             
@@ -208,8 +209,10 @@ export default function WebProfileScreen() {
           {/* Profile Information */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <User size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Profile Information</Text>
+              <View style={styles.sectionTitleContainer}>
+                <User size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Profile Information</Text>
+              </View>
             </View>
             
             {isEditing ? (
@@ -316,8 +319,10 @@ export default function WebProfileScreen() {
           {/* Recent Activity */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Clock size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Recent Wellness Activity</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Clock size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Recent Wellness Activity</Text>
+              </View>
               <TouchableOpacity style={styles.viewAllButton}>
                 <Text style={styles.viewAllText}>View All Activity</Text>
                 <ChevronRight size={16} color={Colors.PRIMARY} />
@@ -347,8 +352,10 @@ export default function WebProfileScreen() {
           {/* Achievements */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Trophy size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Wellness Achievements</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Trophy size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Wellness Achievements</Text>
+              </View>
               <View style={styles.achievementStats}>
                 <Text style={styles.achievementStatsText}>3 of 6 earned</Text>
               </View>
@@ -415,8 +422,10 @@ export default function WebProfileScreen() {
           {/* Settings */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Settings size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Settings & Preferences</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Settings size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Settings & Preferences</Text>
+              </View>
             </View>
             
             <View style={styles.settingsGrid}>
@@ -461,8 +470,10 @@ export default function WebProfileScreen() {
           {/* Support & Help */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <HelpCircle size={28} color={Colors.PRIMARY} />
-              <Text style={styles.sectionTitle}>Support & Resources</Text>
+              <View style={styles.sectionTitleContainer}>
+                <HelpCircle size={28} color={Colors.PRIMARY} />
+                <Text style={styles.sectionTitle}>Support & Resources</Text>
+              </View>
             </View>
             
             <View style={styles.supportGrid}>
@@ -470,8 +481,10 @@ export default function WebProfileScreen() {
                 <View style={styles.supportIcon}>
                   <HelpCircle size={24} color={Colors.INFO} />
                 </View>
-                <Text style={styles.supportTitle}>Help Center</Text>
-                <Text style={styles.supportDescription}>Find answers to common questions</Text>
+                <View style={styles.supportContent}>
+                  <Text style={styles.supportTitle}>Help Center</Text>
+                  <Text style={styles.supportDescription}>Find answers to common questions</Text>
+                </View>
                 <ChevronRight size={20} color={Colors.GRAY} />
               </TouchableOpacity>
               
@@ -479,8 +492,10 @@ export default function WebProfileScreen() {
                 <View style={styles.supportIcon}>
                   <Shield size={24} color={Colors.SUCCESS} />
                 </View>
-                <Text style={styles.supportTitle}>Privacy Policy</Text>
-                <Text style={styles.supportDescription}>Learn how we protect your data</Text>
+                <View style={styles.supportContent}>
+                  <Text style={styles.supportTitle}>Privacy Policy</Text>
+                  <Text style={styles.supportDescription}>Learn how we protect your data</Text>
+                </View>
                 <ChevronRight size={20} color={Colors.GRAY} />
               </TouchableOpacity>
               
@@ -488,8 +503,10 @@ export default function WebProfileScreen() {
                 <View style={styles.supportIcon}>
                   <Award size={24} color={Colors.SECONDARY} />
                 </View>
-                <Text style={styles.supportTitle}>Terms of Service</Text>
-                <Text style={styles.supportDescription}>Review our terms and conditions</Text>
+                <View style={styles.supportContent}>
+                  <Text style={styles.supportTitle}>Terms of Service</Text>
+                  <Text style={styles.supportDescription}>Review our terms and conditions</Text>
+                </View>
                 <ChevronRight size={20} color={Colors.GRAY} />
               </TouchableOpacity>
               
@@ -497,8 +514,10 @@ export default function WebProfileScreen() {
                 <View style={styles.supportIcon}>
                   <Heart size={24} color={Colors.ERROR} />
                 </View>
-                <Text style={styles.supportTitle}>Contact Support</Text>
-                <Text style={styles.supportDescription}>Get help from our support team</Text>
+                <View style={styles.supportContent}>
+                  <Text style={styles.supportTitle}>Contact Support</Text>
+                  <Text style={styles.supportDescription}>Get help from our support team</Text>
+                </View>
                 <ChevronRight size={20} color={Colors.GRAY} />
               </TouchableOpacity>
             </View>
@@ -533,23 +552,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafbfc',
   },
   heroSection: {
-    ...responsive({
-      paddingVertical: { xs: 40, sm: 60, md: 80 },
-      paddingHorizontal: { xs: 20, sm: 40, md: 60 },
-    }),
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
+    paddingHorizontal: width < 640 ? 20 : width < 1024 ? 40 : 60,
   },
   heroContent: {
-    maxWidth: getContainerMaxWidth(),
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
   },
   profileHeader: {
-    ...responsive({
-      flexDirection: { xs: 'column', md: 'row' },
-      alignItems: { xs: 'center', md: 'center' },
-      gap: { xs: 24, sm: 32, md: 48 },
-      textAlign: { xs: 'center', md: 'left' },
-    }),
+    flexDirection: width < 768 ? 'column' : 'row',
+    alignItems: 'center',
+    gap: width < 640 ? 24 : width < 1024 ? 32 : 48,
+    textAlign: width < 768 ? 'center' : 'left',
   },
   profileImageSection: {
     alignItems: 'center',
@@ -558,11 +573,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileImage: {
-    ...responsive({
-      width: { xs: 100, sm: 120, md: 140 },
-      height: { xs: 100, sm: 120, md: 140 },
-      borderRadius: { xs: 50, sm: 60, md: 70 },
-    }),
+    width: width < 640 ? 100 : width < 1024 ? 120 : 140,
+    height: width < 640 ? 100 : width < 1024 ? 120 : 140,
+    borderRadius: width < 640 ? 50 : width < 1024 ? 60 : 70,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -596,39 +609,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    ...responsive({
-      fontSize: { xs: 28, sm: 36, md: 42 },
-      textAlign: { xs: 'center', md: 'left' },
-    }),
+    fontSize: width < 640 ? 28 : width < 1024 ? 36 : 42,
+    textAlign: width < 768 ? 'center' : 'left',
     fontWeight: '800',
     color: Colors.WHITE,
     marginBottom: 12,
     letterSpacing: -1,
   },
   profileRole: {
-    ...responsive({
-      fontSize: { xs: 18, sm: 20, md: 22 },
-      textAlign: { xs: 'center', md: 'left' },
-    }),
+    fontSize: width < 640 ? 18 : width < 1024 ? 20 : 22,
+    textAlign: width < 768 ? 'center' : 'left',
     color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: 8,
     fontWeight: '500',
   },
   profileEmail: {
-    ...responsive({
-      fontSize: { xs: 16, sm: 17, md: 18 },
-      textAlign: { xs: 'center', md: 'left' },
-    }),
+    fontSize: width < 640 ? 16 : width < 1024 ? 17 : 18,
+    textAlign: width < 768 ? 'center' : 'left',
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 20,
     fontWeight: '400',
   },
   profileMeta: {
-    ...responsive({
-      flexDirection: { xs: 'column', sm: 'row' },
-      gap: { xs: 16, sm: 24, md: 32 },
-      alignItems: { xs: 'center', sm: 'flex-start' },
-    }),
+    flexDirection: width < 640 ? 'column' : 'row',
+    gap: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    alignItems: width < 640 ? 'center' : 'flex-start',
   },
   metaItem: {
     flexDirection: 'row',
@@ -661,21 +666,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   mainContent: {
-    maxWidth: getContainerMaxWidth(),
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    ...responsive({
-      paddingHorizontal: { xs: 20, sm: 40, md: 60 },
-      paddingBottom: { xs: 60, sm: 70, md: 80 },
-    }),
+    paddingHorizontal: width < 640 ? 20 : width < 1024 ? 40 : 60,
+    paddingBottom: width < 640 ? 60 : width < 1024 ? 70 : 80,
   },
   section: {
     backgroundColor: Colors.WHITE,
-    ...responsive({
-      borderRadius: { xs: 16, sm: 20, md: 24 },
-      padding: { xs: 24, sm: 32, md: 40 },
-      marginBottom: { xs: 24, sm: 32, md: 40 },
-    }),
+    borderRadius: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    padding: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
@@ -687,14 +688,21 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    justifyContent: 'space-between',
     marginBottom: 32,
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    flex: 1,
   },
   sectionTitle: {
-    fontSize: 28,
+    fontSize: width < 640 ? 24 : 28,
     fontWeight: '800',
     color: Colors.PRIMARY,
-    flex: 1,
     letterSpacing: -0.5,
   },
   viewAllButton: {
@@ -713,20 +721,16 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    ...responsive({
-      gap: { xs: 16, sm: 20, md: 24 },
-      justifyContent: { xs: 'center', sm: 'flex-start' },
-    }),
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    justifyContent: width < 640 ? 'center' : 'flex-start',
     flexWrap: 'wrap',
   },
   statCard: {
     backgroundColor: '#f8fafc',
-    ...responsive({
-      borderRadius: { xs: 16, sm: 18, md: 20 },
-      padding: { xs: 20, sm: 24, md: 28 },
-      width: { xs: '100%', sm: '48%', lg: '23%' },
-      minWidth: { xs: 280, sm: 220 },
-    }),
+    borderRadius: width < 640 ? 16 : width < 1024 ? 18 : 20,
+    padding: width < 640 ? 20 : width < 1024 ? 24 : 28,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '23%',
+    minWidth: width < 640 ? 280 : 220,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -774,22 +778,19 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '500',
   },
+  // Form Styles
   editForm: {
-    // Edit form styles
+    marginTop: 20,
   },
   formGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    ...responsive({
-      gap: { xs: 20, sm: 24, md: 32 },
-      marginBottom: { xs: 24, sm: 28, md: 32 },
-    }),
+    gap: width < 640 ? 20 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 24 : width < 1024 ? 28 : 32,
   },
   inputGroup: {
-    ...responsive({
-      width: { xs: '100%', md: '48%' },
-      minWidth: { xs: 260, sm: 280 },
-    }),
+    width: width < 768 ? '100%' : '48%',
+    minWidth: width < 640 ? 260 : 280,
   },
   inputLabel: {
     fontSize: 16,
@@ -850,7 +851,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderRadius: 16,
     padding: 24,
-    width: '48%',
+    width: width < 768 ? '100%' : '48%',
     minWidth: 280,
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -928,19 +929,15 @@ const styles = StyleSheet.create({
   achievementsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    ...responsive({
-      gap: { xs: 16, sm: 20, md: 24 },
-      justifyContent: { xs: 'center', sm: 'flex-start' },
-    }),
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    justifyContent: width < 640 ? 'center' : 'flex-start',
   },
   achievementCard: {
     backgroundColor: '#f8fafc',
-    ...responsive({
-      borderRadius: { xs: 16, sm: 18, md: 20 },
-      padding: { xs: 20, sm: 24, md: 28 },
-      width: { xs: '100%', sm: '48%', lg: '31%' },
-      minWidth: { xs: 280, sm: 300 },
-    }),
+    borderRadius: width < 640 ? 16 : width < 1024 ? 18 : 20,
+    padding: width < 640 ? 20 : width < 1024 ? 24 : 28,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '31%',
+    minWidth: width < 640 ? 280 : 300,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -999,7 +996,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   progressContainer: {
-    // Progress styles
+    marginTop: 8,
   },
   progressText: {
     fontSize: 13,
@@ -1030,20 +1027,16 @@ const styles = StyleSheet.create({
   },
   settingsGrid: {
     flexDirection: 'row',
-    ...responsive({
-      gap: { xs: 20, sm: 24, md: 32 },
-      justifyContent: { xs: 'center', sm: 'flex-start' },
-    }),
+    gap: width < 640 ? 20 : width < 1024 ? 24 : 32,
+    justifyContent: width < 640 ? 'center' : 'flex-start',
     flexWrap: 'wrap',
   },
   settingCard: {
     backgroundColor: '#f8fafc',
-    ...responsive({
-      borderRadius: { xs: 16, sm: 18, md: 20 },
-      padding: { xs: 24, sm: 28, md: 32 },
-      width: { xs: '100%', md: '48%' },
-      minWidth: { xs: 300, sm: 320 },
-    }),
+    borderRadius: width < 640 ? 16 : width < 1024 ? 18 : 20,
+    padding: width < 640 ? 24 : width < 1024 ? 28 : 32,
+    width: width < 768 ? '100%' : '48%',
+    minWidth: width < 640 ? 300 : 320,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
@@ -1072,21 +1065,17 @@ const styles = StyleSheet.create({
   supportGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    ...responsive({
-      gap: { xs: 16, sm: 20, md: 24 },
-      justifyContent: { xs: 'center', sm: 'flex-start' },
-    }),
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    justifyContent: width < 640 ? 'center' : 'flex-start',
   },
   supportCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    ...responsive({
-      gap: { xs: 12, sm: 14, md: 16 },
-      borderRadius: { xs: 12, sm: 14, md: 16 },
-      padding: { xs: 20, sm: 22, md: 24 },
-      width: { xs: '100%', md: '48%' },
-      minWidth: { xs: 300, sm: 320 },
-    }),
+    gap: width < 640 ? 12 : width < 1024 ? 14 : 16,
+    borderRadius: width < 640 ? 12 : width < 1024 ? 14 : 16,
+    padding: width < 640 ? 20 : width < 1024 ? 22 : 24,
+    width: width < 768 ? '100%' : '48%',
+    minWidth: width < 640 ? 300 : 320,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -1103,17 +1092,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
+  supportContent: {
+    flex: 1,
+  },
   supportTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.PRIMARY,
     marginBottom: 4,
-    flex: 1,
   },
   supportDescription: {
     fontSize: 14,
     color: '#64748b',
-    flex: 1,
   },
   logoutSection: {
     paddingVertical: 40,
@@ -1162,5 +1152,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#94a3b8',
     fontWeight: '400',
+    textAlign: 'center',
   },
 });

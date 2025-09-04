@@ -12,7 +12,6 @@ import { router } from 'expo-router';
 import { Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, ArrowRight, Star, CheckCircle, Shield, Zap, Target, Activity, BarChart3, Plus, Bell } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
-import { responsive, isBreakpoint, getGridColumns, responsiveSpacing } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -207,7 +206,7 @@ export default function WebHomeScreen() {
                     <View style={[styles.statIcon, { backgroundColor: stat.color + '15' }]}>
                       <IconComponent size={16} color={stat.color} />
                     </View>
-                    <Text style={styles.statChange}>{stat.change}</Text>
+                    <Text style={[styles.statChange, { color: '#10B981' }]}>{stat.change}</Text>
                   </View>
                   <Text style={styles.statValue}>{stat.value}<Text style={styles.statUnit}>{stat.unit}</Text></Text>
                   <Text style={styles.statLabel}>{stat.label}</Text>
@@ -326,8 +325,6 @@ export default function WebHomeScreen() {
             })}
           </View>
         </View>
-
-
       </ScrollView>
     </WebLayout>
   );
@@ -340,26 +337,32 @@ const styles = StyleSheet.create({
   },
   // Dashboard Header
   dashboardHeader: {
-    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
-    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
-    flexDirection: responsive({ xs: 'column', sm: 'row' }),
+    flexDirection: width < 640 ? 'column' : 'row',
     justifyContent: 'space-between',
-    alignItems: responsive({ xs: 'flex-start', sm: 'center' }),
-    gap: responsive({ xs: 12, sm: 0 }),
+    alignItems: width < 640 ? 'flex-start' : 'center',
+    gap: width < 640 ? 12 : 0,
   },
-  welcomeSection: {
-    flex: 1,
+  headerContent: {
+    flexDirection: width < 640 ? 'column' : 'row',
+    justifyContent: 'space-between',
+    alignItems: width < 640 ? 'flex-start' : 'center',
+    width: '100%',
+    maxWidth: 1200,
+    alignSelf: 'center',
+    gap: width < 640 ? 12 : 0,
   },
   welcomeText: {
     fontSize: 14,
     color: '#64748b',
     marginBottom: 4,
   },
-  welcomeTitle: {
-    fontSize: responsive({ xs: 24, sm: 26, md: 28 }),
+  dashboardTitle: {
+    fontSize: width < 640 ? 24 : width < 1024 ? 26 : 28,
     fontWeight: '700',
     color: '#1e293b',
   },
@@ -373,16 +376,24 @@ const styles = StyleSheet.create({
   },
   // Stats Overview
   statsSection: {
-    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
-    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
-    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
-  statsHeader: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1e293b',
   },
   periodSelector: {
     flexDirection: 'row',
@@ -413,8 +424,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statsGrid: {
-    flexDirection: responsive({ xs: 'column', sm: 'row' }),
-    gap: responsive({ xs: 12, sm: 16, md: 20 }),
+    flexDirection: width < 640 ? 'column' : 'row',
+    gap: width < 640 ? 12 : width < 1024 ? 16 : 20,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
   },
   statCard: {
     flex: 1,
@@ -423,6 +437,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    minWidth: width < 640 ? '100%' : 200,
   },
   statHeader: {
     flexDirection: 'row',
@@ -447,35 +462,37 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     marginBottom: 4,
   },
+  statUnit: {
+    fontSize: 16,
+    color: '#64748b',
+    fontWeight: '400',
+  },
   statLabel: {
     fontSize: 14,
     color: '#64748b',
   },
   // Main Sections
   mainSection: {
-    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
-    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
-    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 16,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
   // Dashboard Cards
   dashboardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: responsive({ xs: 12, sm: 16, md: 20 }),
+    gap: width < 640 ? 12 : width < 1024 ? 16 : 20,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
   },
   dashboardCard: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: responsive({ xs: 16, sm: 18, md: 20 }),
-    width: responsive({ xs: '100%', sm: '48%', lg: '31%' }),
-    minWidth: responsive({ xs: 0, sm: 280 }),
+    padding: width < 640 ? 16 : width < 1024 ? 18 : 20,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '31%',
+    minWidth: width < 640 ? 0 : 280,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -539,10 +556,13 @@ const styles = StyleSheet.create({
   },
   // Two Column Layout
   twoColumnSection: {
-    flexDirection: responsive({ xs: 'column', md: 'row' }),
-    gap: responsive({ xs: 16, sm: 20, md: 24 }),
-    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
-    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+    flexDirection: width < 768 ? 'column' : 'row',
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
   },
   leftColumn: {
     flex: 1,
@@ -630,22 +650,25 @@ const styles = StyleSheet.create({
   },
   // Wellness Tips
   wellnessSection: {
-    paddingHorizontal: responsive({ xs: 16, sm: 24, md: 32 }),
-    paddingVertical: responsive({ xs: 16, sm: 20, md: 24 }),
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
-    marginBottom: responsive({ xs: 16, sm: 20, md: 24 }),
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
   wellnessGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: responsive({ xs: 12, sm: 14, md: 16 }),
+    gap: width < 640 ? 12 : width < 1024 ? 14 : 16,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
   },
   wellnessTipCard: {
     backgroundColor: '#f8fafc',
     borderRadius: 8,
-    padding: responsive({ xs: 12, sm: 14, md: 16 }),
-    width: responsive({ xs: '100%', sm: '48%', lg: '31%' }),
-    minWidth: responsive({ xs: 0, sm: 200 }),
+    padding: width < 640 ? 12 : width < 1024 ? 14 : 16,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '31%',
+    minWidth: width < 640 ? 0 : 200,
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },

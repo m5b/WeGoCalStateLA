@@ -16,7 +16,6 @@ import {
   ChevronDown, Settings, LogOut, HelpCircle 
 } from 'lucide-react-native';
 import Colors from '../constant/Colors';
-import { responsive, isBreakpoint, getContainerMaxWidth } from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -108,15 +107,18 @@ export default function WebLayout({ children }) {
               <Menu size={20} color="#374151" />
             </TouchableOpacity>
             
-            <View style={styles.brandContainer}>
+            <TouchableOpacity 
+              style={styles.brandContainer}
+              onPress={() => router.push('/')}
+            >
               <View style={styles.brandIcon}>
                 <Sparkles size={20} color={Colors.PRIMARY} />
               </View>
               <Text style={styles.brandText}>WeGo</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Center Section - Search */}
+          {/* Center Section - Search (hidden on mobile) */}
           <View style={styles.headerCenter}>
             <View style={styles.searchContainer}>
               <Search size={16} color="#9CA3AF" />
@@ -186,17 +188,17 @@ export default function WebLayout({ children }) {
               <View style={styles.sidebarContent}>
                 <View style={styles.sidebarHeader}>
                   <View style={styles.sidebarBrand}>
-                  <View style={styles.sidebarBrandIcon}>
-                    <Sparkles size={20} color={Colors.PRIMARY} />
+                    <View style={styles.sidebarBrandIcon}>
+                      <Sparkles size={20} color={Colors.PRIMARY} />
+                    </View>
+                    <Text style={styles.sidebarBrandText}>WeGo Platform</Text>
                   </View>
-                  <Text style={styles.sidebarBrandText}>WeGo Platform</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.sidebarClose}
-                  onPress={() => setSidebarOpen(false)}
-                >
-                  <X size={20} color="#6B7280" />
-                </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.sidebarClose}
+                    onPress={() => setSidebarOpen(false)}
+                  >
+                    <X size={20} color="#6B7280" />
+                  </TouchableOpacity>
                 </View>
                 
                 <ScrollView style={styles.sidebarNav} showsVerticalScrollIndicator={false}>
@@ -369,13 +371,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E7EB',
     paddingVertical: 16,
     zIndex: 100,
+    position: 'sticky',
+    top: 0,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: responsive({ xs: 16, sm: 20, md: 24 }),
-    maxWidth: getContainerMaxWidth(),
+    paddingHorizontal: width < 768 ? 16 : width < 1024 ? 24 : 32,
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
   },
@@ -386,9 +390,9 @@ const styles = StyleSheet.create({
   },
   headerCenter: {
     flex: 1,
-    maxWidth: responsive({ xs: 0, md: 400 }),
-    marginHorizontal: responsive({ xs: 0, md: 32 }),
-    display: responsive({ xs: 'none', md: 'flex' }),
+    maxWidth: width < 768 ? 0 : 400,
+    marginHorizontal: width < 768 ? 0 : 32,
+    display: width < 768 ? 'none' : 'flex',
   },
   headerRight: {
     flexDirection: 'row',
@@ -533,7 +537,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
-    width: responsive({ xs: width * 0.85, sm: 280 }),
+    width: width < 640 ? width * 0.85 : 280,
     backgroundColor: '#FFFFFF',
     zIndex: 2,
     shadowColor: '#000',
@@ -577,7 +581,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#F3F4F6',
   },
-  sidebarScrollContent: {
+  sidebarNav: {
     flex: 1,
     paddingVertical: 16,
   },
@@ -691,10 +695,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    padding: responsive({ xs: 16, sm: 20, md: 24 }),
+    padding: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
   contentInner: {
-    maxWidth: getContainerMaxWidth(),
+    maxWidth: width < 640 ? '100%' : width < 768 ? 640 : width < 1024 ? 768 : width < 1280 ? 1024 : 1200,
     alignSelf: 'center',
     width: '100%',
   },

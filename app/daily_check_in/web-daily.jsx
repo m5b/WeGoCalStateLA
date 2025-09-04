@@ -12,9 +12,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Save, ChartBar as BarChart, Calendar, Moon, Brain, Heart, TrendingUp, CircleCheck as CheckCircle, Clock, Target, Award, Zap, Activity, Star, Sun, Coffee, Smile, ArrowRight, ChevronRight } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import { Typography, Spacing, BorderRadius, Shadows, Breakpoints } from '../../constant/DesignSystem';
 import WebLayout from '../../components/WebLayout';
-import { responsive, isBreakpoint, getContainerMaxWidth } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -62,24 +60,24 @@ export default function WebDailyCheckInScreen() {
 
   const moods = [
     { value: 5, label: 'Excellent', emoji: '😁', color: Colors.SUCCESS, description: 'Feeling fantastic and energized', gradient: [Colors.SUCCESS, Colors.SUCCESS + '80'] },
-    { value: 4, label: 'Good', emoji: '🙂', color: Colors.INFO, description: 'Generally positive and content', gradient: [Colors.INFO, Colors.INFO + '80'] },
-    { value: 3, label: 'Neutral', emoji: '😐', color: Colors.GRAY_500, description: 'Neither good nor bad', gradient: [Colors.GRAY_500, Colors.GRAY_400] },
+    { value: 4, label: 'Good', emoji: '🙂', color: '#3B82F6', description: 'Generally positive and content', gradient: ['#3B82F6', '#3B82F6' + '80'] },
+    { value: 3, label: 'Neutral', emoji: '😐', color: '#6B7280', description: 'Neither good nor bad', gradient: ['#6B7280', '#9CA3AF'] },
     { value: 2, label: 'Low', emoji: '😕', color: Colors.WARNING, description: 'Feeling down or unmotivated', gradient: [Colors.WARNING, Colors.WARNING + '80'] },
     { value: 1, label: 'Poor', emoji: '😞', color: Colors.ERROR, description: 'Struggling significantly today', gradient: [Colors.ERROR, Colors.ERROR + '80'] }
   ];
 
   const sleepOptions = [
     { value: 5, label: 'Excellent', color: Colors.SUCCESS, description: '8+ hours, felt refreshed', icon: Star, gradient: [Colors.SUCCESS, Colors.SUCCESS + '80'] },
-    { value: 4, label: 'Good', color: Colors.INFO, description: '7-8 hours, mostly rested', icon: CheckCircle, gradient: [Colors.INFO, Colors.INFO + '80'] },
-    { value: 3, label: 'Fair', color: Colors.GRAY_500, description: '6-7 hours, somewhat tired', icon: Clock, gradient: [Colors.GRAY_500, Colors.GRAY_400] },
+    { value: 4, label: 'Good', color: '#3B82F6', description: '7-8 hours, mostly rested', icon: CheckCircle, gradient: ['#3B82F6', '#3B82F6' + '80'] },
+    { value: 3, label: 'Fair', color: '#6B7280', description: '6-7 hours, somewhat tired', icon: Clock, gradient: ['#6B7280', '#9CA3AF'] },
     { value: 2, label: 'Poor', color: Colors.WARNING, description: '4-6 hours, quite tired', icon: Coffee, gradient: [Colors.WARNING, Colors.WARNING + '80'] },
     { value: 1, label: 'Very Poor', color: Colors.ERROR, description: 'Less than 4 hours, exhausted', icon: Moon, gradient: [Colors.ERROR, Colors.ERROR + '80'] }
   ];
 
   const stressOptions = [
     { value: 1, label: 'Minimal', color: Colors.SUCCESS, description: 'Calm and relaxed', icon: Smile, gradient: [Colors.SUCCESS, Colors.SUCCESS + '80'] },
-    { value: 2, label: 'Low', color: Colors.INFO, description: 'Slightly tense but manageable', icon: Sun, gradient: [Colors.INFO, Colors.INFO + '80'] },
-    { value: 3, label: 'Moderate', color: Colors.GRAY_500, description: 'Noticeable stress levels', icon: Activity, gradient: [Colors.GRAY_500, Colors.GRAY_400] },
+    { value: 2, label: 'Low', color: '#3B82F6', description: 'Slightly tense but manageable', icon: Sun, gradient: ['#3B82F6', '#3B82F6' + '80'] },
+    { value: 3, label: 'Moderate', color: '#6B7280', description: 'Noticeable stress levels', icon: Activity, gradient: ['#6B7280', '#9CA3AF'] },
     { value: 4, label: 'High', color: Colors.WARNING, description: 'Feeling overwhelmed', icon: Zap, gradient: [Colors.WARNING, Colors.WARNING + '80'] },
     { value: 5, label: 'Severe', color: Colors.ERROR, description: 'Extremely stressed and anxious', icon: Brain, gradient: [Colors.ERROR, Colors.ERROR + '80'] }
   ];
@@ -126,7 +124,7 @@ export default function WebDailyCheckInScreen() {
 
   const getScoreColor = (score) => {
     if (score >= 80) return Colors.SUCCESS;
-    if (score >= 60) return Colors.INFO;
+    if (score >= 60) return '#3B82F6';
     if (score >= 40) return Colors.SECONDARY;
     if (score >= 20) return Colors.WARNING;
     return Colors.ERROR;
@@ -151,7 +149,7 @@ export default function WebDailyCheckInScreen() {
       icon: Moon,
       title: 'Sleep Optimization',
       tip: 'Establish a consistent bedtime routine and limit screen time before bed',
-      color: Colors.INFO,
+      color: '#3B82F6',
     },
     {
       icon: Brain,
@@ -242,7 +240,7 @@ export default function WebDailyCheckInScreen() {
           <View style={styles.modernSection}>
             <View style={styles.modernSectionHeader}>
               <View style={styles.sectionIconContainer}>
-                <Heart size={24} color={Colors.PRIMARY_600} />
+                <Heart size={24} color={Colors.PRIMARY} />
               </View>
               <View style={styles.sectionTitleContainer}>
                 <Text style={styles.modernSectionTitle}>How are you feeling today?</Text>
@@ -263,27 +261,27 @@ export default function WebDailyCheckInScreen() {
                   activeOpacity={0.7}
                 >
                   <LinearGradient
-                    colors={mood === item.value ? item.gradient : [Colors.GRAY_50, Colors.GRAY_100]}
+                    colors={mood === item.value ? item.gradient : ['#f9fafb', '#f3f4f6']}
                     style={styles.modernCardGradient}
                   >
                     <View style={styles.modernCardContent}>
                       <Text style={styles.modernOptionEmoji}>{item.emoji}</Text>
                       <Text style={[
                         styles.modernOptionLabel,
-                        mood === item.value && { color: Colors.GRAY_900 }
+                        mood === item.value && { color: '#111827' }
                       ]}>
                         {item.label}
                       </Text>
                       <Text style={[
                         styles.modernOptionDescription,
-                        mood === item.value && { color: Colors.GRAY_700 }
+                        mood === item.value && { color: '#374151' }
                       ]}>
                         {item.description}
                       </Text>
                     </View>
                     {mood === item.value && (
                       <View style={styles.selectedIndicator}>
-                        <CheckCircle size={20} color={Colors.GRAY_900} />
+                        <CheckCircle size={20} color="#111827" />
                       </View>
                     )}
                   </LinearGradient>
@@ -296,7 +294,7 @@ export default function WebDailyCheckInScreen() {
           <View style={styles.modernSection}>
             <View style={styles.modernSectionHeader}>
               <View style={styles.sectionIconContainer}>
-                <Moon size={24} color={Colors.PRIMARY_600} />
+                <Moon size={24} color={Colors.PRIMARY} />
               </View>
               <View style={styles.sectionTitleContainer}>
                 <Text style={styles.modernSectionTitle}>How well did you sleep last night?</Text>
@@ -319,35 +317,35 @@ export default function WebDailyCheckInScreen() {
                     activeOpacity={0.7}
                   >
                     <LinearGradient
-                      colors={sleepQuality === item.value ? item.gradient : [Colors.GRAY_50, Colors.GRAY_100]}
+                      colors={sleepQuality === item.value ? item.gradient : ['#f9fafb', '#f3f4f6']}
                       style={styles.modernCardGradient}
                     >
                       <View style={styles.modernCardContent}>
                         <View style={[
                           styles.modernOptionIcon,
-                          sleepQuality === item.value && { backgroundColor: Colors.GRAY_800 + '20' }
+                          sleepQuality === item.value && { backgroundColor: '#1f2937' + '20' }
                         ]}>
                           <IconComponent 
                             size={24} 
-                            color={sleepQuality === item.value ? Colors.GRAY_900 : item.color} 
+                            color={sleepQuality === item.value ? '#111827' : item.color} 
                           />
                         </View>
                         <Text style={[
                           styles.modernOptionLabel,
-                          sleepQuality === item.value && { color: Colors.GRAY_900 }
+                          sleepQuality === item.value && { color: '#111827' }
                         ]}>
                           {item.label}
                         </Text>
                         <Text style={[
                           styles.modernOptionDescription,
-                          sleepQuality === item.value && { color: Colors.GRAY_700 }
+                          sleepQuality === item.value && { color: '#374151' }
                         ]}>
                           {item.description}
                         </Text>
                       </View>
                       {sleepQuality === item.value && (
                         <View style={styles.selectedIndicator}>
-                          <CheckCircle size={20} color={Colors.GRAY_900} />
+                          <CheckCircle size={20} color="#111827" />
                         </View>
                       )}
                     </LinearGradient>
@@ -361,7 +359,7 @@ export default function WebDailyCheckInScreen() {
           <View style={styles.modernSection}>
             <View style={styles.modernSectionHeader}>
               <View style={styles.sectionIconContainer}>
-                <Brain size={24} color={Colors.PRIMARY_600} />
+                <Brain size={24} color={Colors.PRIMARY} />
               </View>
               <View style={styles.sectionTitleContainer}>
                 <Text style={styles.modernSectionTitle}>What's your stress level today?</Text>
@@ -384,35 +382,35 @@ export default function WebDailyCheckInScreen() {
                     activeOpacity={0.7}
                   >
                     <LinearGradient
-                      colors={stressLevel === item.value ? item.gradient : [Colors.GRAY_50, Colors.GRAY_100]}
+                      colors={stressLevel === item.value ? item.gradient : ['#f9fafb', '#f3f4f6']}
                       style={styles.modernCardGradient}
                     >
                       <View style={styles.modernCardContent}>
                         <View style={[
                           styles.modernOptionIcon,
-                          stressLevel === item.value && { backgroundColor: Colors.GRAY_800 + '20' }
+                          stressLevel === item.value && { backgroundColor: '#1f2937' + '20' }
                         ]}>
                           <IconComponent 
                             size={24} 
-                            color={stressLevel === item.value ? Colors.GRAY_900 : item.color} 
+                            color={stressLevel === item.value ? '#111827' : item.color} 
                           />
                         </View>
                         <Text style={[
                           styles.modernOptionLabel,
-                          stressLevel === item.value && { color: Colors.GRAY_900 }
+                          stressLevel === item.value && { color: '#111827' }
                         ]}>
                           {item.label}
                         </Text>
                         <Text style={[
                           styles.modernOptionDescription,
-                          stressLevel === item.value && { color: Colors.GRAY_700 }
+                          stressLevel === item.value && { color: '#374151' }
                         ]}>
                           {item.description}
                         </Text>
                       </View>
                       {stressLevel === item.value && (
                         <View style={styles.selectedIndicator}>
-                          <CheckCircle size={20} color={Colors.GRAY_900} />
+                          <CheckCircle size={20} color="#111827" />
                         </View>
                       )}
                     </LinearGradient>
@@ -471,7 +469,7 @@ export default function WebDailyCheckInScreen() {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isAllAnswered() ? [Colors.PRIMARY_600, Colors.PRIMARY_700] : [Colors.GRAY_300, Colors.GRAY_400]}
+                  colors={isAllAnswered() ? [Colors.PRIMARY, '#1e40af'] : ['#d1d5db', '#9ca3af']}
                   style={styles.modernButtonGradient}
                 >
                   {isSubmitting ? (
@@ -501,9 +499,9 @@ export default function WebDailyCheckInScreen() {
               activeOpacity={0.7}
             >
               <View style={styles.secondaryButtonContent}>
-                <BarChart size={20} color={Colors.PRIMARY_600} />
+                <BarChart size={20} color={Colors.PRIMARY} />
                 <Text style={styles.modernSecondaryButtonText}>View Progress Analytics</Text>
-                <ChevronRight size={16} color={Colors.GRAY_500} />
+                <ChevronRight size={16} color="#6b7280" />
               </View>
             </TouchableOpacity>
             
@@ -525,106 +523,136 @@ export default function WebDailyCheckInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    backgroundColor: '#f8fafc',
   },
   heroSection: {
-    ...responsive({
-      paddingVertical: { xs: Spacing[16], sm: Spacing[20], md: Spacing[20] * 2 },
-      paddingHorizontal: { xs: Spacing[4], sm: Spacing[6], md: Spacing[20] },
-    }),
-    backgroundColor: Colors.WHITE,
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.BORDER,
+    borderBottomColor: '#e2e8f0',
   },
   heroContent: {
-    maxWidth: getContainerMaxWidth(),
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
   },
   heroHeader: {
-    ...responsive({
-      flexDirection: { xs: 'column', sm: 'row' },
-      alignItems: { xs: 'center', sm: 'center' },
-      marginBottom: { xs: Spacing[8], sm: Spacing[10], md: Spacing[12] },
-      gap: { xs: Spacing[6], sm: Spacing[8], md: Spacing[12] },
-      textAlign: { xs: 'center', sm: 'left' },
-    }),
+    flexDirection: width < 640 ? 'column' : 'row',
+    alignItems: 'center',
+    marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    gap: width < 640 ? 20 : width < 1024 ? 24 : 32,
+    textAlign: width < 640 ? 'center' : 'left',
   },
   heroIcon: {
     width: 80,
     height: 80,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.PRIMARY_50,
+    borderRadius: 40,
+    backgroundColor: Colors.PRIMARY + '15',
     justifyContent: 'center',
     alignItems: 'center',
-    ...Shadows.web.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
   },
   heroText: {
     flex: 1,
   },
   heroTitle: {
-    ...responsive({
-      fontSize: { xs: Typography.fontSize['2xl'], sm: Typography.fontSize['3xl'], md: Typography.fontSize['4xl'] },
-      textAlign: { xs: 'center', sm: 'left' },
-    }),
-    fontWeight: Typography.fontWeight.black,
-    color: Colors.PRIMARY_900,
-    marginBottom: Spacing[2],
-    letterSpacing: Typography.letterSpacing.tight,
-    lineHeight: Typography.lineHeight.tight,
+    fontSize: width < 640 ? 28 : width < 1024 ? 36 : 42,
+    textAlign: width < 640 ? 'center' : 'left',
+    fontWeight: '800',
+    color: Colors.PRIMARY,
+    marginBottom: 8,
+    letterSpacing: -1,
+  },
+  heroDate: {
+    fontSize: width < 640 ? 16 : 18,
+    color: '#64748b',
+    fontWeight: '500',
+    textAlign: width < 640 ? 'center' : 'left',
+  },
+  scoreContainer: {
+    alignItems: width < 640 ? 'center' : 'flex-end',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  scoreLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  scoreValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 8,
+    letterSpacing: -1,
+  },
+  scoreMessage: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   heroSubtitle: {
-    fontSize: Typography.fontSize.lg,
-    color: Colors.TEXT_SECONDARY,
-    fontWeight: Typography.fontWeight.medium,
-    letterSpacing: Typography.letterSpacing.normal,
-  },
-  heroDescription: {
-    fontSize: Typography.fontSize.base,
-    color: Colors.TEXT_SECONDARY,
-    lineHeight: Typography.lineHeight.relaxed,
-    marginTop: Spacing[8],
-    maxWidth: 600,
+    fontSize: width < 640 ? 16 : 18,
+    color: '#64748b',
+    fontWeight: '400',
+    letterSpacing: 0,
+    lineHeight: width < 640 ? 24 : 28,
+    textAlign: width < 640 ? 'center' : 'left',
+    marginBottom: 32,
   },
   // Progress Indicator Styles
   progressContainer: {
-    marginTop: Spacing[12],
-    backgroundColor: Colors.WHITE,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing[8],
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
     borderWidth: 1,
-    borderColor: Colors.BORDER,
-    ...Shadows.web.sm,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing[6],
+    marginBottom: 16,
   },
   progressText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: Typography.fontWeight.semibold,
-    color: Colors.TEXT,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
   },
   progressPercentage: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.PRIMARY_600,
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
   },
   progressBarContainer: {
-    marginBottom: Spacing[6],
+    marginBottom: 16,
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: Colors.GRAY_200,
-    borderRadius: BorderRadius.full,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: Colors.PRIMARY_500,
-    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.PRIMARY,
+    borderRadius: 4,
   },
   progressSteps: {
     flexDirection: 'row',
@@ -638,43 +666,45 @@ const styles = StyleSheet.create({
     // Additional styles for completed steps
   },
   progressStepText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.GRAY_500,
-    fontWeight: Typography.fontWeight.medium,
+    fontSize: 12,
+    color: '#9ca3af',
+    fontWeight: '500',
   },
   progressStepTextCompleted: {
-    color: Colors.PRIMARY_600,
-    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.PRIMARY,
+    fontWeight: '600',
   },
   mainContent: {
-    maxWidth: getContainerMaxWidth(),
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    ...responsive({
-      paddingHorizontal: { xs: Spacing[4], sm: Spacing[6], md: Spacing[20] },
-    }),
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
   },
   // Modern Section Styles
   modernSection: {
-    backgroundColor: Colors.WHITE,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing[20],
-    marginBottom: Spacing[12],
-    ...Shadows.web.md,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    marginBottom: width < 640 ? 24 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: Colors.BORDER,
+    borderColor: '#e2e8f0',
   },
   modernSectionHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: Spacing[8],
-    gap: Spacing[8],
+    marginBottom: 32,
+    gap: 16,
   },
   sectionIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.PRIMARY_50,
+    borderRadius: 12,
+    backgroundColor: Colors.PRIMARY + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -682,47 +712,45 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modernSectionTitle: {
-    fontSize: Typography.fontSize['4xl'],
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.TEXT,
-    marginBottom: Spacing[1],
-    letterSpacing: Typography.letterSpacing.tight,
+    fontSize: width < 640 ? 20 : width < 1024 ? 24 : 28,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   modernSectionDescription: {
-    fontSize: Typography.fontSize.base,
-    color: Colors.TEXT_SECONDARY,
-    lineHeight: Typography.lineHeight.relaxed,
+    fontSize: 16,
+    color: '#64748b',
+    lineHeight: 24,
   },
   // Modern Options Grid
   modernOptionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    ...responsive({
-      gap: { xs: Spacing[3], sm: Spacing[4], md: Spacing[8] },
-      justifyContent: { xs: 'center', sm: 'space-between' },
-    }),
+    gap: width < 640 ? 12 : width < 1024 ? 16 : 20,
+    justifyContent: width < 640 ? 'center' : 'space-between',
   },
   modernOptionCard: {
-    ...responsive({
-      width: { xs: '45%', sm: '30%', md: '18%' },
-      minWidth: { xs: 140, sm: 160, md: 180 },
-    }),
-    borderRadius: BorderRadius.lg,
+    width: width < 640 ? '48%' : width < 1024 ? '30%' : '18%',
+    minWidth: width < 640 ? 140 : width < 1024 ? 160 : 180,
+    borderRadius: 12,
     overflow: 'hidden',
-    ...Shadows.web.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.BORDER,
+    borderColor: '#e2e8f0',
   },
   modernSelectedCard: {
-    ...Shadows.lg,
-    borderColor: Colors.PRIMARY_300,
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    borderColor: Colors.PRIMARY + '50',
     borderWidth: 2,
   },
   modernCardGradient: {
-    ...responsive({
-      padding: { xs: Spacing[4], sm: Spacing[6], md: Spacing[8] },
-      minHeight: { xs: 120, sm: 130, md: 140 },
-    }),
+    padding: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    minHeight: width < 640 ? 120 : width < 1024 ? 130 : 140,
     justifyContent: 'space-between',
   },
   modernCardContent: {
@@ -731,63 +759,131 @@ const styles = StyleSheet.create({
   },
   modernOptionEmoji: {
     fontSize: 32,
-    marginBottom: Spacing[2],
+    marginBottom: 8,
   },
   modernOptionIcon: {
     width: 48,
     height: 48,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.GRAY_100,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing[2],
+    marginBottom: 8,
   },
   modernOptionLabel: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: Typography.fontWeight.semibold,
-    color: Colors.GRAY_900,
-    marginBottom: Spacing[1],
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 4,
     textAlign: 'center',
   },
   modernOptionDescription: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.TEXT_SECONDARY,
+    fontSize: 12,
+    color: '#64748b',
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.snug,
+    lineHeight: 16,
   },
   selectedIndicator: {
     position: 'absolute',
-    top: Spacing[2],
-    right: Spacing[2],
+    top: 8,
+    right: 8,
+  },
+  // Tips Section
+  tipsSection: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    marginBottom: width < 640 ? 24 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: width < 640 ? 20 : width < 1024 ? 24 : 28,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    letterSpacing: -0.5,
+  },
+  tipsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: width < 640 ? 16 : 20,
+    justifyContent: width < 640 ? 'center' : 'space-between',
+  },
+  tipCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 20,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '31%',
+    minWidth: width < 640 ? 0 : 280,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  tipIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  tipTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
   },
   // Modern Actions Section
   modernActionsSection: {
-    paddingVertical: Spacing[12],
-    paddingHorizontal: Spacing[12],
-    backgroundColor: Colors.WHITE,
-    borderRadius: BorderRadius.xl,
-    marginBottom: Spacing[20],
-    ...Shadows.web.md,
+    paddingVertical: width < 640 ? 32 : 40,
+    paddingHorizontal: width < 640 ? 24 : 32,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    marginBottom: width < 640 ? 40 : 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: Colors.BORDER,
+    borderColor: '#e2e8f0',
   },
   modernActionContainer: {
-    marginBottom: Spacing[8],
+    marginBottom: 20,
   },
   modernSaveButton: {
-    borderRadius: BorderRadius.lg,
+    borderRadius: 12,
     overflow: 'hidden',
-    ...Shadows.web.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   modernSaveButtonEnabled: {
-    ...Shadows.lg,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
   modernSaveButtonDisabled: {
     opacity: 0.6,
   },
   modernButtonGradient: {
-    paddingVertical: Spacing[8],
-    paddingHorizontal: Spacing[12],
+    paddingVertical: 20,
+    paddingHorizontal: 32,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
@@ -795,59 +891,59 @@ const styles = StyleSheet.create({
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing[2],
+    gap: 12,
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing[2],
+    gap: 12,
   },
   modernSaveButtonText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.semibold,
+    fontSize: 18,
+    fontWeight: '600',
     color: Colors.WHITE,
-    letterSpacing: Typography.letterSpacing.wide,
+    letterSpacing: 0.3,
   },
   modernSaveButtonTextDisabled: {
-    color: Colors.GRAY_500,
+    color: '#6b7280',
   },
   modernSecondaryButton: {
-    backgroundColor: Colors.BACKGROUND_SECONDARY,
-    borderRadius: BorderRadius.lg,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.BORDER,
-    paddingVertical: Spacing[6],
-    paddingHorizontal: Spacing[8],
+    borderColor: '#e2e8f0',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   secondaryButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing[2],
+    gap: 12,
   },
   modernSecondaryButtonText: {
-    fontSize: Typography.fontSize.xl,
-    fontWeight: Typography.fontWeight.medium,
-    color: Colors.PRIMARY_600,
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.PRIMARY,
   },
   incompleteNotice: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing[2],
+    gap: 12,
     backgroundColor: Colors.WARNING + '10',
-    borderRadius: BorderRadius.lg,
-    padding: Spacing[8],
+    borderRadius: 12,
+    padding: 20,
     borderWidth: 1,
     borderColor: Colors.WARNING + '30',
-    marginTop: Spacing[8],
+    marginTop: 20,
   },
   incompleteText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: 14,
     color: Colors.WARNING,
-    fontWeight: Typography.fontWeight.medium,
+    fontWeight: '500',
     textAlign: 'center',
-    lineHeight: Typography.lineHeight.relaxed,
+    lineHeight: 20,
     flex: 1,
   },
 });

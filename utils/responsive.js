@@ -1,8 +1,16 @@
 import { Dimensions, Platform } from 'react-native';
-import { Breakpoints } from '../constant/DesignSystem';
 
 const { width: screenWidth } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
+
+// Breakpoints
+const Breakpoints = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+};
 
 // Get current breakpoint
 export const getCurrentBreakpoint = () => {
@@ -88,7 +96,7 @@ export const getContainerMaxWidth = () => {
     md: Breakpoints.md,
     lg: Breakpoints.lg,
     xl: Breakpoints.xl,
-    '2xl': Breakpoints['2xl'],
+    '2xl': 1200, // Custom max width for better readability
   });
 };
 
@@ -155,4 +163,5 @@ export default {
   hideOn,
   showOn,
   createResponsiveStyles,
+  Breakpoints,
 };
