@@ -26,6 +26,7 @@ import {
   ChevronRight, Play, Quote, Menu, X
 } from 'lucide-react-native';
 import Colors from '../constant/Colors';
+import WebLayout from '../components/WebLayout';
 
 const { width, height } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -40,36 +41,30 @@ export default function LandingPage() {
 }
 
 function WebLandingPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const features = [
     {
       icon: Heart,
       title: 'Daily Wellness Check-ins',
       description: 'Track your mental health with personalized daily assessments and mood monitoring.',
       color: '#ef4444',
-      bgColor: '#fef2f2',
     },
     {
       icon: Brain,
       title: 'Professional Assessments',
       description: 'Access validated mental health screening tools like PHQ-9 and GAD-7.',
-      color: '#8b5cf6',
-      bgColor: '#f3f4f6',
+      color: Colors.PRIMARY,
     },
     {
       icon: Users,
       title: 'Campus Community',
       description: 'Connect with fellow Golden Eagles and participate in wellness events.',
       color: '#06b6d4',
-      bgColor: '#ecfeff',
     },
     {
       icon: Shield,
       title: 'Privacy & Security',
       description: 'Your mental health data is protected with enterprise-grade security.',
       color: '#10b981',
-      bgColor: '#f0fdf4',
     },
   ];
 
@@ -113,149 +108,75 @@ function WebLandingPage() {
   };
 
   return (
-    <View style={styles.webContainer}>
-      {/* Navigation Header */}
-      <View style={styles.navbar}>
-        <View style={styles.navContent}>
-          <View style={styles.navBrand}>
-            <View style={styles.navLogo}>
-              <Sparkles size={24} color={Colors.PRIMARY} />
-            </View>
-            <Text style={styles.navBrandText}>WeGo</Text>
-          </View>
-          
-          {/* Desktop Navigation */}
-          <View style={styles.navLinks}>
-            <TouchableOpacity style={styles.navLink}>
-              <Text style={styles.navLinkText}>Features</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navLink}>
-              <Text style={styles.navLinkText}>About</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navLink}>
-              <Text style={styles.navLinkText}>Resources</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navLink}>
-              <Text style={styles.navLinkText}>Contact</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Mobile Menu Button */}
-          <TouchableOpacity 
-            style={styles.mobileMenuButton}
-            onPress={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={24} color={Colors.PRIMARY} /> : <Menu size={24} color={Colors.PRIMARY} />}
-          </TouchableOpacity>
-          
-          {/* Desktop Actions */}
-          <View style={styles.navActions}>
-            <TouchableOpacity style={styles.navSignIn} onPress={navigateToLogin}>
-              <Text style={styles.navSignInText}>Sign In</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navGetStarted} onPress={navigateToApp}>
-              <Text style={styles.navGetStartedText}>Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <View style={styles.mobileMenu}>
-            <TouchableOpacity style={styles.mobileMenuItem}>
-              <Text style={styles.mobileMenuText}>Features</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileMenuItem}>
-              <Text style={styles.mobileMenuText}>About</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileMenuItem}>
-              <Text style={styles.mobileMenuText}>Resources</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileMenuItem}>
-              <Text style={styles.mobileMenuText}>Contact</Text>
-            </TouchableOpacity>
-            <View style={styles.mobileMenuDivider} />
-            <TouchableOpacity style={styles.mobileMenuItem} onPress={navigateToLogin}>
-              <Text style={styles.mobileMenuText}>Sign In</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mobileMenuCTA} onPress={navigateToApp}>
-              <Text style={styles.mobileMenuCTAText}>Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      <ScrollView style={styles.webScrollView} showsVerticalScrollIndicator={false}>
+    <WebLayout>
+      <ScrollView style={styles.webContainer} showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroContainer}>
-            <View style={styles.heroContent}>
-              <View style={styles.heroText}>
-                <View style={styles.badgeContainer}>
-                  <Sparkles size={16} color={Colors.SECONDARY} />
-                  <Text style={styles.badgeText}>Cal State LA Mental Health Platform</Text>
-                </View>
-                
-                <Text style={styles.heroTitle}>
-                  Your Mental Wellness{'\n'}
-                  <Text style={styles.heroTitleAccent}>Journey Starts Here</Text>
-                </Text>
-                
-                <Text style={styles.heroDescription}>
-                  Join thousands of Golden Eagles taking charge of their mental health with 
-                  personalized tools, professional assessments, and a supportive campus community.
-                </Text>
-                
-                <View style={styles.heroButtons}>
-                  <TouchableOpacity style={styles.primaryButton} onPress={navigateToApp}>
-                    <Text style={styles.primaryButtonText}>Get Started Free</Text>
-                    <ArrowRight size={20} color={Colors.WHITE} />
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.secondaryButton}>
-                    <Play size={18} color={Colors.PRIMARY} />
-                    <Text style={styles.secondaryButtonText}>Watch Demo</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.trustIndicators}>
-                  <View style={styles.trustItem}>
-                    <Shield size={16} color={Colors.SUCCESS} />
-                    <Text style={styles.trustText}>HIPAA Compliant</Text>
-                  </View>
-                  <View style={styles.trustItem}>
-                    <Award size={16} color={Colors.SUCCESS} />
-                    <Text style={styles.trustText}>University Approved</Text>
-                  </View>
-                  <View style={styles.trustItem}>
-                    <CheckCircle size={16} color={Colors.SUCCESS} />
-                    <Text style={styles.trustText}>Free for Students</Text>
-                  </View>
-                </View>
+          <View style={styles.heroContent}>
+            <View style={styles.heroText}>
+              <View style={styles.badgeContainer}>
+                <Sparkles size={16} color={Colors.SECONDARY} />
+                <Text style={styles.badgeText}>Cal State LA Mental Health Platform</Text>
               </View>
               
-              <View style={styles.heroVisual}>
-                <View style={styles.heroImageContainer}>
-                  <Image
-                    source={{ uri: 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop' }}
-                    style={styles.heroImage}
-                  />
-                  <View style={styles.heroOverlay}>
-                    <View style={styles.heroCard}>
-                      <View style={styles.heroCardHeader}>
-                        <Heart size={24} color={Colors.PRIMARY} />
-                        <Text style={styles.heroCardTitle}>Daily Check-in</Text>
-                      </View>
-                      <Text style={styles.heroCardDescription}>
-                        How are you feeling today?
-                      </Text>
-                      <View style={styles.moodOptions}>
-                        {['😊', '😐', '😔'].map((emoji, index) => (
-                          <TouchableOpacity key={index} style={styles.moodOption}>
-                            <Text style={styles.moodEmoji}>{emoji}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
+              <Text style={styles.heroTitle}>
+                Your Mental Wellness{'\n'}
+                <Text style={styles.heroTitleAccent}>Journey Starts Here</Text>
+              </Text>
+              
+              <Text style={styles.heroDescription}>
+                Join thousands of Golden Eagles taking charge of their mental health with 
+                personalized tools, professional assessments, and a supportive campus community.
+              </Text>
+              
+              <View style={styles.heroButtons}>
+                <TouchableOpacity style={styles.primaryButton} onPress={navigateToApp}>
+                  <Text style={styles.primaryButtonText}>Get Started Free</Text>
+                  <ArrowRight size={20} color={Colors.WHITE} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.secondaryButton} onPress={navigateToLogin}>
+                  <Text style={styles.secondaryButtonText}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.trustIndicators}>
+                <View style={styles.trustItem}>
+                  <Shield size={16} color={Colors.SUCCESS} />
+                  <Text style={styles.trustText}>HIPAA Compliant</Text>
+                </View>
+                <View style={styles.trustItem}>
+                  <Award size={16} color={Colors.SUCCESS} />
+                  <Text style={styles.trustText}>University Approved</Text>
+                </View>
+                <View style={styles.trustItem}>
+                  <CheckCircle size={16} color={Colors.SUCCESS} />
+                  <Text style={styles.trustText}>Free for Students</Text>
+                </View>
+              </View>
+            </View>
+            
+            <View style={styles.heroVisual}>
+              <View style={styles.heroImageContainer}>
+                <Image
+                  source={{ uri: 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop' }}
+                  style={styles.heroImage}
+                />
+                <View style={styles.heroOverlay}>
+                  <View style={styles.heroCard}>
+                    <View style={styles.heroCardHeader}>
+                      <Heart size={24} color={Colors.PRIMARY} />
+                      <Text style={styles.heroCardTitle}>Daily Check-in</Text>
+                    </View>
+                    <Text style={styles.heroCardDescription}>
+                      How are you feeling today?
+                    </Text>
+                    <View style={styles.moodOptions}>
+                      {['😊', '😐', '😔'].map((emoji, index) => (
+                        <TouchableOpacity key={index} style={styles.moodOption}>
+                          <Text style={styles.moodEmoji}>{emoji}</Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
                   </View>
                 </View>
@@ -297,15 +218,11 @@ function WebLandingPage() {
                 const IconComponent = feature.icon;
                 return (
                   <View key={index} style={styles.featureCard}>
-                    <View style={[styles.featureIcon, { backgroundColor: feature.bgColor }]}>
+                    <View style={[styles.featureIcon, { backgroundColor: feature.color + '15' }]}>
                       <IconComponent size={32} color={feature.color} />
                     </View>
                     <Text style={styles.featureTitle}>{feature.title}</Text>
                     <Text style={styles.featureDescription}>{feature.description}</Text>
-                    <TouchableOpacity style={styles.featureLearnMore}>
-                      <Text style={styles.featureLearnMoreText}>Learn more</Text>
-                      <ChevronRight size={16} color={feature.color} />
-                    </TouchableOpacity>
                   </View>
                 );
               })}
@@ -421,15 +338,15 @@ function WebLandingPage() {
                 <View style={styles.footerColumn}>
                   <Text style={styles.footerColumnTitle}>Contact</Text>
                   <View style={styles.contactItem}>
-                    <Phone size={16} color={Colors.GRAY_600} />
+                    <Phone size={16} color="#64748b" />
                     <Text style={styles.contactText}>(323) 343-3300</Text>
                   </View>
                   <View style={styles.contactItem}>
-                    <Mail size={16} color={Colors.GRAY_600} />
+                    <Mail size={16} color="#64748b" />
                     <Text style={styles.contactText}>wellness@calstatela.edu</Text>
                   </View>
                   <View style={styles.contactItem}>
-                    <MapPin size={16} color={Colors.GRAY_600} />
+                    <MapPin size={16} color="#64748b" />
                     <Text style={styles.contactText}>5151 State University Dr, LA</Text>
                   </View>
                 </View>
@@ -455,7 +372,7 @@ function WebLandingPage() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </WebLayout>
   );
 }
 
@@ -533,159 +450,33 @@ const styles = StyleSheet.create({
   // Web Landing Page Styles
   webContainer: {
     flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  
-  webScrollView: {
-    flex: 1,
-  },
-  
-  // Navigation
-  navbar: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 16,
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-    backdropFilter: 'blur(10px)',
-  },
-  navContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
-  },
-  navBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  navLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.PRIMARY + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navBrandText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1e293b',
-    letterSpacing: -0.5,
-  },
-  navLinks: {
-    flexDirection: 'row',
-    gap: 32,
-    display: width < 768 ? 'none' : 'flex',
-  },
-  navLink: {
-    paddingVertical: 8,
-  },
-  navLinkText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  mobileMenuButton: {
-    display: width < 768 ? 'flex' : 'none',
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f1f5f9',
-  },
-  navActions: {
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
-    display: width < 768 ? 'none' : 'flex',
-  },
-  navSignIn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  navSignInText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  navGetStarted: {
-    backgroundColor: Colors.PRIMARY,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  navGetStartedText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.WHITE,
-  },
-  
-  // Mobile Menu
-  mobileMenu: {
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    display: width < 768 ? 'flex' : 'none',
-  },
-  mobileMenuItem: {
-    paddingVertical: 12,
-  },
-  mobileMenuText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  mobileMenuDivider: {
-    height: 1,
-    backgroundColor: '#e2e8f0',
-    marginVertical: 8,
-  },
-  mobileMenuCTA: {
-    backgroundColor: Colors.PRIMARY,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  mobileMenuCTAText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.WHITE,
+    backgroundColor: '#f8fafc',
   },
   
   // Hero Section
   heroSection: {
-    paddingVertical: width < 768 ? 60 : width < 1024 ? 80 : 120,
-    paddingHorizontal: width < 768 ? 16 : 32,
-    backgroundColor: '#ffffff',
-    minHeight: width < 768 ? 600 : 700,
-  },
-  heroContainer: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
+    paddingVertical: width < 640 ? 60 : width < 1024 ? 80 : 120,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   heroContent: {
     flexDirection: width < 1024 ? 'column' : 'row',
     alignItems: 'center',
-    gap: width < 768 ? 40 : width < 1024 ? 60 : 80,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    gap: width < 640 ? 40 : width < 1024 ? 60 : 80,
   },
   heroText: {
     flex: 1,
-    maxWidth: width < 1024 ? '100%' : 600,
     alignItems: width < 1024 ? 'center' : 'flex-start',
   },
   badgeContainer: {
@@ -705,10 +496,10 @@ const styles = StyleSheet.create({
     color: '#92400e',
   },
   heroTitle: {
-    fontSize: width < 768 ? 36 : width < 1024 ? 48 : 64,
+    fontSize: width < 640 ? 36 : width < 1024 ? 48 : 64,
     fontWeight: '900',
     color: '#1e293b',
-    lineHeight: width < 768 ? 44 : width < 1024 ? 56 : 72,
+    lineHeight: width < 640 ? 44 : width < 1024 ? 56 : 72,
     marginBottom: 32,
     letterSpacing: -2,
     textAlign: width < 1024 ? 'center' : 'left',
@@ -717,10 +508,10 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
   },
   heroDescription: {
-    fontSize: width < 768 ? 18 : 22,
+    fontSize: width < 640 ? 18 : 22,
     color: '#64748b',
     textAlign: width < 1024 ? 'center' : 'left',
-    lineHeight: width < 768 ? 28 : 34,
+    lineHeight: width < 640 ? 28 : 34,
     marginBottom: 48,
     fontWeight: '400',
   },
@@ -754,12 +545,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: '#e2e8f0',
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 32,
     paddingVertical: 18,
     borderRadius: 12,
-    gap: 8,
     justifyContent: 'center',
   },
   secondaryButtonText: {
@@ -856,28 +644,36 @@ const styles = StyleSheet.create({
   
   // Stats Section
   statsSection: {
-    paddingVertical: width < 768 ? 60 : 80,
-    backgroundColor: '#f8fafc',
+    paddingVertical: width < 640 ? 60 : 80,
+    backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   statsContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
+    paddingHorizontal: width < 640 ? 16 : 32,
   },
   statsGrid: {
-    flexDirection: width < 768 ? 'column' : 'row',
-    gap: width < 768 ? 32 : 60,
+    flexDirection: width < 640 ? 'column' : 'row',
+    gap: width < 640 ? 32 : 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
   statCard: {
     alignItems: 'center',
     gap: 12,
-    flex: width < 768 ? 0 : 1,
+    flex: width < 640 ? 0 : 1,
   },
   statValue: {
-    fontSize: width < 768 ? 36 : 48,
+    fontSize: width < 640 ? 36 : 48,
     fontWeight: '900',
     color: '#1e293b',
     letterSpacing: -1,
@@ -891,21 +687,29 @@ const styles = StyleSheet.create({
   
   // Features Section
   featuresSection: {
-    paddingVertical: width < 768 ? 80 : 120,
-    backgroundColor: '#ffffff',
+    paddingVertical: width < 640 ? 80 : 120,
+    backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   featuresContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
+    paddingHorizontal: width < 640 ? 16 : 32,
   },
   sectionHeader: {
     alignItems: 'center',
     marginBottom: 80,
   },
   sectionTitle: {
-    fontSize: width < 768 ? 32 : 48,
+    fontSize: width < 640 ? 32 : 48,
     fontWeight: '900',
     color: '#1e293b',
     textAlign: 'center',
@@ -926,14 +730,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   featureCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
     borderRadius: 20,
     padding: 40,
-    width: width < 768 ? '100%' : width < 1024 ? '45%' : '45%',
-    minWidth: width < 768 ? 0 : 320,
+    width: width < 640 ? '100%' : width < 1024 ? '45%' : '45%',
+    minWidth: width < 640 ? 0 : 320,
     maxWidth: 480,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
@@ -959,29 +763,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748b',
     lineHeight: 26,
-    marginBottom: 24,
-  },
-  featureLearnMore: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  featureLearnMoreText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.PRIMARY,
   },
   
   // Testimonials Section
   testimonialsSection: {
-    paddingVertical: width < 768 ? 80 : 120,
-    backgroundColor: '#f8fafc',
+    paddingVertical: width < 640 ? 80 : 120,
+    backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   testimonialsContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
+    paddingHorizontal: width < 640 ? 16 : 32,
   },
   testimonialsGrid: {
     flexDirection: width < 768 ? 'column' : 'row',
@@ -990,7 +791,7 @@ const styles = StyleSheet.create({
   },
   testimonialCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
     borderRadius: 20,
     padding: 40,
     shadowColor: '#000',
@@ -1000,6 +801,8 @@ const styles = StyleSheet.create({
     elevation: 8,
     maxWidth: width < 768 ? '100%' : 380,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   testimonialQuote: {
     position: 'absolute',
@@ -1023,7 +826,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: '#e2e8f0',
     paddingTop: 24,
   },
   testimonialAvatar: {
@@ -1047,20 +850,23 @@ const styles = StyleSheet.create({
   
   // CTA Section
   ctaSection: {
-    paddingVertical: width < 768 ? 80 : 120,
+    paddingVertical: width < 640 ? 80 : 120,
     backgroundColor: '#1e293b',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   ctaContainer: {
     maxWidth: 800,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
+    paddingHorizontal: width < 640 ? 16 : 32,
   },
   ctaContent: {
     alignItems: 'center',
   },
   ctaTitle: {
-    fontSize: width < 768 ? 32 : 48,
+    fontSize: width < 640 ? 32 : 48,
     fontWeight: '900',
     color: '#ffffff',
     textAlign: 'center',
@@ -1123,13 +929,15 @@ const styles = StyleSheet.create({
   // Footer
   footer: {
     backgroundColor: '#0f172a',
-    paddingVertical: width < 768 ? 60 : 80,
+    paddingVertical: width < 640 ? 60 : 80,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    borderRadius: 12,
   },
   footerContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: width < 768 ? 16 : 32,
+    paddingHorizontal: width < 640 ? 16 : 32,
   },
   footerContent: {
     flexDirection: width < 768 ? 'column' : 'row',
@@ -1221,7 +1029,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   
-  // Mobile Splash Screen Styles (existing)
+  // Mobile Splash Screen Styles
   container: {
     flex: 1,
   },

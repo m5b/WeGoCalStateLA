@@ -13,14 +13,64 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import WebHomeScreen from './web-home';
+import WebLayout from '../../components/WebLayout';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  // Return web version for web platform
   if (Platform.OS === 'web') {
-    return <WebHomeScreen />;
+    return (
+      <WebLayout>
+        <ScrollView style={styles.webContainer} showsVerticalScrollIndicator={false}>
+          {/* Welcome Section */}
+          <View style={styles.webWelcomeSection}>
+            <View style={styles.webWelcomeContent}>
+              <Text style={styles.webWelcomeTitle}>Welcome Back!</Text>
+              <Text style={styles.webWelcomeSubtitle}>Cal State LA Golden Eagles</Text>
+              <Text style={styles.webWelcomeDescription}>
+                Take charge of your mental health with personalized tools and resources designed for Cal State LA students.
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Actions */}
+          <View style={styles.webSection}>
+            <Text style={styles.webSectionTitle}>Quick Actions</Text>
+            <View style={styles.webQuickActionsGrid}>
+              {quickActions.map((action) => (
+                <TouchableOpacity
+                  key={action.id}
+                  style={styles.webActionCard}
+                  onPress={() => navigateToScreen(action.route)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.webActionIcon, { backgroundColor: action.color + '20' }]}>
+                    <action.icon size={28} color={action.color} />
+                  </View>
+                  <Text style={styles.webActionTitle}>{action.title}</Text>
+                  <Text style={styles.webActionSubtitle}>{action.subtitle}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Today's Highlight */}
+          <View style={styles.webSection}>
+            <Text style={styles.webSectionTitle}>Today's Focus</Text>
+            <View style={styles.webHighlightCard}>
+              <View style={styles.webHighlightHeader}>
+                <Clock size={20} color={Colors.SECONDARY} />
+                <Text style={styles.webHighlightTitle}>Daily Inspiration</Text>
+              </View>
+              <Text style={styles.webHighlightText}>
+                "Mental health is not a destination, but a process. It's about how you drive, not where you're going."
+              </Text>
+              <Text style={styles.webHighlightAuthor}>- Noam Shpancer</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </WebLayout>
+    );
   }
 
   const [activeTab, setActiveTab] = useState('home');
@@ -87,6 +137,155 @@ export default function HomeScreen() {
       route: 'profile'
     }
   ];
+
+  const webQuickActionsGrid = {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    justifyContent: 'center',
+  };
+
+  const webStyles = {
+    webContainer: {
+      flex: 1,
+      backgroundColor: '#f8fafc',
+    },
+    webWelcomeSection: {
+      backgroundColor: 'white',
+      paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
+      paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+      marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+      marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    webWelcomeContent: {
+      maxWidth: 1200,
+      alignSelf: 'center',
+      width: '100%',
+      alignItems: 'center',
+    },
+    webWelcomeTitle: {
+      fontSize: width < 640 ? 32 : width < 1024 ? 42 : 56,
+      fontWeight: '900',
+      color: Colors.PRIMARY,
+      textAlign: 'center',
+      marginBottom: 16,
+      letterSpacing: -1.5,
+    },
+    webWelcomeSubtitle: {
+      fontSize: width < 640 ? 18 : 22,
+      fontWeight: '600',
+      color: Colors.SECONDARY,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    webWelcomeDescription: {
+      fontSize: width < 640 ? 16 : 18,
+      color: '#64748b',
+      textAlign: 'center',
+      lineHeight: width < 640 ? 24 : 28,
+      maxWidth: 600,
+    },
+    webSection: {
+      backgroundColor: 'white',
+      paddingVertical: width < 640 ? 40 : width < 1024 ? 50 : 60,
+      paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+      marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+      marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    webSectionTitle: {
+      fontSize: width < 640 ? 24 : width < 1024 ? 28 : 32,
+      fontWeight: '800',
+      color: Colors.PRIMARY,
+      textAlign: 'center',
+      marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
+      letterSpacing: -0.5,
+    },
+    webQuickActionsGrid: webQuickActionsGrid,
+    webActionCard: {
+      backgroundColor: '#f8fafc',
+      borderRadius: 16,
+      padding: width < 640 ? 20 : width < 1024 ? 24 : 28,
+      width: width < 640 ? '100%' : width < 1024 ? '48%' : '23%',
+      minWidth: width < 640 ? 0 : 200,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    webActionIcon: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    webActionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: Colors.PRIMARY,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    webActionSubtitle: {
+      fontSize: 14,
+      color: '#64748b',
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    webHighlightCard: {
+      backgroundColor: '#f8fafc',
+      borderRadius: 16,
+      padding: width < 640 ? 24 : width < 1024 ? 28 : 32,
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderLeftWidth: 4,
+      borderLeftColor: Colors.SECONDARY,
+      maxWidth: 800,
+      alignSelf: 'center',
+    },
+    webHighlightHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 16,
+    },
+    webHighlightTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: Colors.PRIMARY,
+    },
+    webHighlightText: {
+      fontSize: 18,
+      color: '#374151',
+      lineHeight: 28,
+      fontStyle: 'italic',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    webHighlightAuthor: {
+      fontSize: 14,
+      color: '#64748b',
+      fontWeight: '500',
+      textAlign: 'right',
+    },
+  };
 
   const TabButton = ({ icon: Icon, label, isActive, onPress }) => (
     <TouchableOpacity 

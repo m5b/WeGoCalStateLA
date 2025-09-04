@@ -119,179 +119,83 @@ export default function ResourceScreen() {
     return (
       <WebLayout>
         <ScrollView style={styles.webContainer} showsVerticalScrollIndicator={false}>
-          {/* Hero Section */}
-          <View style={styles.webHeroSection}>
-            <View style={styles.webHeroContent}>
-              <View style={styles.webHeroText}>
-                <Text style={styles.webHeroTitle}>Student Support Resources</Text>
-                <Text style={styles.webHeroSubtitle}>
-                  Comprehensive support services designed specifically for Cal State LA Golden Eagles. 
-                  From mental health counseling to career guidance, we're here to help you succeed.
-                </Text>
-                
-                <View style={styles.webHeroStats}>
-                  <View style={styles.webHeroStat}>
-                    <Text style={styles.webHeroStatNumber}>88+</Text>
-                    <Text style={styles.webHeroStatLabel}>Support Services</Text>
-                  </View>
-                  <View style={styles.webHeroStat}>
-                    <Text style={styles.webHeroStatNumber}>24/7</Text>
-                    <Text style={styles.webHeroStatLabel}>Crisis Support</Text>
-                  </View>
-                  <View style={styles.webHeroStat}>
-                    <Text style={styles.webHeroStatNumber}>Free</Text>
-                    <Text style={styles.webHeroStatLabel}>For All Students</Text>
-                  </View>
-                </View>
-              </View>
-              
-              <View style={styles.webHeroVisual}>
-                <View style={styles.webHeroCard}>
-                  <BookOpen size={64} color={Colors.PRIMARY} />
-                  <Text style={styles.webHeroCardTitle}>Always Here for You</Text>
-                  <Text style={styles.webHeroCardText}>Professional support when you need it most</Text>
-                </View>
-              </View>
+          {/* Header */}
+          <View style={styles.webHeaderSection}>
+            <View style={styles.webHeaderContent}>
+              <Text style={styles.webHeaderTitle}>Student Support Resources</Text>
+              <Text style={styles.webHeaderSubtitle}>
+                Find support and guidance for your wellness journey
+              </Text>
             </View>
           </View>
 
-          {/* Emergency Contacts Section */}
-          <View style={styles.webEmergencySection}>
-            <View style={styles.webSectionHeader}>
-              <AlertTriangle size={32} color={Colors.ERROR} />
-              <View style={styles.webSectionTitleContainer}>
-                <Text style={styles.webSectionTitle}>Emergency Support</Text>
-                <Text style={styles.webSectionDescription}>
-                  Immediate help available 24/7 for crisis situations
-                </Text>
-              </View>
-            </View>
-            
+          {/* Emergency Contacts */}
+          <View style={styles.webSection}>
+            <Text style={styles.webSectionTitle}>Emergency Contacts</Text>
             <View style={styles.webEmergencyGrid}>
               {emergencyContacts.map((contact, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.webEmergencyCard,
-                    contact.urgent && styles.webEmergencyCardUrgent
-                  ]}
+                  style={styles.webEmergencyCard}
                   onPress={contact.action}
                   activeOpacity={0.8}
                 >
-                  <View style={[
-                    styles.webEmergencyIcon,
-                    { backgroundColor: contact.urgent ? Colors.ERROR + '15' : Colors.PRIMARY + '15' }
-                  ]}>
-                    <contact.icon size={28} color={contact.urgent ? Colors.ERROR : Colors.PRIMARY} />
+                  <View style={styles.webEmergencyIcon}>
+                    <contact.icon size={24} color={Colors.ERROR} />
                   </View>
                   <View style={styles.webEmergencyContent}>
                     <Text style={styles.webEmergencyTitle}>{contact.title}</Text>
                     <Text style={styles.webEmergencySubtitle}>{contact.subtitle}</Text>
-                    <Text style={styles.webEmergencyDescription}>{contact.description}</Text>
                   </View>
-                  <ExternalLink size={20} color="#9ca3af" />
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Campus Services Section */}
-          <View style={styles.webServicesSection}>
-            <View style={styles.webSectionHeader}>
-              <Shield size={32} color={Colors.PRIMARY} />
-              <View style={styles.webSectionTitleContainer}>
-                <Text style={styles.webSectionTitle}>Campus Mental Health Services</Text>
-                <Text style={styles.webSectionDescription}>
-                  Professional mental health support available on campus
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.webServicesGrid}>
-              {campusServices.map((service, index) => {
-                const IconComponent = service.icon;
-                return (
-                  <View key={index} style={styles.webServiceCard}>
-                    <View style={styles.webServiceHeader}>
-                      <View style={[styles.webServiceIcon, { backgroundColor: service.color + '15' }]}>
-                        <IconComponent size={28} color={service.color} />
-                      </View>
-                      <Text style={styles.webServiceTitle}>{service.title}</Text>
-                    </View>
-                    
-                    <Text style={styles.webServiceDescription}>{service.description}</Text>
-                    
-                    <View style={styles.webServiceDetails}>
-                      <View style={styles.webServiceDetail}>
-                        <MapPin size={16} color="#64748b" />
-                        <Text style={styles.webServiceDetailText}>{service.location}</Text>
-                      </View>
-                      <View style={styles.webServiceDetail}>
-                        <Phone size={16} color="#64748b" />
-                        <Text style={styles.webServiceDetailText}>{service.phone}</Text>
-                      </View>
-                      <View style={styles.webServiceDetail}>
-                        <Clock size={16} color="#64748b" />
-                        <Text style={styles.webServiceDetailText}>{service.hours}</Text>
-                      </View>
-                    </View>
-                    
-                    <TouchableOpacity style={styles.webServiceButton}>
-                      <Text style={styles.webServiceButtonText}>Contact Service</Text>
-                      <ChevronRight size={16} color={Colors.PRIMARY} />
-                    </TouchableOpacity>
+          {/* Resource Categories */}
+          <View style={styles.webSection}>
+            <Text style={styles.webSectionTitle}>Resource Categories</Text>
+            <View style={styles.webCategoriesGrid}>
+              {resourceCategories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={styles.webCategoryCard}
+                  onPress={() => router.push(category.route)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.webCategoryIcon, { backgroundColor: category.color + '20' }]}>
+                    <category.icon size={32} color={category.color} />
                   </View>
-                );
-              })}
+                  
+                  <View style={styles.webCategoryContent}>
+                    <Text style={styles.webCategoryTitle}>{category.title}</Text>
+                    <Text style={styles.webCategoryDescription}>{category.description}</Text>
+                  </View>
+                  
+                  <ChevronRight size={24} color="#64748b" />
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
-          {/* Resource Categories Section */}
-          <View style={styles.webCategoriesSection}>
-            <View style={styles.webSectionHeader}>
-              <BookOpen size={32} color={Colors.PRIMARY} />
-              <View style={styles.webSectionTitleContainer}>
-                <Text style={styles.webSectionTitle}>Resource Categories</Text>
-                <Text style={styles.webSectionDescription}>
-                  Explore comprehensive support services across different areas of student life
-                </Text>
+          {/* Support Information */}
+          <View style={styles.webSupportSection}>
+            <View style={styles.webSupportCard}>
+              <Text style={styles.webSupportTitle}>Need Additional Support?</Text>
+              <Text style={styles.webSupportText}>
+                Cal State LA Student Health & Psychological Services offers comprehensive mental health support:
+              </Text>
+              <View style={styles.webSupportDetails}>
+                <Text style={styles.webSupportItem}>• Individual counseling sessions</Text>
+                <Text style={styles.webSupportItem}>• Group therapy programs</Text>
+                <Text style={styles.webSupportItem}>• Crisis intervention services</Text>
+                <Text style={styles.webSupportItem}>• Psychiatric services</Text>
               </View>
-            </View>
-            
-            <View style={styles.webCategoriesGrid}>
-              {resourceCategories.map((category) => {
-                const IconComponent = category.icon;
-                return (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={styles.webCategoryCard}
-                    onPress={() => router.push(category.route)}
-                    activeOpacity={0.8}
-                  >
-                    <LinearGradient
-                      colors={[category.color + '08', category.color + '04']}
-                      style={styles.webCategoryGradient}
-                    >
-                      <View style={styles.webCategoryHeader}>
-                        <View style={[styles.webCategoryIcon, { backgroundColor: category.color + '15' }]}>
-                          <IconComponent size={32} color={category.color} />
-                        </View>
-                        <View style={styles.webCategoryBadge}>
-                          <Text style={styles.webCategoryBadgeText}>{category.count}</Text>
-                        </View>
-                      </View>
-                      
-                      <Text style={styles.webCategoryTitle}>{category.title}</Text>
-                      <Text style={styles.webCategoryDescription}>{category.description}</Text>
-                      
-                      <View style={styles.webCategoryFooter}>
-                        <Text style={styles.webCategoryAction}>Explore Resources</Text>
-                        <ChevronRight size={20} color={category.color} />
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
+              <View style={styles.webContactInfo}>
+                <Text style={styles.webContactTitle}>Contact Information:</Text>
+                <Text style={styles.webContactDetails}>Phone: (323) 343-3300</Text>
+                <Text style={styles.webContactDetails}>Location: Health Center, Room 110</Text>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -957,5 +861,213 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.DARK_GRAY,
     marginBottom: 2,
+  },
+  
+  // Web Styles
+  webContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  webHeaderSection: {
+    backgroundColor: 'white',
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  webHeaderContent: {
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    alignItems: 'center',
+  },
+  webHeaderTitle: {
+    fontSize: width < 640 ? 32 : width < 1024 ? 42 : 56,
+    fontWeight: '900',
+    color: Colors.PRIMARY,
+    textAlign: 'center',
+    marginBottom: 16,
+    letterSpacing: -1.5,
+  },
+  webHeaderSubtitle: {
+    fontSize: width < 640 ? 16 : 18,
+    color: Colors.SECONDARY,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  webSection: {
+    backgroundColor: 'white',
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 50 : 60,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  webSectionTitle: {
+    fontSize: width < 640 ? 24 : width < 1024 ? 28 : 32,
+    fontWeight: '800',
+    color: Colors.PRIMARY,
+    marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  webEmergencyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  webEmergencyCard: {
+    backgroundColor: '#fef2f2',
+    borderRadius: 12,
+    padding: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    width: width < 640 ? '100%' : '31%',
+    minWidth: width < 640 ? 0 : 250,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.ERROR,
+    gap: 16,
+  },
+  webEmergencyIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.ERROR + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webEmergencyContent: {
+    flex: 1,
+  },
+  webEmergencyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 4,
+  },
+  webEmergencySubtitle: {
+    fontSize: 14,
+    color: Colors.ERROR,
+    fontWeight: '600',
+  },
+  webCategoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  webCategoryCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: width < 640 ? 20 : width < 1024 ? 24 : 28,
+    width: width < 640 ? '100%' : '48%',
+    minWidth: width < 640 ? 0 : 350,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+    gap: 16,
+  },
+  webCategoryIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webCategoryContent: {
+    flex: 1,
+  },
+  webCategoryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 8,
+  },
+  webCategoryDescription: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+  },
+  webSupportSection: {
+    paddingVertical: 40,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  webSupportCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: width < 640 ? 24 : width < 1024 ? 28 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3B82F6',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  webSupportTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 16,
+  },
+  webSupportText: {
+    fontSize: 16,
+    color: '#64748b',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  webSupportDetails: {
+    marginBottom: 24,
+  },
+  webSupportItem: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  webContactInfo: {
+    backgroundColor: Colors.PRIMARY + '10',
+    borderRadius: 12,
+    padding: 16,
+  },
+  webContactTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 8,
+  },
+  webContactDetails: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 4,
   },
 });
