@@ -19,7 +19,7 @@ import Animated, {
   withSpring,
   withDelay
 } from 'react-native-reanimated';
-import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Star, Award, TrendingUp, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, ChevronRight, Play, Quote, Menu, X } from 'lucide-react-native';
+import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, GraduationCap, Clock, UserCheck } from 'lucide-react-native';
 import Colors from '../constant/Colors';
 import WebLayout from '../components/WebLayout';
 
@@ -63,35 +63,28 @@ function WebLandingPage() {
     },
   ];
 
-  const testimonials = [
+  const campusResources = [
     {
-      name: 'Sarah M.',
-      role: 'Psychology Major',
-      content: 'This platform helped me stay on top of my mental health during finals week. The daily check-ins are a game changer.',
-      rating: 5,
-      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      icon: Phone,
+      title: 'Crisis Support',
+      description: 'Immediate help available 24/7',
+      contact: '988 or (323) 343-3700',
+      color: '#ef4444',
     },
     {
-      name: 'Marcus L.',
-      role: 'Engineering Student',
-      content: 'Having access to professional assessments right on campus made seeking help so much easier.',
-      rating: 5,
-      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      icon: Users,
+      title: 'Counseling Services',
+      description: 'Professional mental health support',
+      contact: '(323) 343-3371',
+      color: Colors.PRIMARY,
     },
     {
-      name: 'Elena R.',
-      role: 'Graduate Student',
-      content: 'The community events helped me connect with others who understand the academic pressure.',
-      rating: 5,
-      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      icon: Heart,
+      title: 'Student Health Center',
+      description: 'Comprehensive health services',
+      contact: '(323) 343-3300',
+      color: '#10b981',
     },
-  ];
-
-  const stats = [
-    { label: 'Active Students', value: '2,500+', icon: Users },
-    { label: 'Daily Check-ins', value: '15,000+', icon: Heart },
-    { label: 'Wellness Events', value: '50+', icon: Calendar },
-    { label: 'Success Rate', value: '94%', icon: TrendingUp },
   ];
 
   const navigateToApp = () => {
@@ -110,43 +103,43 @@ function WebLandingPage() {
           <View style={styles.heroContent}>
             <View style={styles.heroText}>
               <View style={styles.badgeContainer}>
-                <Sparkles size={16} color={Colors.SECONDARY} />
-                <Text style={styles.badgeText}>Cal State LA Mental Health Platform</Text>
+                <GraduationCap size={16} color={Colors.SECONDARY} />
+                <Text style={styles.badgeText}>Cal State LA Student Wellness</Text>
               </View>
               
               <Text style={styles.heroTitle}>
-                Your Mental Wellness{'\n'}
-                <Text style={styles.heroTitleAccent}>Journey Starts Here</Text>
+                Supporting Golden Eagles{'\n'}
+                <Text style={styles.heroTitleAccent}>Mental Health & Wellness</Text>
               </Text>
               
               <Text style={styles.heroDescription}>
-                Join thousands of Golden Eagles taking charge of their mental health with 
-                personalized tools, professional assessments, and a supportive campus community.
+                A comprehensive mental health platform designed specifically for Cal State LA students. 
+                Access professional assessments, daily wellness tracking, and campus support resources.
               </Text>
               
               <View style={styles.heroButtons}>
                 <TouchableOpacity style={styles.primaryButton} onPress={navigateToApp}>
-                  <Text style={styles.primaryButtonText}>Get Started Free</Text>
+                  <Text style={styles.primaryButtonText}>Access Wellness Tools</Text>
                   <ArrowRight size={20} color={Colors.WHITE} />
                 </TouchableOpacity>
                 
                 <TouchableOpacity style={styles.secondaryButton} onPress={navigateToLogin}>
-                  <Text style={styles.secondaryButtonText}>Sign In</Text>
+                  <Text style={styles.secondaryButtonText}>Student Login</Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.trustIndicators}>
                 <View style={styles.trustItem}>
                   <Shield size={16} color={Colors.SUCCESS} />
-                  <Text style={styles.trustText}>HIPAA Compliant</Text>
+                  <Text style={styles.trustText}>Confidential & Secure</Text>
                 </View>
                 <View style={styles.trustItem}>
-                  <Award size={16} color={Colors.SUCCESS} />
-                  <Text style={styles.trustText}>University Approved</Text>
+                  <UserCheck size={16} color={Colors.SUCCESS} />
+                  <Text style={styles.trustText}>For Cal State LA Students</Text>
                 </View>
                 <View style={styles.trustItem}>
                   <CheckCircle size={16} color={Colors.SUCCESS} />
-                  <Text style={styles.trustText}>Free for Students</Text>
+                  <Text style={styles.trustText}>Always Free</Text>
                 </View>
               </View>
             </View>
@@ -154,17 +147,17 @@ function WebLandingPage() {
             <View style={styles.heroVisual}>
               <View style={styles.heroImageContainer}>
                 <Image
-                  source={{ uri: 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop' }}
+                  source={{ uri: 'https://images.pexels.com/photos/7176026/pexels-photo-7176026.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop' }}
                   style={styles.heroImage}
                 />
                 <View style={styles.heroOverlay}>
                   <View style={styles.heroCard}>
                     <View style={styles.heroCardHeader}>
                       <Heart size={24} color={Colors.PRIMARY} />
-                      <Text style={styles.heroCardTitle}>Daily Check-in</Text>
+                      <Text style={styles.heroCardTitle}>Wellness Check-in</Text>
                     </View>
                     <Text style={styles.heroCardDescription}>
-                      How are you feeling today?
+                      Track your daily mental health
                     </Text>
                     <View style={styles.moodOptions}>
                       {['😊', '😐', '😔'].map((emoji, index) => (
@@ -180,17 +173,27 @@ function WebLandingPage() {
           </View>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          <View style={styles.statsContainer}>
-            <View style={styles.statsGrid}>
-              {stats.map((stat, index) => {
-                const IconComponent = stat.icon;
+        {/* Campus Resources Section */}
+        <View style={styles.resourcesSection}>
+          <View style={styles.resourcesContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Campus Mental Health Resources</Text>
+              <Text style={styles.sectionDescription}>
+                Professional support services available to all Cal State LA students
+              </Text>
+            </View>
+            
+            <View style={styles.resourcesGrid}>
+              {campusResources.map((resource, index) => {
+                const IconComponent = resource.icon;
                 return (
-                  <View key={index} style={styles.statCard}>
-                    <IconComponent size={32} color={Colors.PRIMARY} />
-                    <Text style={styles.statValue}>{stat.value}</Text>
-                    <Text style={styles.statLabel}>{stat.label}</Text>
+                  <View key={index} style={styles.resourceCard}>
+                    <View style={[styles.resourceIcon, { backgroundColor: resource.color + '15' }]}>
+                      <IconComponent size={32} color={resource.color} />
+                    </View>
+                    <Text style={styles.resourceTitle}>{resource.title}</Text>
+                    <Text style={styles.resourceDescription}>{resource.description}</Text>
+                    <Text style={styles.resourceContact}>{resource.contact}</Text>
                   </View>
                 );
               })}
@@ -202,9 +205,9 @@ function WebLandingPage() {
         <View style={styles.featuresSection}>
           <View style={styles.featuresContainer}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Everything You Need for Mental Wellness</Text>
+              <Text style={styles.sectionTitle}>Comprehensive Mental Health Tools</Text>
               <Text style={styles.sectionDescription}>
-                Comprehensive tools designed specifically for Cal State LA students
+                Evidence-based tools and resources designed for student mental wellness
               </Text>
             </View>
             
@@ -225,37 +228,43 @@ function WebLandingPage() {
           </View>
         </View>
 
-        {/* Testimonials Section */}
-        <View style={styles.testimonialsSection}>
-          <View style={styles.testimonialsContainer}>
+        {/* About Section */}
+        <View style={styles.aboutSection}>
+          <View style={styles.aboutContainer}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>What Golden Eagles Are Saying</Text>
+              <Text style={styles.sectionTitle}>About WeGo Mental Health Platform</Text>
               <Text style={styles.sectionDescription}>
-                Real stories from students who've transformed their mental wellness journey
+                Developed specifically for California State University, Los Angeles students
               </Text>
             </View>
             
-            <View style={styles.testimonialsGrid}>
-              {testimonials.map((testimonial, index) => (
-                <View key={index} style={styles.testimonialCard}>
-                  <View style={styles.testimonialQuote}>
-                    <Quote size={24} color={Colors.PRIMARY + '40'} />
-                  </View>
-                  <View style={styles.testimonialRating}>
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} size={16} color={Colors.SECONDARY} fill={Colors.SECONDARY} />
-                    ))}
-                  </View>
-                  <Text style={styles.testimonialContent}>"{testimonial.content}"</Text>
-                  <View style={styles.testimonialAuthor}>
-                    <Image source={{ uri: testimonial.avatar }} style={styles.testimonialAvatar} />
-                    <View style={styles.testimonialInfo}>
-                      <Text style={styles.testimonialName}>{testimonial.name}</Text>
-                      <Text style={styles.testimonialRole}>{testimonial.role}</Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
+            <View style={styles.aboutGrid}>
+              <View style={styles.aboutCard}>
+                <GraduationCap size={48} color={Colors.PRIMARY} />
+                <Text style={styles.aboutCardTitle}>Student-Focused</Text>
+                <Text style={styles.aboutCardDescription}>
+                  Designed specifically for the unique challenges and needs of Cal State LA students, 
+                  from academic stress to life transitions.
+                </Text>
+              </View>
+              
+              <View style={styles.aboutCard}>
+                <Brain size={48} color={Colors.SECONDARY} />
+                <Text style={styles.aboutCardTitle}>Evidence-Based</Text>
+                <Text style={styles.aboutCardDescription}>
+                  Built on clinically validated assessment tools and evidence-based mental health practices 
+                  used by professionals worldwide.
+                </Text>
+              </View>
+              
+              <View style={styles.aboutCard}>
+                <Clock size={48} color={Colors.SUCCESS} />
+                <Text style={styles.aboutCardTitle}>Always Available</Text>
+                <Text style={styles.aboutCardDescription}>
+                  Access mental health resources and support 24/7, whether you're on campus, 
+                  at home, or anywhere you need support.
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -264,21 +273,22 @@ function WebLandingPage() {
         <View style={styles.ctaSection}>
           <View style={styles.ctaContainer}>
             <View style={styles.ctaContent}>
-              <Zap size={48} color={Colors.SECONDARY} />
-              <Text style={styles.ctaTitle}>Ready to Start Your Wellness Journey?</Text>
+              <Heart size={48} color={Colors.SECONDARY} />
+              <Text style={styles.ctaTitle}>Take the First Step Toward Better Mental Health</Text>
               <Text style={styles.ctaDescription}>
-                Join thousands of Cal State LA students who are already taking control of their mental health.
+                Your mental health matters. Start your wellness journey today with tools and resources 
+                designed specifically for Golden Eagles.
               </Text>
               <View style={styles.ctaButtons}>
                 <TouchableOpacity style={styles.ctaPrimaryButton} onPress={navigateToApp}>
-                  <Text style={styles.ctaPrimaryButtonText}>Get Started Now</Text>
+                  <Text style={styles.ctaPrimaryButtonText}>Begin Wellness Journey</Text>
                   <ArrowRight size={20} color={Colors.WHITE} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.ctaSecondaryButton} onPress={navigateToLogin}>
-                  <Text style={styles.ctaSecondaryButtonText}>Sign In</Text>
+                  <Text style={styles.ctaSecondaryButtonText}>Student Login</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.ctaNote}>Free for all Cal State LA students • No credit card required</Text>
+              <Text style={styles.ctaNote}>Free for all Cal State LA students • Confidential & Secure</Text>
             </View>
           </View>
         </View>
@@ -301,29 +311,29 @@ function WebLandingPage() {
                 <View style={styles.footerColumn}>
                   <Text style={styles.footerColumnTitle}>Platform</Text>
                   <TouchableOpacity style={styles.footerLink}>
-                    <Text style={styles.footerLinkText}>Features</Text>
+                    <Text style={styles.footerLinkText}>Daily Check-ins</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.footerLink}>
                     <Text style={styles.footerLinkText}>Assessments</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.footerLink}>
-                    <Text style={styles.footerLinkText}>Resources</Text>
+                    <Text style={styles.footerLinkText}>Campus Resources</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.footerLink}>
-                    <Text style={styles.footerLinkText}>Community</Text>
+                    <Text style={styles.footerLinkText}>AI Assistant</Text>
                   </TouchableOpacity>
                 </View>
                 
                 <View style={styles.footerColumn}>
                   <Text style={styles.footerColumnTitle}>Support</Text>
                   <TouchableOpacity style={styles.footerLink}>
-                    <Text style={styles.footerLinkText}>Help Center</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.footerLink}>
                     <Text style={styles.footerLinkText}>Crisis Resources</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.footerLink}>
-                    <Text style={styles.footerLinkText}>Contact Us</Text>
+                    <Text style={styles.footerLinkText}>Counseling Services</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.footerLink}>
+                    <Text style={styles.footerLinkText}>Student Health Center</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.footerLink}>
                     <Text style={styles.footerLinkText}>Privacy Policy</Text>
@@ -331,14 +341,14 @@ function WebLandingPage() {
                 </View>
                 
                 <View style={styles.footerColumn}>
-                  <Text style={styles.footerColumnTitle}>Contact</Text>
+                  <Text style={styles.footerColumnTitle}>Emergency Contact</Text>
                   <View style={styles.contactItem}>
                     <Phone size={16} color="#64748b" />
-                    <Text style={styles.contactText}>(323) 343-3300</Text>
+                    <Text style={styles.contactText}>Crisis: 988</Text>
                   </View>
                   <View style={styles.contactItem}>
-                    <Mail size={16} color="#64748b" />
-                    <Text style={styles.contactText}>wellness@calstatela.edu</Text>
+                    <Phone size={16} color="#64748b" />
+                    <Text style={styles.contactText}>Campus: (323) 343-3700</Text>
                   </View>
                   <View style={styles.contactItem}>
                     <MapPin size={16} color="#64748b" />
@@ -637,8 +647,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   
-  // Stats Section
-  statsSection: {
+  // Campus Resources Section
+  resourcesSection: {
     paddingVertical: width < 640 ? 60 : 80,
     backgroundColor: 'white',
     marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
@@ -650,33 +660,57 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  statsContainer: {
+  resourcesContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: width < 640 ? 16 : 32,
   },
-  statsGrid: {
+  resourcesGrid: {
     flexDirection: width < 640 ? 'column' : 'row',
-    gap: width < 640 ? 32 : 60,
+    gap: width < 640 ? 24 : 40,
+    justifyContent: 'center',
+  },
+  resourceCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 32,
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  resourceIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  statCard: {
-    alignItems: 'center',
-    gap: 12,
-    flex: width < 640 ? 0 : 1,
-  },
-  statValue: {
-    fontSize: width < 640 ? 36 : 48,
-    fontWeight: '900',
+  resourceTitle: {
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1e293b',
-    letterSpacing: -1,
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  statLabel: {
+  resourceDescription: {
     fontSize: 16,
     color: '#64748b',
-    fontWeight: '500',
+    lineHeight: 24,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  resourceContact: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
     textAlign: 'center',
   },
   
@@ -760,8 +794,8 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   
-  // Testimonials Section
-  testimonialsSection: {
+  // About Section
+  aboutSection: {
     paddingVertical: width < 640 ? 80 : 120,
     backgroundColor: 'white',
     marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
@@ -773,18 +807,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  testimonialsContainer: {
+  aboutContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
     paddingHorizontal: width < 640 ? 16 : 32,
   },
-  testimonialsGrid: {
+  aboutGrid: {
     flexDirection: width < 768 ? 'column' : 'row',
     gap: 40,
     justifyContent: 'center',
   },
-  testimonialCard: {
+  aboutCard: {
     flex: 1,
     backgroundColor: '#f8fafc',
     borderRadius: 20,
@@ -795,52 +829,23 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
     maxWidth: width < 768 ? '100%' : 380,
-    position: 'relative',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-  },
-  testimonialQuote: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-  },
-  testimonialRating: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 24,
-  },
-  testimonialContent: {
-    fontSize: 18,
-    color: '#374151',
-    lineHeight: 28,
-    marginBottom: 32,
-    fontStyle: 'italic',
-  },
-  testimonialAuthor: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 24,
   },
-  testimonialAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  testimonialInfo: {
-    flex: 1,
-  },
-  testimonialName: {
-    fontSize: 16,
+  aboutCardTitle: {
+    fontSize: 24,
     fontWeight: '700',
     color: '#1e293b',
-    marginBottom: 4,
+    marginTop: 24,
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  testimonialRole: {
-    fontSize: 14,
+  aboutCardDescription: {
+    fontSize: 16,
     color: '#64748b',
+    lineHeight: 26,
+    textAlign: 'center',
   },
   
   // CTA Section
