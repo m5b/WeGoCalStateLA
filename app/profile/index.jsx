@@ -19,6 +19,145 @@ import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
 export default function ProfileScreen() {
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [dataSharing, setDataSharing] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // User profile data
+  const [userData, setUserData] = useState({
+    name: 'Alex Johnson',
+    email: 'alex.johnson@calstatela.edu',
+    studentId: '304598765',
+    major: 'Computer Science',
+    year: 'Junior',
+    joinedDate: 'September 2023',
+  });
+
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    Alert.alert('Success', 'Profile information updated successfully!');
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: () => router.replace('/authentication/login')
+        },
+      ]
+    );
+  };
+
+  const renderWebProfileInfo = () => {
+    if (isEditing) {
+      return (
+        <View style={styles.webEditForm}>
+          <View style={styles.webInputGroup}>
+            <Text style={styles.webInputLabel}>Name</Text>
+            <TextInput
+              style={styles.webTextInput}
+              value={userData.name}
+              onChangeText={(text) => setUserData({...userData, name: text})}
+            />
+          </View>
+          
+          <View style={styles.webInputGroup}>
+            <Text style={styles.webInputLabel}>Email</Text>
+            <TextInput
+              style={styles.webTextInput}
+              value={userData.email}
+              keyboardType="email-address"
+              onChangeText={(text) => setUserData({...userData, email: text})}
+            />
+          </View>
+          
+          <View style={styles.webInputGroup}>
+            <Text style={styles.webInputLabel}>Major</Text>
+            <TextInput
+              style={styles.webTextInput}
+              value={userData.major}
+              onChangeText={(text) => setUserData({...userData, major: text})}
+            />
+          </View>
+          
+          <View style={styles.webInputGroup}>
+            <Text style={styles.webInputLabel}>Year</Text>
+            <TextInput
+              style={styles.webTextInput}
+              value={userData.year}
+              onChangeText={(text) => setUserData({...userData, year: text})}
+            />
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.webSaveButton}
+            onPress={handleSaveProfile}
+          >
+            <LinearGradient
+              colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+              style={styles.webSaveButtonGradient}
+            >
+              <Text style={styles.webSaveButtonText}>Save Changes</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.webProfileInfoGrid}>
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Name</Text>
+          <Text style={styles.webInfoValue}>{userData.name}</Text>
+        </View>
+        
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Email</Text>
+          <Text style={styles.webInfoValue}>{userData.email}</Text>
+        </View>
+        
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Student ID</Text>
+          <Text style={styles.webInfoValue}>{userData.studentId}</Text>
+        </View>
+        
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Major</Text>
+          <Text style={styles.webInfoValue}>{userData.major}</Text>
+        </View>
+        
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Year</Text>
+          <Text style={styles.webInfoValue}>{userData.year}</Text>
+        </View>
+        
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Joined</Text>
+          <Text style={styles.webInfoValue}>{userData.joinedDate}</Text>
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.webEditButton}
+          onPress={() => setIsEditing(true)}
+        >
+          <LinearGradient
+            colors={[Colors.SECONDARY, Colors.DARK_GOLD]}
+            style={styles.webEditButtonGradient}
+          >
+            <Edit2 size={16} color={Colors.WHITE} />
+            <Text style={styles.webEditButtonText}>Edit Profile</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   if (Platform.OS === 'web') {
     return (
       <WebLayout>
@@ -117,41 +256,6 @@ export default function ProfileScreen() {
       </WebLayout>
     );
   }
-
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-  const [dataSharing, setDataSharing] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // User profile data
-  const [userData, setUserData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@calstatela.edu',
-    studentId: '304598765',
-    major: 'Computer Science',
-    year: 'Junior',
-    joinedDate: 'September 2023',
-  });
-
-  const handleSaveProfile = () => {
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile information updated successfully!');
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive',
-          onPress: () => router.replace('/authentication/login')
-        },
-      ]
-    );
-  };
 
   const renderProfileInfo = () => {
     if (isEditing) {
@@ -575,5 +679,80 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 14,
     color: Colors.TEXT_SECONDARY,
+  },
+  // Web-specific styles
+  webEditForm: {
+    marginTop: 10,
+  },
+  webInputGroup: {
+    marginBottom: 15,
+  },
+  webInputLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 5,
+    fontWeight: '600',
+  },
+  webTextInput: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1e293b',
+  },
+  webSaveButton: {
+    marginTop: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  webSaveButtonGradient: {
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  webSaveButtonText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  webProfileInfoGrid: {
+    gap: 16,
+  },
+  webInfoCard: {
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  webInfoLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  webInfoValue: {
+    fontSize: 16,
+    color: '#1e293b',
+    fontWeight: '500',
+  },
+  webEditButton: {
+    marginTop: 15,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  webEditButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  webEditButtonText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
