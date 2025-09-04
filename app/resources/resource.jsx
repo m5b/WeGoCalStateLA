@@ -11,23 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  ArrowLeft,
-  Brain,
-  Heart,
-  Briefcase,
-  DollarSign,
-  Phone,
-  MessageSquare,
-  Shield,
-  ChevronRight,
-  BookOpen,
-  Users,
-  Clock,
-  MapPin,
-  ExternalLink,
-  AlertTriangle
-} from 'lucide-react-native';
+import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight, BookOpen, Users, Clock, MapPin, ExternalLink, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 

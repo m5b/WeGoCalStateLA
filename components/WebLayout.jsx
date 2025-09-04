@@ -10,11 +10,7 @@ import {
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, 
-  TrendingUp, Menu, X, Shield, Sparkles, Bell, Search, 
-  ChevronDown, Settings, LogOut, HelpCircle 
-} from 'lucide-react-native';
+import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Menu, X, Shield, Sparkles, Bell, Search, ChevronDown, Settings, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
 import Colors from '../constant/Colors';
 
 const { width } = Dimensions.get('window');
