@@ -14,10 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, 
-  CheckCircle, GraduationCap 
-} from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 
 const { width } = Dimensions.get('window');

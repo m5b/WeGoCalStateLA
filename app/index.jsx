@@ -19,12 +19,7 @@ import Animated, {
   withSpring,
   withDelay
 } from 'react-native-reanimated';
-import { 
-  Heart, Brain, Users, Shield, Sparkles, ArrowRight, 
-  CheckCircle, Star, Award, TrendingUp, Calendar, 
-  MessageCircle, BookOpen, Zap, Phone, Mail, MapPin,
-  ChevronRight, Play, Quote, Menu, X
-} from 'lucide-react-native';
+import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Star, Award, TrendingUp, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, ChevronRight, Play, Quote, Menu, X } from 'lucide-react-native';
 import Colors from '../constant/Colors';
 import WebLayout from '../components/WebLayout';
 
