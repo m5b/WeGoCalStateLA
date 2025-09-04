@@ -26,6 +26,47 @@ import WebLayout from '../../components/WebLayout';
 const { width } = Dimensions.get('window');
 
 export default function QuizListScreen() {
+  const quizzes = [
+    {
+      id: 'gad7',
+      title: 'GAD-7 Anxiety Assessment',
+      description: 'Generalized Anxiety Disorder 7-item scale to assess anxiety symptoms',
+      duration: '2-3 minutes',
+      questions: '7 questions',
+      icon: Brain,
+      color: Colors.PRIMARY,
+      route: '/quizzes/gad_7Disclaimer'
+    },
+    {
+      id: 'phq9',
+      title: 'PHQ-9 Depression Screening',
+      description: 'Patient Health Questionnaire to screen for depression symptoms',
+      duration: '3-4 minutes',
+      questions: '9 questions',
+      icon: Heart,
+      color: Colors.ERROR,
+      route: '/quizzes/phq_9Disclaimer'
+    }
+  ];
+
+  const features = [
+    {
+      icon: Shield,
+      title: 'Confidential',
+      description: 'Your responses are private and secure'
+    },
+    {
+      icon: Users,
+      title: 'Professional',
+      description: 'Clinically validated assessment tools'
+    },
+    {
+      icon: Clock,
+      title: 'Quick',
+      description: 'Takes just a few minutes to complete'
+    }
+  ];
+
   if (Platform.OS === 'web') {
     return (
       <WebLayout>
@@ -113,47 +154,6 @@ export default function QuizListScreen() {
       </WebLayout>
     );
   }
-
-  const quizzes = [
-    {
-      id: 'gad7',
-      title: 'GAD-7 Anxiety Assessment',
-      description: 'Generalized Anxiety Disorder 7-item scale to assess anxiety symptoms',
-      duration: '2-3 minutes',
-      questions: '7 questions',
-      icon: Brain,
-      color: Colors.PRIMARY,
-      route: '/quizzes/gad_7Disclaimer'
-    },
-    {
-      id: 'phq9',
-      title: 'PHQ-9 Depression Screening',
-      description: 'Patient Health Questionnaire to screen for depression symptoms',
-      duration: '3-4 minutes',
-      questions: '9 questions',
-      icon: Heart,
-      color: Colors.ERROR,
-      route: '/quizzes/phq_9Disclaimer'
-    }
-  ];
-
-  const features = [
-    {
-      icon: Shield,
-      title: 'Confidential',
-      description: 'Your responses are private and secure'
-    },
-    {
-      icon: Users,
-      title: 'Professional',
-      description: 'Clinically validated assessment tools'
-    },
-    {
-      icon: Clock,
-      title: 'Quick',
-      description: 'Takes just a few minutes to complete'
-    }
-  ];
 
   return (
     <SafeAreaView style={styles.container}>
