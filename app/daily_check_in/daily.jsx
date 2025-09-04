@@ -18,6 +18,45 @@ import WebLayout from '../../components/WebLayout';
 const { width } = Dimensions.get('window');
 
 export default function DailyCheckInScreen() {
+  const [mood, setMood] = useState(null);
+  const [sleepQuality, setSleepQuality] = useState(null);
+  const [stressLevel, setStressLevel] = useState(null);
+  const [date, setDate] = useState(new Date());
+
+  const moods = [
+    { value: 5, label: 'Great', emoji: '😁', color: Colors.SUCCESS },
+    { value: 4, label: 'Good', emoji: '🙂', color: Colors.INFO },
+    { value: 3, label: 'Okay', emoji: '😐', color: Colors.SECONDARY },
+    { value: 2, label: 'Not Great', emoji: '😕', color: Colors.WARNING },
+    { value: 1, label: 'Poor', emoji: '😞', color: Colors.ERROR }
+  ];
+
+  const sleepOptions = [
+    { value: 5, label: 'Excellent', color: Colors.SUCCESS },
+    { value: 4, label: 'Good', color: Colors.INFO },
+    { value: 3, label: 'Fair', color: Colors.SECONDARY },
+    { value: 2, label: 'Poor', color: Colors.WARNING },
+    { value: 1, label: 'Very Poor', color: Colors.ERROR }
+  ];
+
+  const stressOptions = [
+    { value: 1, label: 'None', color: Colors.SUCCESS },
+    { value: 2, label: 'Mild', color: Colors.INFO },
+    { value: 3, label: 'Moderate', color: Colors.SECONDARY },
+    { value: 4, label: 'High', color: Colors.WARNING },
+    { value: 5, label: 'Severe', color: Colors.ERROR }
+  ];
+
+  const isAllAnswered = () => {
+    return mood !== null && sleepQuality !== null && stressLevel !== null;
+  };
+
+  const handleSave = () => {
+    // This would save the check-in data to AsyncStorage or context
+    // For now, we'll just navigate to the progress screen
+    router.push('/daily_check_in/progress');
+  };
+
   if (Platform.OS === 'web') {
     return (
       <WebLayout>
@@ -138,45 +177,6 @@ export default function DailyCheckInScreen() {
       </WebLayout>
     );
   }
-
-  const [mood, setMood] = useState(null);
-  const [sleepQuality, setSleepQuality] = useState(null);
-  const [stressLevel, setStressLevel] = useState(null);
-  const [date, setDate] = useState(new Date());
-
-  const moods = [
-    { value: 5, label: 'Great', emoji: '😁', color: Colors.SUCCESS },
-    { value: 4, label: 'Good', emoji: '🙂', color: Colors.INFO },
-    { value: 3, label: 'Okay', emoji: '😐', color: Colors.SECONDARY },
-    { value: 2, label: 'Not Great', emoji: '😕', color: Colors.WARNING },
-    { value: 1, label: 'Poor', emoji: '😞', color: Colors.ERROR }
-  ];
-
-  const sleepOptions = [
-    { value: 5, label: 'Excellent', color: Colors.SUCCESS },
-    { value: 4, label: 'Good', color: Colors.INFO },
-    { value: 3, label: 'Fair', color: Colors.SECONDARY },
-    { value: 2, label: 'Poor', color: Colors.WARNING },
-    { value: 1, label: 'Very Poor', color: Colors.ERROR }
-  ];
-
-  const stressOptions = [
-    { value: 1, label: 'None', color: Colors.SUCCESS },
-    { value: 2, label: 'Mild', color: Colors.INFO },
-    { value: 3, label: 'Moderate', color: Colors.SECONDARY },
-    { value: 4, label: 'High', color: Colors.WARNING },
-    { value: 5, label: 'Severe', color: Colors.ERROR }
-  ];
-
-  const isAllAnswered = () => {
-    return mood !== null && sleepQuality !== null && stressLevel !== null;
-  };
-
-  const handleSave = () => {
-    // This would save the check-in data to AsyncStorage or context
-    // For now, we'll just navigate to the progress screen
-    router.push('/daily_check_in/progress');
-  };
 
   return (
     <SafeAreaView style={styles.container}>
