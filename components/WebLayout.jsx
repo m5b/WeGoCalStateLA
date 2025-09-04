@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Menu, X, Shield, Sparkles, Bell, Search, ChevronDown, Settings, LogOut, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { 
+  Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, 
+  Menu, X, Shield, Sparkles, Bell, Search, ChevronDown, Settings, LogOut, 
+  HelpCircle, ChevronRight
+} from 'lucide-react-native';
 import Colors from '../constant/Colors';
 
 const { width } = Dimensions.get('window');
@@ -114,7 +118,7 @@ export default function WebLayout({ children }) {
             </TouchableOpacity>
           </View>
 
-          {/* Center Section - Search (hidden on mobile) */}
+          {/* Center Section - Search */}
           <View style={styles.headerCenter}>
             <View style={styles.searchContainer}>
               <Search size={16} color="#9CA3AF" />
@@ -694,7 +698,7 @@ const styles = StyleSheet.create({
     padding: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
   contentInner: {
-    maxWidth: width < 640 ? '100%' : width < 768 ? 640 : width < 1024 ? 768 : width < 1280 ? 1024 : 1200,
+    maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
   },

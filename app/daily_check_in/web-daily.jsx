@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Save, ChartBar as BarChart, Calendar, Moon, Brain, Heart, TrendingUp, CircleCheck as CheckCircle, Clock, Target, Award, Zap, Activity, Star, Sun, Coffee, Smile, ArrowRight, ChevronRight } from 'lucide-react-native';
+import { 
+  Save, BarChart, Calendar, Moon, Brain, Heart, TrendingUp, CheckCircle, 
+  Clock, Target, Award, Zap, Activity, Star, Sun, Coffee, Smile, 
+  ArrowRight, ChevronRight 
+} from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
@@ -21,12 +25,10 @@ export default function WebDailyCheckInScreen() {
   const [sleepQuality, setSleepQuality] = useState(null);
   const [stressLevel, setStressLevel] = useState(null);
   const [date, setDate] = useState(new Date());
-  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progressAnimation] = useState(new Animated.Value(0));
   const [completionAnimation] = useState(new Animated.Value(0));
 
-  // Calculate progress percentage
   const getProgress = () => {
     let completed = 0;
     if (mood !== null) completed++;
@@ -35,7 +37,6 @@ export default function WebDailyCheckInScreen() {
     return (completed / 3) * 100;
   };
 
-  // Animate progress bar
   useEffect(() => {
     Animated.timing(progressAnimation, {
       toValue: getProgress(),
@@ -44,7 +45,6 @@ export default function WebDailyCheckInScreen() {
     }).start();
   }, [mood, sleepQuality, stressLevel]);
 
-  // Animate completion
   useEffect(() => {
     if (isAllAnswered()) {
       Animated.spring(completionAnimation, {
@@ -63,7 +63,7 @@ export default function WebDailyCheckInScreen() {
     { value: 4, label: 'Good', emoji: '🙂', color: '#3B82F6', description: 'Generally positive and content', gradient: ['#3B82F6', '#3B82F6' + '80'] },
     { value: 3, label: 'Neutral', emoji: '😐', color: '#6B7280', description: 'Neither good nor bad', gradient: ['#6B7280', '#9CA3AF'] },
     { value: 2, label: 'Low', emoji: '😕', color: Colors.WARNING, description: 'Feeling down or unmotivated', gradient: [Colors.WARNING, Colors.WARNING + '80'] },
-    { value: 1, label: 'Poor', emoji: '😞', color: Colors.ERROR, description: 'Struggling significantly today', gradient: [Colors.ERROR, Colors.ERROR + '80'] }
+    { value: 1, label: 'Poor', emoji: '😞', color: '#EF4444', description: 'Struggling significantly today', gradient: ['#EF4444', '#EF4444' + '80'] }
   ];
 
   const sleepOptions = [
@@ -71,7 +71,7 @@ export default function WebDailyCheckInScreen() {
     { value: 4, label: 'Good', color: '#3B82F6', description: '7-8 hours, mostly rested', icon: CheckCircle, gradient: ['#3B82F6', '#3B82F6' + '80'] },
     { value: 3, label: 'Fair', color: '#6B7280', description: '6-7 hours, somewhat tired', icon: Clock, gradient: ['#6B7280', '#9CA3AF'] },
     { value: 2, label: 'Poor', color: Colors.WARNING, description: '4-6 hours, quite tired', icon: Coffee, gradient: [Colors.WARNING, Colors.WARNING + '80'] },
-    { value: 1, label: 'Very Poor', color: Colors.ERROR, description: 'Less than 4 hours, exhausted', icon: Moon, gradient: [Colors.ERROR, Colors.ERROR + '80'] }
+    { value: 1, label: 'Very Poor', color: '#EF4444', description: 'Less than 4 hours, exhausted', icon: Moon, gradient: ['#EF4444', '#EF4444' + '80'] }
   ];
 
   const stressOptions = [
@@ -79,7 +79,7 @@ export default function WebDailyCheckInScreen() {
     { value: 2, label: 'Low', color: '#3B82F6', description: 'Slightly tense but manageable', icon: Sun, gradient: ['#3B82F6', '#3B82F6' + '80'] },
     { value: 3, label: 'Moderate', color: '#6B7280', description: 'Noticeable stress levels', icon: Activity, gradient: ['#6B7280', '#9CA3AF'] },
     { value: 4, label: 'High', color: Colors.WARNING, description: 'Feeling overwhelmed', icon: Zap, gradient: [Colors.WARNING, Colors.WARNING + '80'] },
-    { value: 5, label: 'Severe', color: Colors.ERROR, description: 'Extremely stressed and anxious', icon: Brain, gradient: [Colors.ERROR, Colors.ERROR + '80'] }
+    { value: 5, label: 'Severe', color: '#EF4444', description: 'Extremely stressed and anxious', icon: Brain, gradient: ['#EF4444', '#EF4444' + '80'] }
   ];
 
   const isAllAnswered = () => {
@@ -103,7 +103,6 @@ export default function WebDailyCheckInScreen() {
         timestamp: new Date().toISOString()
       };
 
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       console.log('Saving check-in data:', checkInData);
@@ -118,7 +117,7 @@ export default function WebDailyCheckInScreen() {
 
   const getWellnessScore = () => {
     if (!isAllAnswered()) return null;
-    const total = mood + sleepQuality + (6 - stressLevel); // Invert stress for scoring
+    const total = mood + sleepQuality + (6 - stressLevel);
     return Math.round((total / 15) * 100);
   };
 
@@ -127,7 +126,7 @@ export default function WebDailyCheckInScreen() {
     if (score >= 60) return '#3B82F6';
     if (score >= 40) return Colors.SECONDARY;
     if (score >= 20) return Colors.WARNING;
-    return Colors.ERROR;
+    return '#EF4444';
   };
 
   const getScoreMessage = (score) => {
@@ -143,7 +142,7 @@ export default function WebDailyCheckInScreen() {
       icon: Heart,
       title: 'Mood Enhancement',
       tip: 'Try a 5-minute gratitude practice or listen to uplifting music',
-      color: Colors.ERROR,
+      color: '#EF4444',
     },
     {
       icon: Moon,
@@ -531,6 +530,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   heroContent: {
     maxWidth: 1200,
@@ -612,6 +614,7 @@ const styles = StyleSheet.create({
     textAlign: width < 640 ? 'center' : 'left',
     marginBottom: 32,
   },
+  
   // Progress Indicator Styles
   progressContainer: {
     backgroundColor: 'white',
@@ -680,6 +683,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
   },
+  
   // Modern Section Styles
   modernSection: {
     backgroundColor: 'white',
@@ -723,6 +727,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 24,
   },
+  
   // Modern Options Grid
   modernOptionsGrid: {
     flexDirection: 'row',
@@ -788,6 +793,7 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
   },
+  
   // Tips Section
   tipsSection: {
     backgroundColor: 'white',
@@ -848,6 +854,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 20,
   },
+  
   // Modern Actions Section
   modernActionsSection: {
     paddingVertical: width < 640 ? 32 : 40,

@@ -23,7 +23,7 @@ import {
   Heart, Brain, Users, Shield, Sparkles, ArrowRight, 
   CheckCircle, Star, Award, TrendingUp, Calendar, 
   MessageCircle, BookOpen, Zap, Phone, Mail, MapPin,
-  ChevronRight, Play, Quote
+  ChevronRight, Play, Quote, Menu, X
 } from 'lucide-react-native';
 import Colors from '../constant/Colors';
 
@@ -33,17 +33,13 @@ const isWeb = Platform.OS === 'web';
 SplashScreen.preventAutoHideAsync();
 
 export default function LandingPage() {
-  // Return web version for web platform
   if (isWeb) {
     return <WebLandingPage />;
   }
-
-  // Mobile version (existing splash screen)
   return <MobileSplashScreen />;
 }
 
 function WebLandingPage() {
-  const [activeFeature, setActiveFeature] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const features = [
@@ -128,6 +124,7 @@ function WebLandingPage() {
             <Text style={styles.navBrandText}>WeGo</Text>
           </View>
           
+          {/* Desktop Navigation */}
           <View style={styles.navLinks}>
             <TouchableOpacity style={styles.navLink}>
               <Text style={styles.navLinkText}>Features</Text>
@@ -142,7 +139,16 @@ function WebLandingPage() {
               <Text style={styles.navLinkText}>Contact</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Mobile Menu Button */}
+          <TouchableOpacity 
+            style={styles.mobileMenuButton}
+            onPress={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} color={Colors.PRIMARY} /> : <Menu size={24} color={Colors.PRIMARY} />}
+          </TouchableOpacity>
           
+          {/* Desktop Actions */}
           <View style={styles.navActions}>
             <TouchableOpacity style={styles.navSignIn} onPress={navigateToLogin}>
               <Text style={styles.navSignInText}>Sign In</Text>
@@ -152,6 +158,31 @@ function WebLandingPage() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <View style={styles.mobileMenu}>
+            <TouchableOpacity style={styles.mobileMenuItem}>
+              <Text style={styles.mobileMenuText}>Features</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mobileMenuItem}>
+              <Text style={styles.mobileMenuText}>About</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mobileMenuItem}>
+              <Text style={styles.mobileMenuText}>Resources</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mobileMenuItem}>
+              <Text style={styles.mobileMenuText}>Contact</Text>
+            </TouchableOpacity>
+            <View style={styles.mobileMenuDivider} />
+            <TouchableOpacity style={styles.mobileMenuItem} onPress={navigateToLogin}>
+              <Text style={styles.mobileMenuText}>Sign In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mobileMenuCTA} onPress={navigateToApp}>
+              <Text style={styles.mobileMenuCTAText}>Get Started</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <ScrollView style={styles.webScrollView} showsVerticalScrollIndicator={false}>
@@ -436,7 +467,6 @@ function MobileSplashScreen() {
    useEffect(() => {
      SplashScreen.hideAsync();
      
-     // Animate elements in sequence
      logoScale.value = withSpring(1, { duration: 800 });
      cardOpacity.value = withDelay(300, withSpring(1, { duration: 600 }));
      buttonScale.value = withDelay(600, withSpring(1, { duration: 500 }));
@@ -528,7 +558,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   navBrand: {
     flexDirection: 'row',
@@ -552,6 +582,7 @@ const styles = StyleSheet.create({
   navLinks: {
     flexDirection: 'row',
     gap: 32,
+    display: width < 768 ? 'none' : 'flex',
   },
   navLink: {
     paddingVertical: 8,
@@ -561,10 +592,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#64748b',
   },
+  mobileMenuButton: {
+    display: width < 768 ? 'flex' : 'none',
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+  },
   navActions: {
     flexDirection: 'row',
     gap: 16,
     alignItems: 'center',
+    display: width < 768 ? 'none' : 'flex',
   },
   navSignIn: {
     paddingHorizontal: 20,
@@ -592,12 +630,48 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
   },
   
+  // Mobile Menu
+  mobileMenu: {
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    display: width < 768 ? 'flex' : 'none',
+  },
+  mobileMenuItem: {
+    paddingVertical: 12,
+  },
+  mobileMenuText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  mobileMenuDivider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginVertical: 8,
+  },
+  mobileMenuCTA: {
+    backgroundColor: Colors.PRIMARY,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  mobileMenuCTAText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.WHITE,
+  },
+  
   // Hero Section
   heroSection: {
-    paddingVertical: 120,
-    paddingHorizontal: 32,
+    paddingVertical: width < 768 ? 60 : width < 1024 ? 80 : 120,
+    paddingHorizontal: width < 768 ? 16 : 32,
     backgroundColor: '#ffffff',
-    minHeight: 700,
+    minHeight: width < 768 ? 600 : 700,
   },
   heroContainer: {
     maxWidth: 1200,
@@ -605,13 +679,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   heroContent: {
-    flexDirection: 'row',
+    flexDirection: width < 1024 ? 'column' : 'row',
     alignItems: 'center',
-    gap: 80,
+    gap: width < 768 ? 40 : width < 1024 ? 60 : 80,
   },
   heroText: {
     flex: 1,
-    maxWidth: 600,
+    maxWidth: width < 1024 ? '100%' : 600,
+    alignItems: width < 1024 ? 'center' : 'flex-start',
   },
   badgeContainer: {
     flexDirection: 'row',
@@ -630,27 +705,30 @@ const styles = StyleSheet.create({
     color: '#92400e',
   },
   heroTitle: {
-    fontSize: 64,
+    fontSize: width < 768 ? 36 : width < 1024 ? 48 : 64,
     fontWeight: '900',
     color: '#1e293b',
-    lineHeight: 72,
+    lineHeight: width < 768 ? 44 : width < 1024 ? 56 : 72,
     marginBottom: 32,
     letterSpacing: -2,
+    textAlign: width < 1024 ? 'center' : 'left',
   },
   heroTitleAccent: {
     color: Colors.PRIMARY,
   },
   heroDescription: {
-    fontSize: 22,
+    fontSize: width < 768 ? 18 : 22,
     color: '#64748b',
-    lineHeight: 34,
+    textAlign: width < 1024 ? 'center' : 'left',
+    lineHeight: width < 768 ? 28 : 34,
     marginBottom: 48,
     fontWeight: '400',
   },
   heroButtons: {
-    flexDirection: 'row',
+    flexDirection: width < 640 ? 'column' : 'row',
     gap: 20,
     marginBottom: 48,
+    width: width < 640 ? '100%' : 'auto',
   },
   primaryButton: {
     backgroundColor: Colors.PRIMARY,
@@ -665,6 +743,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 8,
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: Colors.WHITE,
@@ -681,6 +760,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 12,
     gap: 8,
+    justifyContent: 'center',
   },
   secondaryButtonText: {
     color: '#475569',
@@ -688,8 +768,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   trustIndicators: {
-    flexDirection: 'row',
-    gap: 32,
+    flexDirection: width < 640 ? 'column' : 'row',
+    gap: width < 640 ? 16 : 32,
+    alignItems: 'center',
   },
   trustItem: {
     flexDirection: 'row',
@@ -707,11 +788,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    display: width < 768 ? 'none' : 'flex',
   },
   heroImageContainer: {
     position: 'relative',
-    width: 500,
-    height: 400,
+    width: width < 1024 ? 400 : 500,
+    height: width < 1024 ? 320 : 400,
     borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -774,26 +856,28 @@ const styles = StyleSheet.create({
   
   // Stats Section
   statsSection: {
-    paddingVertical: 80,
+    paddingVertical: width < 768 ? 60 : 80,
     backgroundColor: '#f8fafc',
   },
   statsContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   statsGrid: {
-    flexDirection: 'row',
-    gap: 60,
+    flexDirection: width < 768 ? 'column' : 'row',
+    gap: width < 768 ? 32 : 60,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   statCard: {
     alignItems: 'center',
     gap: 12,
+    flex: width < 768 ? 0 : 1,
   },
   statValue: {
-    fontSize: 48,
+    fontSize: width < 768 ? 36 : 48,
     fontWeight: '900',
     color: '#1e293b',
     letterSpacing: -1,
@@ -802,25 +886,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748b',
     fontWeight: '500',
+    textAlign: 'center',
   },
   
   // Features Section
   featuresSection: {
-    paddingVertical: 120,
+    paddingVertical: width < 768 ? 80 : 120,
     backgroundColor: '#ffffff',
   },
   featuresContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   sectionHeader: {
     alignItems: 'center',
     marginBottom: 80,
   },
   sectionTitle: {
-    fontSize: 48,
+    fontSize: width < 768 ? 32 : 48,
     fontWeight: '900',
     color: '#1e293b',
     textAlign: 'center',
@@ -844,8 +929,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 40,
-    width: '45%',
-    minWidth: 320,
+    width: width < 768 ? '100%' : width < 1024 ? '45%' : '45%',
+    minWidth: width < 768 ? 0 : 320,
     maxWidth: 480,
     borderWidth: 1,
     borderColor: '#f1f5f9',
@@ -889,17 +974,17 @@ const styles = StyleSheet.create({
   
   // Testimonials Section
   testimonialsSection: {
-    paddingVertical: 120,
+    paddingVertical: width < 768 ? 80 : 120,
     backgroundColor: '#f8fafc',
   },
   testimonialsContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   testimonialsGrid: {
-    flexDirection: 'row',
+    flexDirection: width < 768 ? 'column' : 'row',
     gap: 40,
     justifyContent: 'center',
   },
@@ -913,7 +998,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 24,
     elevation: 8,
-    maxWidth: 380,
+    maxWidth: width < 768 ? '100%' : 380,
     position: 'relative',
   },
   testimonialQuote: {
@@ -962,20 +1047,20 @@ const styles = StyleSheet.create({
   
   // CTA Section
   ctaSection: {
-    paddingVertical: 120,
+    paddingVertical: width < 768 ? 80 : 120,
     backgroundColor: '#1e293b',
   },
   ctaContainer: {
     maxWidth: 800,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   ctaContent: {
     alignItems: 'center',
   },
   ctaTitle: {
-    fontSize: 48,
+    fontSize: width < 768 ? 32 : 48,
     fontWeight: '900',
     color: '#ffffff',
     textAlign: 'center',
@@ -991,9 +1076,10 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   ctaButtons: {
-    flexDirection: 'row',
+    flexDirection: width < 640 ? 'column' : 'row',
     gap: 20,
     marginBottom: 24,
+    width: width < 640 ? '100%' : 'auto',
   },
   ctaPrimaryButton: {
     backgroundColor: Colors.SECONDARY,
@@ -1007,6 +1093,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
+    justifyContent: 'center',
   },
   ctaPrimaryButtonText: {
     color: '#1e293b',
@@ -1020,6 +1107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 18,
     borderRadius: 12,
+    justifyContent: 'center',
   },
   ctaSecondaryButtonText: {
     color: '#ffffff',
@@ -1035,22 +1123,23 @@ const styles = StyleSheet.create({
   // Footer
   footer: {
     backgroundColor: '#0f172a',
-    paddingVertical: 80,
+    paddingVertical: width < 768 ? 60 : 80,
   },
   footerContainer: {
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    paddingHorizontal: 32,
+    paddingHorizontal: width < 768 ? 16 : 32,
   },
   footerContent: {
-    flexDirection: 'row',
-    gap: 80,
+    flexDirection: width < 768 ? 'column' : 'row',
+    gap: width < 768 ? 40 : 80,
     marginBottom: 60,
   },
   footerBrand: {
     flex: 1,
-    maxWidth: 300,
+    maxWidth: width < 768 ? '100%' : 300,
+    alignItems: width < 768 ? 'center' : 'flex-start',
   },
   footerLogo: {
     width: 48,
@@ -1072,14 +1161,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94a3b8',
     lineHeight: 24,
+    textAlign: width < 768 ? 'center' : 'left',
   },
   footerLinks: {
-    flexDirection: 'row',
-    gap: 80,
+    flexDirection: width < 768 ? 'column' : 'row',
+    gap: width < 768 ? 32 : 80,
     flex: 2,
   },
   footerColumn: {
     flex: 1,
+    alignItems: width < 768 ? 'center' : 'flex-start',
   },
   footerColumnTitle: {
     fontSize: 16,
@@ -1107,16 +1198,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   footerBottom: {
-    flexDirection: 'row',
+    flexDirection: width < 768 ? 'column' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 40,
     borderTopWidth: 1,
     borderTopColor: '#334155',
+    gap: width < 768 ? 16 : 0,
   },
   footerCopyright: {
     fontSize: 14,
     color: '#64748b',
+    textAlign: width < 768 ? 'center' : 'left',
   },
   footerBottomLinks: {
     flexDirection: 'row',

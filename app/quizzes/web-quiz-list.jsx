@@ -6,11 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Brain, Heart, ChevronRight, Clock, Users, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Star, Award, Activity, Target, Zap, TrendingUp, ArrowRight, FileText, Phone, MessageCircle, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { 
+  Brain, Heart, ChevronRight, Clock, Users, Shield, CheckCircle, 
+  AlertCircle, Star, Award, Activity, Target, Zap, TrendingUp, 
+  ArrowRight, FileText, Phone, MessageCircle, AlertTriangle 
+} from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
@@ -24,7 +27,7 @@ export default function WebQuizListScreen() {
       id: 'gad7',
       title: 'GAD-7 Anxiety Assessment',
       description: 'Generalized Anxiety Disorder 7-item scale to assess anxiety symptoms and their severity',
-      longDescription: 'The GAD-7 is a validated screening tool used by healthcare professionals worldwide to identify probable cases of generalized anxiety disorder and assess symptom severity. This assessment has been clinically validated and is widely used in both research and clinical practice.',
+      longDescription: 'The GAD-7 is a validated screening tool used by healthcare professionals worldwide to identify probable cases of generalized anxiety disorder and assess symptom severity.',
       duration: '2-3 minutes',
       questions: '7 questions',
       icon: Brain,
@@ -39,11 +42,11 @@ export default function WebQuizListScreen() {
       id: 'phq9',
       title: 'PHQ-9 Depression Screening',
       description: 'Patient Health Questionnaire to screen for depression symptoms and monitor treatment progress',
-      longDescription: 'The PHQ-9 is a multipurpose instrument for screening, diagnosing, monitoring and measuring the severity of depression. It incorporates DSM-IV depression diagnostic criteria with other leading major depressive symptoms into a brief self-report tool.',
+      longDescription: 'The PHQ-9 is a multipurpose instrument for screening, diagnosing, monitoring and measuring the severity of depression.',
       duration: '3-4 minutes',
       questions: '9 questions',
       icon: Heart,
-      color: Colors.ERROR,
+      color: '#EF4444',
       route: '/quizzes/phq_9Disclaimer',
       difficulty: 'Easy',
       accuracy: '91%',
@@ -335,6 +338,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   heroContent: {
     flexDirection: width < 1024 ? 'column' : 'row',
@@ -390,6 +396,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    display: width < 768 ? 'none' : 'flex',
   },
   heroCard: {
     backgroundColor: 'white',
@@ -424,6 +431,15 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
+    backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionHeader: {
     alignItems: 'center',
@@ -453,7 +469,7 @@ const styles = StyleSheet.create({
     gap: width < 640 ? 20 : width < 1024 ? 24 : 32,
   },
   featureCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#f8fafc',
     borderRadius: 24,
     padding: width < 640 ? 24 : width < 1024 ? 32 : 40,
     width: width < 640 ? '100%' : '48%',
@@ -495,6 +511,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     paddingVertical: width < 640 ? 60 : width < 1024 ? 80 : 100,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   quizzesGrid: {
     flexDirection: 'row',
@@ -640,6 +659,14 @@ const styles = StyleSheet.create({
     paddingVertical: width < 640 ? 60 : width < 1024 ? 80 : 100,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
     backgroundColor: 'white',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   benefitsGrid: {
     flexDirection: 'row',
@@ -688,6 +715,9 @@ const styles = StyleSheet.create({
     paddingVertical: width < 640 ? 60 : 80,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
     backgroundColor: '#fef3c7',
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   disclaimerCard: {
     backgroundColor: 'white',
@@ -730,7 +760,7 @@ const styles = StyleSheet.create({
   emergencyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.ERROR,
+    color: '#EF4444',
     marginBottom: 20,
     letterSpacing: -0.2,
   },
@@ -751,7 +781,7 @@ const styles = StyleSheet.create({
   },
   emergencyNumber: {
     fontSize: 20,
-    color: Colors.ERROR,
+    color: '#EF4444',
     fontWeight: '700',
     letterSpacing: -0.3,
   },

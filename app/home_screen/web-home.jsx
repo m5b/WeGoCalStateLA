@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, ArrowRight, Star, CircleCheck as CheckCircle, Shield, Zap, Target, Activity, ChartBar as BarChart3, Plus, Bell } from 'lucide-react-native';
+import { 
+  Calendar, Brain, BookOpen, Heart, TrendingUp, Clock, Users, Award, 
+  ArrowRight, Star, CheckCircle, Shield, Zap, Target, Activity, 
+  BarChart3, Plus, Bell, ChevronRight
+} from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
@@ -335,6 +338,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
+  
   // Dashboard Header
   dashboardHeader: {
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
@@ -342,10 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
-    flexDirection: width < 640 ? 'column' : 'row',
-    justifyContent: 'space-between',
-    alignItems: width < 640 ? 'flex-start' : 'center',
-    gap: width < 640 ? 12 : 0,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
   },
   headerContent: {
     flexDirection: width < 640 ? 'column' : 'row',
@@ -374,12 +375,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
   // Stats Overview
   statsSection: {
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
     paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
     marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -471,13 +480,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
   },
+  
   // Main Sections
   mainSection: {
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
     paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
     marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
+  
   // Dashboard Cards
   dashboardGrid: {
     flexDirection: 'row',
@@ -491,8 +509,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: width < 640 ? 16 : width < 1024 ? 18 : 20,
-    width: width < 640 ? '100%' : width < 1024 ? '48%' : '31%',
-    minWidth: width < 640 ? 0 : 280,
+    width: width < 640 ? '100%' : width < 1024 ? '48%' : '23%',
+    minWidth: width < 640 ? 0 : 200,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
@@ -554,6 +572,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  
   // Two Column Layout
   twoColumnSection: {
     flexDirection: width < 768 ? 'column' : 'row',
@@ -571,6 +590,11 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   rightColumn: {
     flex: 1,
@@ -579,7 +603,13 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
+  
   // Quick Actions
   quickActionsContainer: {
     gap: 12,
@@ -614,6 +644,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
   },
+  
   // Recent Activities
   activitiesContainer: {
     gap: 12,
@@ -648,12 +679,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
   },
+  
   // Wellness Tips
   wellnessSection: {
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
     paddingVertical: width < 640 ? 16 : width < 1024 ? 20 : 24,
     backgroundColor: 'white',
     marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   wellnessGrid: {
     flexDirection: 'row',

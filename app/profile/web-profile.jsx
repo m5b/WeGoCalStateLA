@@ -13,7 +13,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2, Save, Mail, GraduationCap, Calendar, Award, Activity, Target, TrendingUp, Heart, Brain, CircleCheck as CheckCircle, Star, Trophy, Zap, Clock, ChartBar as BarChart } from 'lucide-react-native';
+import { 
+  User, Settings, Bell, Shield, HelpCircle, LogOut, ChevronRight, 
+  Edit2, Save, Mail, GraduationCap, Calendar, Award, Activity, 
+  Target, TrendingUp, Heart, Brain, CheckCircle, Star, Trophy, 
+  Zap, Clock, BarChart
+} from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import WebLayout from '../../components/WebLayout';
 
@@ -25,7 +30,6 @@ export default function WebProfileScreen() {
   const [dataSharing, setDataSharing] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   
-  // User profile data
   const [userData, setUserData] = useState({
     name: 'Alex Johnson',
     email: 'alex.johnson@calstatela.edu',
@@ -35,17 +39,16 @@ export default function WebProfileScreen() {
     joinedDate: 'September 2023',
   });
 
-  // Mock wellness data
   const wellnessStats = [
     { label: 'Check-ins Completed', value: '28', icon: CheckCircle, color: Colors.SUCCESS, trend: '+12%' },
     { label: 'Current Wellness Score', value: '85%', icon: Star, color: Colors.PRIMARY, trend: '+5%' },
-    { label: 'Assessments Taken', value: '5', icon: Brain, color: Colors.INFO, trend: '+2' },
+    { label: 'Assessments Taken', value: '5', icon: Brain, color: '#3B82F6', trend: '+2' },
     { label: 'Days Active', value: '42', icon: Activity, color: Colors.SECONDARY, trend: '+7' },
   ];
 
   const recentActivity = [
     { type: 'Daily Check-in', date: 'Today', status: 'completed', color: Colors.SUCCESS, score: '4.2/5' },
-    { type: 'PHQ-9 Assessment', date: 'Yesterday', status: 'completed', color: Colors.INFO, score: '6/27' },
+    { type: 'PHQ-9 Assessment', date: 'Yesterday', status: 'completed', color: '#3B82F6', score: '6/27' },
     { type: 'Daily Check-in', date: '2 days ago', status: 'completed', color: Colors.SUCCESS, score: '3.8/5' },
     { type: 'GAD-7 Assessment', date: '3 days ago', status: 'completed', color: Colors.WARNING, score: '8/21' },
     { type: 'Daily Check-in', date: '4 days ago', status: 'completed', color: Colors.SUCCESS, score: '4.5/5' },
@@ -479,13 +482,13 @@ export default function WebProfileScreen() {
             <View style={styles.supportGrid}>
               <TouchableOpacity style={styles.supportCard}>
                 <View style={styles.supportIcon}>
-                  <HelpCircle size={24} color={Colors.INFO} />
+                  <HelpCircle size={24} color={'#3B82F6'} />
                 </View>
                 <View style={styles.supportContent}>
                   <Text style={styles.supportTitle}>Help Center</Text>
                   <Text style={styles.supportDescription}>Find answers to common questions</Text>
                 </View>
-                <ChevronRight size={20} color={Colors.GRAY} />
+                <ChevronRight size={20} color="#9CA3AF" />
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.supportCard}>
@@ -496,7 +499,7 @@ export default function WebProfileScreen() {
                   <Text style={styles.supportTitle}>Privacy Policy</Text>
                   <Text style={styles.supportDescription}>Learn how we protect your data</Text>
                 </View>
-                <ChevronRight size={20} color={Colors.GRAY} />
+                <ChevronRight size={20} color="#9CA3AF" />
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.supportCard}>
@@ -507,18 +510,18 @@ export default function WebProfileScreen() {
                   <Text style={styles.supportTitle}>Terms of Service</Text>
                   <Text style={styles.supportDescription}>Review our terms and conditions</Text>
                 </View>
-                <ChevronRight size={20} color={Colors.GRAY} />
+                <ChevronRight size={20} color="#9CA3AF" />
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.supportCard}>
                 <View style={styles.supportIcon}>
-                  <Heart size={24} color={Colors.ERROR} />
+                  <Heart size={24} color={'#EF4444'} />
                 </View>
                 <View style={styles.supportContent}>
                   <Text style={styles.supportTitle}>Contact Support</Text>
                   <Text style={styles.supportDescription}>Get help from our support team</Text>
                 </View>
-                <ChevronRight size={20} color={Colors.GRAY} />
+                <ChevronRight size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -526,7 +529,7 @@ export default function WebProfileScreen() {
           {/* Logout */}
           <View style={styles.logoutSection}>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <LogOut size={24} color={Colors.ERROR} />
+              <LogOut size={24} color={'#EF4444'} />
               <View style={styles.logoutContent}>
                 <Text style={styles.logoutTitle}>Sign Out</Text>
                 <Text style={styles.logoutDescription}>Sign out of your WeGo account</Text>
@@ -554,6 +557,9 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
     paddingHorizontal: width < 640 ? 20 : width < 1024 ? 40 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
   },
   heroContent: {
     maxWidth: 1200,
@@ -778,6 +784,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontWeight: '500',
   },
+  
   // Form Styles
   editForm: {
     marginTop: 20,
@@ -1121,7 +1128,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 6,
     borderWidth: 2,
-    borderColor: Colors.ERROR + '20',
+    borderColor: '#EF4444' + '20',
   },
   logoutContent: {
     flex: 1,
@@ -1129,7 +1136,7 @@ const styles = StyleSheet.create({
   logoutTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.ERROR,
+    color: '#EF4444',
     marginBottom: 4,
     letterSpacing: -0.2,
   },

@@ -14,7 +14,10 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
+import { 
+  ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, 
+  CheckCircle, GraduationCap 
+} from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 
 const { width } = Dimensions.get('window');
@@ -34,7 +37,6 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     
-    // Simulate login process
     setTimeout(() => {
       setIsLoading(false);
       router.push('/home_screen/home');
@@ -634,6 +636,13 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.PRIMARY,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   supportCard: {
     backgroundColor: Colors.WHITE,
     borderRadius: 16,
@@ -648,7 +657,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.INFO,
+    borderLeftColor: '#3B82F6',
   },
   supportContact: {
     fontSize: 16,
