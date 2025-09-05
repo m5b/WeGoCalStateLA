@@ -57,55 +57,66 @@ export default function ProfileScreen() {
   const renderWebProfileInfo = () => {
     if (isEditing) {
       return (
-        <View style={styles.webEditForm}>
-          <View style={styles.webInputGroup}>
-            <Text style={styles.webInputLabel}>Name</Text>
-            <TextInput
-              style={styles.webTextInput}
-              value={userData.name}
-              onChangeText={(text) => setUserData({...userData, name: text})}
-            />
+        <View style={styles.webEditFormGrid}>
+          <View style={styles.webEditFormCard}>
+            <View style={styles.webInputGroup}>
+              <Text style={styles.webInputLabel}>Name</Text>
+              <TextInput
+                style={styles.webTextInput}
+                value={userData.name}
+                onChangeText={(text) => setUserData({...userData, name: text})}
+              />
+            </View>
+            
+            <View style={styles.webInputGroup}>
+              <Text style={styles.webInputLabel}>Email</Text>
+              <TextInput
+                style={styles.webTextInput}
+                value={userData.email}
+                keyboardType="email-address"
+                onChangeText={(text) => setUserData({...userData, email: text})}
+              />
+            </View>
+            
+            <View style={styles.webInputGroup}>
+              <Text style={styles.webInputLabel}>Major</Text>
+              <TextInput
+                style={styles.webTextInput}
+                value={userData.major}
+                onChangeText={(text) => setUserData({...userData, major: text})}
+              />
+            </View>
+            
+            <View style={styles.webInputGroup}>
+              <Text style={styles.webInputLabel}>Year</Text>
+              <TextInput
+                style={styles.webTextInput}
+                value={userData.year}
+                onChangeText={(text) => setUserData({...userData, year: text})}
+              />
+            </View>
+            
+            <View style={styles.webButtonRow}>
+              <TouchableOpacity 
+                style={styles.webSaveButton}
+                onPress={handleSaveProfile}
+              >
+                <LinearGradient
+                  colors={[Colors.PRIMARY, '#1e40af']}
+                  style={styles.webSaveButtonGradient}
+                >
+                  <Text style={styles.webSaveButtonText}>Save Changes</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.webCancelButton}
+                onPress={() => setIsEditing(false)}
+              >
+                <Text style={styles.webCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          
-          <View style={styles.webInputGroup}>
-            <Text style={styles.webInputLabel}>Email</Text>
-            <TextInput
-              style={styles.webTextInput}
-              value={userData.email}
-              keyboardType="email-address"
-              onChangeText={(text) => setUserData({...userData, email: text})}
-            />
-          </View>
-          
-          <View style={styles.webInputGroup}>
-            <Text style={styles.webInputLabel}>Major</Text>
-            <TextInput
-              style={styles.webTextInput}
-              value={userData.major}
-              onChangeText={(text) => setUserData({...userData, major: text})}
-            />
-          </View>
-          
-          <View style={styles.webInputGroup}>
-            <Text style={styles.webInputLabel}>Year</Text>
-            <TextInput
-              style={styles.webTextInput}
-              value={userData.year}
-              onChangeText={(text) => setUserData({...userData, year: text})}
-            />
-          </View>
-          
-          <TouchableOpacity 
-            style={styles.webSaveButton}
-            onPress={handleSaveProfile}
-          >
-            <LinearGradient
-              colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
-              style={styles.webSaveButtonGradient}
-            >
-              <Text style={styles.webSaveButtonText}>Save Changes</Text>
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
       );
     }
@@ -142,18 +153,20 @@ export default function ProfileScreen() {
           <Text style={styles.webInfoValue}>{userData.joinedDate}</Text>
         </View>
         
-        <TouchableOpacity 
-          style={styles.webEditButton}
-          onPress={() => setIsEditing(true)}
-        >
-          <LinearGradient
-            colors={[Colors.SECONDARY, Colors.DARK_GOLD]}
-            style={styles.webEditButtonGradient}
+        <View style={styles.webEditButtonContainer}>
+          <TouchableOpacity 
+            style={styles.webEditButton}
+            onPress={() => setIsEditing(true)}
           >
-            <Edit2 size={16} color={Colors.WHITE} />
-            <Text style={styles.webEditButtonText}>Edit Profile</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={[Colors.SECONDARY, '#d97706']}
+              style={styles.webEditButtonGradient}
+            >
+              <Edit2 size={16} color={Colors.WHITE} />
+              <Text style={styles.webEditButtonText}>Edit Profile</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -162,94 +175,110 @@ export default function ProfileScreen() {
     return (
       <WebLayout>
         <ScrollView style={styles.webContainer} showsVerticalScrollIndicator={false}>
-          {/* Profile Header */}
-          <View style={styles.webProfileHeader}>
-            <View style={styles.webProfileContent}>
-              <View style={styles.webProfileImageSection}>
+          {/* Header */}
+          <View style={styles.webHeaderSection}>
+            <View style={styles.webHeaderContent}>
+              <View style={styles.webProfileImageContainer}>
                 <Image 
                   source={{ uri: 'https://randomuser.me/api/portraits/lego/1.jpg' }} 
                   style={styles.webProfileImage} 
                 />
-                <TouchableOpacity style={styles.webChangePhotoButton}>
-                  <Text style={styles.webChangePhotoText}>Change Photo</Text>
-                </TouchableOpacity>
               </View>
-              <View style={styles.webProfileInfo}>
-                <Text style={styles.webProfileName}>{userData.name}</Text>
-                <Text style={styles.webProfileRole}>Cal State LA Student</Text>
-                <Text style={styles.webProfileEmail}>{userData.email}</Text>
+              <View style={styles.webHeaderText}>
+                <Text style={styles.webHeaderTitle}>{userData.name}</Text>
+                <Text style={styles.webHeaderSubtitle}>Cal State LA Student</Text>
+                <Text style={styles.webHeaderEmail}>{userData.email}</Text>
               </View>
             </View>
           </View>
 
           {/* Profile Information */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Profile Information</Text>
+            <Text style={styles.webSectionTitle}>Student Information</Text>
             {renderWebProfileInfo()}
           </View>
 
           {/* Settings */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Settings</Text>
-            <View style={styles.webSettingsGrid}>
-              <View style={styles.webSettingCard}>
-                <Bell size={24} color={Colors.PRIMARY} />
-                <Text style={styles.webSettingTitle}>Notifications</Text>
-                <Switch
-                  trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
-                  thumbColor={notificationsEnabled ? Colors.PRIMARY : '#9ca3af'}
-                  onValueChange={setNotificationsEnabled}
-                  value={notificationsEnabled}
-                />
-              </View>
-              
-              <View style={styles.webSettingCard}>
-                <Shield size={24} color={Colors.PRIMARY} />
-                <Text style={styles.webSettingTitle}>Data Sharing</Text>
-                <Switch
-                  trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
-                  thumbColor={dataSharing ? Colors.PRIMARY : '#9ca3af'}
-                  onValueChange={setDataSharing}
-                  value={dataSharing}
-                />
+            <Text style={styles.webSectionTitle}>Preferences</Text>
+            <View style={styles.webSettingsContainer}>
+              <View style={styles.webSettingsGrid}>
+                <View style={styles.webSettingCard}>
+                  <View style={styles.webSettingIcon}>
+                    <Bell size={24} color={Colors.PRIMARY} />
+                  </View>
+                  <View style={styles.webSettingContent}>
+                    <Text style={styles.webSettingTitle}>Notifications</Text>
+                    <Text style={styles.webSettingDescription}>Receive wellness reminders and updates</Text>
+                  </View>
+                  <Switch
+                    trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
+                    thumbColor={notificationsEnabled ? Colors.PRIMARY : '#9ca3af'}
+                    onValueChange={setNotificationsEnabled}
+                    value={notificationsEnabled}
+                  />
+                </View>
+                
+                <View style={styles.webSettingCard}>
+                  <View style={styles.webSettingIcon}>
+                    <Shield size={24} color={Colors.PRIMARY} />
+                  </View>
+                  <View style={styles.webSettingContent}>
+                    <Text style={styles.webSettingTitle}>Data Privacy</Text>
+                    <Text style={styles.webSettingDescription}>Share anonymous data for research</Text>
+                  </View>
+                  <Switch
+                    trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
+                    thumbColor={dataSharing ? Colors.PRIMARY : '#9ca3af'}
+                    onValueChange={setDataSharing}
+                    value={dataSharing}
+                  />
+                </View>
               </View>
             </View>
           </View>
 
           {/* Support */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Support</Text>
-            <View style={styles.webSupportGrid}>
-              <TouchableOpacity style={styles.webSupportCard}>
-                <Text style={styles.webSupportText}>Help Center</Text>
-                <ChevronRight size={20} color="#64748b" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.webSupportCard}>
-                <Text style={styles.webSupportText}>Privacy Policy</Text>
-                <ChevronRight size={20} color="#64748b" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.webSupportCard}>
-                <Text style={styles.webSupportText}>Terms of Service</Text>
-                <ChevronRight size={20} color="#64748b" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.webSupportCard}>
-                <Text style={styles.webSupportText}>About WeGoToCalStateLA</Text>
-                <ChevronRight size={20} color="#64748b" />
-              </TouchableOpacity>
+            <Text style={styles.webSectionTitle}>Help & Support</Text>
+            <View style={styles.webSupportContainer}>
+              <View style={styles.webSupportGrid}>
+                <TouchableOpacity style={styles.webSupportCard}>
+                  <Text style={styles.webSupportText}>Help Center</Text>
+                  <ChevronRight size={20} color="#64748b" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.webSupportCard}>
+                  <Text style={styles.webSupportText}>Privacy Policy</Text>
+                  <ChevronRight size={20} color="#64748b" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.webSupportCard}>
+                  <Text style={styles.webSupportText}>Terms of Service</Text>
+                  <ChevronRight size={20} color="#64748b" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.webSupportCard}>
+                  <Text style={styles.webSupportText}>About WeGo</Text>
+                  <ChevronRight size={20} color="#64748b" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
 
           {/* Logout */}
-          <View style={styles.webLogoutSection}>
+          <View style={styles.webActionsSection}>
             <TouchableOpacity 
               style={styles.webLogoutButton}
               onPress={handleLogout}
             >
-              <LogOut size={20} color="#ef4444" />
-              <Text style={styles.webLogoutText}>Logout</Text>
+              <LinearGradient
+                colors={['#ef4444', '#dc2626']}
+                style={styles.webLogoutGradient}
+              >
+                <LogOut size={20} color={Colors.WHITE} />
+                <Text style={styles.webLogoutText}>Sign Out</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -682,6 +711,7 @@ const styles = StyleSheet.create({
   },
   // Web-specific styles
   webEditForm: {
+    backgroundColor: '#f8fafc',
     marginTop: 10,
   },
   webInputGroup: {
@@ -719,6 +749,8 @@ const styles = StyleSheet.create({
   },
   webProfileInfoGrid: {
     gap: 16,
+    maxWidth: 800,
+    alignSelf: 'center',
   },
   webInfoCard: {
     backgroundColor: '#f8fafc',
@@ -726,11 +758,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   webInfoLabel: {
     fontSize: 14,
     color: '#64748b',
-    marginBottom: 4,
     fontWeight: '600',
   },
   webInfoValue: {
@@ -738,10 +772,14 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     fontWeight: '500',
   },
+  webEditButtonContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
   webEditButton: {
-    marginTop: 15,
     borderRadius: 10,
     overflow: 'hidden',
+    width: 200,
   },
   webEditButtonGradient: {
     flexDirection: 'row',
@@ -754,5 +792,204 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  
+  // Web Layout Styles
+  webContainer: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  webHeaderSection: {
+    backgroundColor: 'white',
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 60 : 80,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  webHeaderContent: {
+    flexDirection: width < 768 ? 'column' : 'row',
+    alignItems: 'center',
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    gap: width < 768 ? 24 : 40,
+  },
+  webProfileImageContainer: {
+    alignItems: 'center',
+  },
+  webProfileImage: {
+    width: width < 768 ? 120 : 150,
+    height: width < 768 ? 120 : 150,
+    borderRadius: width < 768 ? 60 : 75,
+    borderWidth: 4,
+    borderColor: Colors.PRIMARY + '20',
+  },
+  webHeaderText: {
+    alignItems: width < 768 ? 'center' : 'flex-start',
+    flex: 1,
+  },
+  webHeaderTitle: {
+    fontSize: width < 640 ? 28 : width < 1024 ? 36 : 42,
+    fontWeight: '900',
+    color: Colors.PRIMARY,
+    marginBottom: 8,
+    letterSpacing: -1,
+    textAlign: width < 768 ? 'center' : 'left',
+  },
+  webHeaderSubtitle: {
+    fontSize: width < 640 ? 16 : 18,
+    color: Colors.SECONDARY,
+    marginBottom: 8,
+    fontWeight: '600',
+    textAlign: width < 768 ? 'center' : 'left',
+  },
+  webHeaderEmail: {
+    fontSize: 16,
+    color: '#64748b',
+    fontWeight: '500',
+    textAlign: width < 768 ? 'center' : 'left',
+  },
+  webSection: {
+    backgroundColor: 'white',
+    paddingVertical: width < 640 ? 40 : width < 1024 ? 50 : 60,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  webSectionTitle: {
+    fontSize: width < 640 ? 24 : width < 1024 ? 28 : 32,
+    fontWeight: '800',
+    color: Colors.PRIMARY,
+    marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  webEditFormGrid: {
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  webEditFormCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: width < 640 ? 20 : 24,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  webButtonRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 20,
+    justifyContent: 'center',
+  },
+  webCancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  webCancelButtonText: {
+    color: '#64748b',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  webSettingsContainer: {
+    maxWidth: 800,
+    alignSelf: 'center',
+  },
+  webSettingsGrid: {
+    gap: 16,
+  },
+  webSettingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 16,
+  },
+  webSettingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.PRIMARY + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  webSettingContent: {
+    flex: 1,
+  },
+  webSettingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  webSettingDescription: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  webSupportContainer: {
+    maxWidth: 800,
+    alignSelf: 'center',
+  },
+  webSupportGrid: {
+    gap: 12,
+  },
+  webSupportCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  webSupportText: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  webActionsSection: {
+    paddingVertical: 40,
+    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+    alignItems: 'center',
+  },
+  webLogoutButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 200,
+  },
+  webLogoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  webLogoutText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
