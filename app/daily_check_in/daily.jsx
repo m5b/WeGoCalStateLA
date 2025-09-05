@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Save, ChartBar as BarChart } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { responsive, isWeb, width } from '../../utils/responsive';
+import WebLayout from '../../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
 

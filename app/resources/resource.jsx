@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight, BookOpen, Users, Clock, MapPin, ExternalLink, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { responsive, isWeb, width } from '../../utils/responsive';
+import WebLayout from '../../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
 

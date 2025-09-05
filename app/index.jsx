@@ -21,6 +21,7 @@ import Animated, {
 import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, GraduationCap, Clock, UserCheck } from 'lucide-react-native';
 import Colors from '../constant/Colors';
 import { responsive, isWeb, width } from '../utils/responsive';
+import WebLayout from '../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
 

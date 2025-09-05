@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { responsive, isWeb, width } from '../../utils/responsive';
+import WebLayout from '../../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
 

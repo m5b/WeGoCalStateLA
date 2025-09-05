@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Calendar, Download, Share2 } from 'lucide-react-native';
+import { ArrowLeft, Calendar, TrendingUp, Award, Download, Share2 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { responsive, isWeb, width } from '../../utils/responsive';
+import WebLayout from '../../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -47,6 +48,91 @@ const mockStressData = [
   { day: 'Sat', value: 2 },
   { day: 'Sun', value: 2 },
 ];
+
+// Helper functions
+const getBarColor = (value, isStress = false) => {
+  if (isStress) {
+    // For stress, lower is better
+    if (value === 1) return Colors.SUCCESS;
+    if (value === 2) return Colors.INFO;
+    if (value === 3) return Colors.SECONDARY;
+    if (value === 4) return Colors.WARNING;
+    return Colors.ERROR;
+  } else {
+    // For mood and sleep, higher is better
+    if (value === 5) return Colors.SUCCESS;
+    if (value === 4) return Colors.INFO;
+    if (value === 3) return Colors.SECONDARY;
+    if (value === 2) return Colors.WARNING;
+    return Colors.ERROR;
+  }
+};
+
+const renderWebBarChart = (data, title, isStress = false) => {
+  const maxValue = 5;
+  
+  return (
+    <View style={styles.webChartCard}>
+      <Text style={styles.webChartTitle}>{title}</Text>
+      <View style={styles.webChartContent}>
+        {data.map((item, index) => {
+          const barHeight = (item.value / maxValue) * 80;
+          return (
+            <View key={index} style={styles.webBarContainer}>
+              <Text style={styles.webBarValue}>{item.value}</Text>
+              <View style={styles.webBarWrapper}>
+                <View 
+                  style={[
+                    styles.webBar, 
+                    { 
+                      height: barHeight, 
+                      backgroundColor: getBarColor(item.value, isStress) 
+                    }
+                  ]}
+                />
+              </View>
+              <Text style={styles.webBarLabel}>{item.day}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+const renderBarChart = (data, title, isStress = false) => {
+  const maxValue = 5; // Maximum value for our scales
+  
+  return (
+    <View style={styles.chartContainer}>
+      <Text style={styles.chartTitle}>{title}</Text>
+      <View style={styles.chartContent}>
+        {data.map((item, index) => {
+          const barHeight = (item.value / maxValue) * 120; // 120 is the max height of our bars
+          return (
+            <View key={index} style={styles.barContainer}>
+              <View style={styles.barLabelContainer}>
+                <Text style={styles.barValue}>{item.value}</Text>
+              </View>
+              <View style={styles.barWrapper}>
+                <View 
+                  style={[
+                    styles.bar, 
+                    { 
+                      height: barHeight, 
+                      backgroundColor: getBarColor(item.value, isStress) 
+                    }
+                  ]}
+                />
+              </View>
+              <Text style={styles.barLabel}>{item.day}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 export default function ProgressScreen() {
   const [timeRange, setTimeRange] = React.useState('week'); // 'week', 'month', 'year'
@@ -185,90 +271,6 @@ export default function ProgressScreen() {
       </WebLayout>
     );
   }
-
-  const renderWebBarChart = (data, title, isStress = false) => {
-    const maxValue = 5;
-    
-    return (
-      <View style={styles.webChartCard}>
-        <Text style={styles.webChartTitle}>{title}</Text>
-        <View style={styles.webChartContent}>
-          {data.map((item, index) => {
-            const barHeight = (item.value / maxValue) * 80;
-            return (
-              <View key={index} style={styles.webBarContainer}>
-                <Text style={styles.webBarValue}>{item.value}</Text>
-                <View style={styles.webBarWrapper}>
-                  <View 
-                    style={[
-                      styles.webBar, 
-                      { 
-                        height: barHeight, 
-                        backgroundColor: getBarColor(item.value, isStress) 
-                      }
-                    ]}
-                  />
-                </View>
-                <Text style={styles.webBarLabel}>{item.day}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
-
-  const getBarColor = (value, isStress = false) => {
-    if (isStress) {
-      // For stress, lower is better
-      if (value === 1) return Colors.SUCCESS;
-      if (value === 2) return Colors.INFO;
-      if (value === 3) return Colors.SECONDARY;
-      if (value === 4) return Colors.WARNING;
-      return Colors.ERROR;
-    } else {
-      // For mood and sleep, higher is better
-      if (value === 5) return Colors.SUCCESS;
-      if (value === 4) return Colors.INFO;
-      if (value === 3) return Colors.SECONDARY;
-      if (value === 2) return Colors.WARNING;
-      return Colors.ERROR;
-    }
-  };
-
-  const renderBarChart = (data, title, isStress = false) => {
-    const maxValue = 5; // Maximum value for our scales
-    
-    return (
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>{title}</Text>
-        <View style={styles.chartContent}>
-          {data.map((item, index) => {
-            const barHeight = (item.value / maxValue) * 120; // 120 is the max height of our bars
-            return (
-              <View key={index} style={styles.barContainer}>
-                <View style={styles.barLabelContainer}>
-                  <Text style={styles.barValue}>{item.value}</Text>
-                </View>
-                <View style={styles.barWrapper}>
-                  <View 
-                    style={[
-                      styles.bar, 
-                      { 
-                        height: barHeight, 
-                        backgroundColor: getBarColor(item.value, isStress) 
-                      }
-                    ]}
-                  />
-                </View>
-                <Text style={styles.barLabel}>{item.day}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
