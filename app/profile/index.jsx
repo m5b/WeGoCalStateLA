@@ -11,12 +11,15 @@ import {
   Switch,
   Alert,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import { responsive } from '../../utils/responsive';
+import { responsive, isWeb, width } from '../../utils/responsive';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);

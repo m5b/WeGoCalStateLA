@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
   Image,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -19,7 +20,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, GraduationCap, Clock, UserCheck } from 'lucide-react-native';
 import Colors from '../constant/Colors';
-import { responsive } from '../utils/responsive';
+import { responsive, isWeb, width } from '../utils/responsive';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function LandingPage() {
   if (Platform.OS === 'web') {

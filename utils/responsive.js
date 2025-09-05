@@ -1,7 +1,8 @@
 import { Dimensions, Platform } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
-const isWeb = Platform.OS === 'web';
+export const isWeb = Platform.OS === 'web';
+export const { width } = Dimensions.get('window');
 
 // Breakpoints
 const Breakpoints = {

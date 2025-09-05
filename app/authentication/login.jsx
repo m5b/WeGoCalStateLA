@@ -10,12 +10,15 @@ import {
   Platform,
   Alert,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import { responsive } from '../../utils/responsive';
+import { responsive, isWeb, width } from '../../utils/responsive';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

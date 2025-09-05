@@ -7,12 +7,15 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Calendar, Download, Share2 } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import { responsive } from '../../utils/responsive';
+import { responsive, isWeb, width } from '../../utils/responsive';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 // Mock data for visualizations
 const mockMoodData = [
