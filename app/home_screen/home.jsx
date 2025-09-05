@@ -6,16 +6,13 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import WebLayout from '../../components/WebLayout';
-
-const { width } = Dimensions.get('window');
+import { responsive } from '../../utils/responsive';
 
 export default function HomeScreen() {
   if (Platform.OS === 'web') {

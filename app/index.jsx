@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   SafeAreaView,
   ScrollView,
   Platform,
@@ -12,7 +11,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -21,15 +19,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Heart, Brain, Users, Shield, Sparkles, ArrowRight, CircleCheck as CheckCircle, Calendar, MessageCircle, BookOpen, Zap, Phone, Mail, MapPin, GraduationCap, Clock, UserCheck } from 'lucide-react-native';
 import Colors from '../constant/Colors';
-import WebLayout from '../components/WebLayout';
-
-const { width, height } = Dimensions.get('window');
-const isWeb = Platform.OS === 'web';
-
-SplashScreen.preventAutoHideAsync();
+import { responsive } from '../utils/responsive';
 
 export default function LandingPage() {
-  if (isWeb) {
+  if (Platform.OS === 'web') {
     return <WebLandingPage />;
   }
   return <MobileSplashScreen />;
@@ -387,8 +380,6 @@ function MobileSplashScreen() {
    const buttonScale = useSharedValue(0);
 
    useEffect(() => {
-     SplashScreen.hideAsync();
-     
      logoScale.value = withSpring(1, { duration: 800 });
      cardOpacity.value = withDelay(300, withSpring(1, { duration: 600 }));
      buttonScale.value = withDelay(600, withSpring(1, { duration: 500 }));
@@ -460,11 +451,11 @@ const styles = StyleSheet.create({
   
   // Hero Section
   heroSection: {
-    paddingVertical: width < 640 ? 60 : width < 1024 ? 80 : 120,
-    paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
+    paddingVertical: responsive({ xs: 60, md: 80, lg: 120 }),
+    paddingHorizontal: responsive({ xs: 16, md: 32, lg: 60 }),
     backgroundColor: 'white',
-    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
-    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+    marginHorizontal: responsive({ xs: 16, md: 24, lg: 32 }),
+    marginBottom: responsive({ xs: 16, md: 20, lg: 24 }),
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -473,16 +464,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   heroContent: {
-    flexDirection: width < 1024 ? 'column' : 'row',
+    flexDirection: responsive({ xs: 'column', lg: 'row' }),
     alignItems: 'center',
     maxWidth: 1200,
     alignSelf: 'center',
     width: '100%',
-    gap: width < 640 ? 40 : width < 1024 ? 60 : 80,
+    gap: responsive({ xs: 40, md: 60, lg: 80 }),
   },
   heroText: {
     flex: 1,
-    alignItems: width < 1024 ? 'center' : 'flex-start',
+    alignItems: responsive({ xs: 'center', lg: 'flex-start' }),
   },
   badgeContainer: {
     flexDirection: 'row',

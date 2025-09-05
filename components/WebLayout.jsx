@@ -4,15 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Platform,
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, Menu, X, Sparkles, Bell, Search, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
 import Colors from '../constant/Colors';
-
-const { width } = Dimensions.get('window');
+import { responsive } from '../utils/responsive';
 
 export default function WebLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -219,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#f1f5f9',
-    display: width < 1024 ? 'flex' : 'none',
+    display: responsive({ xs: 'flex', lg: 'none' }),
   },
   brand: {
     flexDirection: 'row',
@@ -243,7 +241,7 @@ const styles = StyleSheet.create({
   desktopNav: {
     flexDirection: 'row',
     gap: 8,
-    display: width < 1024 ? 'none' : 'flex',
+    display: responsive({ xs: 'none', lg: 'flex' }),
   },
   navItem: {
     flexDirection: 'row',
@@ -307,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#1e293b',
-    display: width < 640 ? 'none' : 'flex',
+    display: responsive({ xs: 'none', sm: 'flex' }),
   },
   userDropdown: {
     position: 'absolute',
@@ -357,7 +355,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
-    width: width < 640 ? width * 0.85 : 320,
+    width: responsive({ xs: '85%', sm: 320 }),
     backgroundColor: 'white',
     zIndex: 2,
     shadowColor: '#000',

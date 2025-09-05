@@ -6,17 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight, BookOpen, Users, Clock, MapPin, ExternalLink, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import WebLayout from '../../components/WebLayout';
-
-const { width } = Dimensions.get('window');
-const isWeb = Platform.OS === 'web';
+import { responsive } from '../../utils/responsive';
 
 export default function ResourceScreen() {
   const resourceCategories = [

@@ -6,16 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Save, ChartBar as BarChart } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
-import WebLayout from '../../components/WebLayout';
-
-const { width } = Dimensions.get('window');
+import { responsive } from '../../utils/responsive';
 
 export default function DailyCheckInScreen() {
   const [mood, setMood] = useState(null);
