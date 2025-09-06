@@ -357,7 +357,7 @@ function WebLandingPage() {
             
             <View style={styles.footerBottom}>
               <Text style={styles.footerCopyright}>
-                © 2024 California State University, Los Angeles. All rights reserved.
+                © 2025 California State University, Los Angeles. All rights reserved.
               </Text>
               <View style={styles.footerBottomLinks}>
                 <TouchableOpacity>
