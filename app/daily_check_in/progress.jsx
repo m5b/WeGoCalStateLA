@@ -370,7 +370,6 @@ export default function ProgressScreen() {
               <LinearGradient
                 colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
                 style={styles.actionGradient}
-                onPress={() => router.push('/daily_check_in/calendar')}
               >
                 <Calendar size={20} color={Colors.WHITE} />
                 <Text style={styles.actionText}>View Calendar</Text>
