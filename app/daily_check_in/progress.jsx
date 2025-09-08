@@ -238,6 +238,7 @@ export default function ProgressScreen() {
             <View style={styles.webActionsGrid}>
               <TouchableOpacity style={styles.webActionButton}>
                 <LinearGradient
+                onPress={() => router.push('/daily_check_in/calendar')}
                   colors={[Colors.PRIMARY, '#1e40af']}
                   style={styles.webActionGradient}
                 >
@@ -362,6 +363,7 @@ export default function ProgressScreen() {
           <View style={styles.actionsContainer}>
             <TouchableOpacity style={styles.actionButton}>
               <LinearGradient
+              onPress={() => router.push('/daily_check_in/calendar')}
                 colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
                 style={styles.actionGradient}
               >
