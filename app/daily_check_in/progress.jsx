@@ -363,17 +363,11 @@ export default function ProgressScreen() {
 
           {/* Action Buttons */}
           <View style={styles.actionsContainer}>
-<<<<<<< HEAD
             <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => router.push('/daily_check_in/calendar')}
             >
               <LinearGradient
-=======
-            <TouchableOpacity style={styles.actionButton}>
-              <LinearGradient
-                onPress={() => router.push('/daily_check_in/calendar')}
->>>>>>> 1dc68192aff6ab0f2d073f960692f6530bf73e9b
                 colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
                 style={styles.actionGradient}
                 onPress={() => router.push('/daily_check_in/calendar')}
