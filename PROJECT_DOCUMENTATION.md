@@ -284,7 +284,7 @@ graph LR
 - **Multi-Factor Authentication**: Enhanced security features
 - **JWT Tokens**: Session management
 
-**Frontend Stack:**
+**Original Frontend Stack:**
 - **React Native** (v0.76.7): Cross-platform mobile development
 - **Expo** (v52.0.36): Development platform and build tools
 - **React Navigation** (v7.x): Tab and stack navigation
@@ -293,7 +293,7 @@ graph LR
 - **i18next**: Internationalization support
 - **Lottie React Native**: Animation support
 
-**Key Features:**
+**Original Key Features:**
 - Full AWS backend integration
 - Serverless chatbot with Lambda
 - Secure authentication with Cognito
@@ -303,13 +303,19 @@ graph LR
 
 ### Current Enhanced Version
 **Frontend-Only Architecture:**
-- **Modern Tech Stack**: Expo Router, TypeScript, React Native Web
-- **Professional Design System**: Comprehensive design tokens inspired by bot.new
+- **React Native** (v0.79.5): Cross-platform mobile development
+- **Expo** (v53.0.22): Development platform and build tools
+- **React** (v19.0.0): Latest React version
+- **TypeScript** (v5.8.3): Type safety and developer experience
+- **Expo Router** (v5.1.5): File-based routing system
+- **React Native Web** (v0.20.0): Web platform support
+- **React Navigation** (v7.x): Tab and stack navigation
+- **React Native Reanimated** (v3.17.4): Advanced animations
+- **Lucide React Native** (v0.475.0): Modern icon library
+- **Professional Design System**: Comprehensive design tokens
 - **Cross-Platform**: Web and mobile support with responsive design
-- **Advanced UI/UX**: Modern animations with React Native Reanimated
 - **Scalable Architecture**: Modular component structure
 - **Accessibility**: Better screen reader support and touch targets
-- **Performance**: Optimized rendering and smooth animations
 
 **Key Improvements:**
 - **Web Support**: Added React Native Web for browser compatibility
