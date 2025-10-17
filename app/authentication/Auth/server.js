@@ -1,19 +1,22 @@
-import mysql from "mysql2/promise";
-import dotenv from "dotenv";
+import express from 'express';
+import dotenv from 'dotenv'
+import cors from "cors";
+import router from './routes/authRoutes.js';
 
 dotenv.config();
 
-(async () => {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-    });
-    console.log("connected!"); 
-    await connection.end();
-  } catch (err) {
-    console.error("connection failed:", err.message);
-  }
-})();
+const app = express();
+app.use(express.json()); 
+
+app.use(cors());
+
+app.get("/",(req,res)=>{
+  res.send('Hello express');
+})
+
+app.use('/api/auth',router);
+
+app.listen(3000,()=>{
+  console.log('Server running on port 3000');
+})
+ 
