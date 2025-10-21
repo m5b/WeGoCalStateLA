@@ -1,0 +1,11 @@
+{
+  "extends": "expo",
+  "overrides": [
+    {
+      "files": ["app/index.jsx"],
+      "rules": {
+        "no-dupe-keys": "off"
+      }
+    }
+  ]
+}

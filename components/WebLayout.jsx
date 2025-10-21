@@ -27,6 +27,7 @@ export default function WebLayout({ children }) {
     { name: 'Events', icon: Calendar, route: '/home_screen/events', active: pathname === '/home_screen/events' },
     { name: 'Resources', icon: BookOpen, route: '/resources/resource', active: pathname.includes('/resources') },
     { name: 'AI Assistant', icon: MessageCircle, route: '/chat_bot/chatbotui', active: pathname.includes('/chat_bot') },
+    { name: 'Threads', icon: MessageCircle, route: '/threads/feed', active: pathname.includes('/threads') },
     { name: 'Profile', icon: User, route: '/profile', active: pathname.includes('/profile') },
   ];
 
