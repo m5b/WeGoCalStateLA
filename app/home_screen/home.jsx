@@ -7,16 +7,13 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock, MessageSquare } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 const quickActions = [
     {
@@ -250,14 +247,14 @@ export default function HomeScreen() {
 
           {/* Today's Highlight */}
           <View style={webStyles.webSection}>
-            <Text style={webStyles.webSectionTitle}>Today's Focus</Text>
+            <Text style={webStyles.webSectionTitle}>Today’s Focus</Text>
             <View style={webStyles.webHighlightCard}>
               <View style={webStyles.webHighlightHeader}>
                 <Clock size={20} color={Colors.SECONDARY} />
                 <Text style={webStyles.webHighlightTitle}>Daily Inspiration</Text>
               </View>
               <Text style={webStyles.webHighlightText}>
-                "Mental health is not a destination, but a process. It's about how you drive, not where you're going."
+                “Mental health is not a destination, but a process. It’s about how you drive, not where you’re going.”
               </Text>
               <Text style={webStyles.webHighlightAuthor}>- Noam Shpancer</Text>
             </View>
@@ -363,10 +360,10 @@ export default function HomeScreen() {
           <View style={styles.highlightCard}>
             <View style={styles.highlightHeader}>
               <Clock size={20} color={Colors.SECONDARY} />
-              <Text style={styles.highlightTitle}>Today's Focus</Text>
+              <Text style={styles.highlightTitle}>Today’s Focus</Text>
             </View>
             <Text style={styles.highlightText}>
-              "Mental health is not a destination, but a process. It's about how you drive, not where you're going."
+              “Mental health is not a destination, but a process. It’s about how you drive, not where you’re going.”
             </Text>
             <View style={styles.highlightFooter}>
               <Text style={styles.highlightAuthor}>- Noam Shpancer</Text>

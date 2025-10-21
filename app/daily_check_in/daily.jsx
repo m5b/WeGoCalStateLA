@@ -7,22 +7,22 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
-  Dimensions,
+  // Dimensions removed
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Save, ChartBar as BarChart } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
-const { width: screenWidth } = Dimensions.get('window');
+// Removed unused screenWidth from Dimensions
 
 export default function DailyCheckInScreen() {
   const [mood, setMood] = useState(null);
   const [sleepQuality, setSleepQuality] = useState(null);
   const [stressLevel, setStressLevel] = useState(null);
-  const [date, setDate] = useState(new Date());
+  const [date] = useState(new Date());
 
   const moods = [
     { value: 5, label: 'Great', emoji: '😁', color: Colors.SUCCESS },
@@ -128,7 +128,7 @@ export default function DailyCheckInScreen() {
 
           {/* Stress Section */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>What's your stress level today?</Text>
+            <Text style={styles.webSectionTitle}>What’s your stress level today?</Text>
             <View style={styles.webOptionsGrid}>
               {stressOptions.map((item) => (
                 <TouchableOpacity
@@ -162,7 +162,7 @@ export default function DailyCheckInScreen() {
                 style={styles.webSaveButtonGradient}
               >
                 <Save size={20} color={Colors.WHITE} />
-                <Text style={styles.webSaveButtonText}>Save Today's Check-In</Text>
+                <Text style={styles.webSaveButtonText}>Save Today’s Check-In</Text>
               </LinearGradient>
             </TouchableOpacity>
             
@@ -262,7 +262,7 @@ export default function DailyCheckInScreen() {
 
           {/* Stress Level Section */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>What's your stress level today?</Text>
+            <Text style={styles.sectionTitle}>What’s your stress level today?</Text>
             <View style={styles.optionsContainer}>
               {stressOptions.map((item) => (
                 <TouchableOpacity
@@ -295,7 +295,7 @@ export default function DailyCheckInScreen() {
                 style={styles.actionGradient}
               >
                 <Save size={20} color={Colors.WHITE} />
-                <Text style={styles.actionText}>Save Today's Check-In</Text>
+                <Text style={styles.actionText}>Save Today’s Check-In</Text>
               </LinearGradient>
             </TouchableOpacity>
             

@@ -19,7 +19,7 @@ import {
   Trophy,
   Heart
 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 
 const { width } = Dimensions.get('window');
 

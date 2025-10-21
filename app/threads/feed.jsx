@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ThreadsProvider, useThreads } from './threadStore';
 import { router } from 'expo-router';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 
 function ThreadItem({ item, onLike, onOpen }) {
   return (

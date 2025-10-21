@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,15 +15,14 @@ import {
   ArrowLeft, 
   ChevronLeft, 
   ChevronRight, 
-  Calendar as CalendarIcon,
   Heart,
   Moon,
   Zap,
   Plus,
   Eye
 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { responsive } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -42,7 +41,6 @@ const mockCheckIns = {
 export default function CalendarScreen() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [viewMode, setViewMode] = useState('month'); // 'month', 'week'
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',

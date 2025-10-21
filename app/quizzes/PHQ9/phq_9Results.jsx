@@ -6,19 +6,16 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Home, BarChart, Share2 } from 'lucide-react-native';
-import Colors from '../../../constant/Colors';
-
-const { width } = Dimensions.get('window');
+import { Colors } from '../../../constant/Colors';
 
 export default function PHQ9ResultsScreen() {
   const params = useLocalSearchParams();
   const [score, setScore] = useState(0);
-  const [date, setDate] = useState(new Date());
+  const [date] = useState(new Date());
   
   useEffect(() => {
     if (params.score) {

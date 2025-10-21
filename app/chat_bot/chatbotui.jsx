@@ -9,7 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
+  // Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,21 +20,21 @@ import {
   User,
   Heart,
   Sparkles,
-  MessageCircle,
+  // MessageCircle,
   Shield
 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { /* responsive, */ isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
-const { width: screenWidth } = Dimensions.get('window');
+// const { width: screenWidth } = Dimensions.get('window');
 
 export default function ChatBotScreen() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your Cal State LA wellness assistant. How can I support your mental health journey today?",
+      text: "Hello! I’m your Cal State LA wellness assistant. How can I support your mental health journey today?",
       isBot: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -57,7 +57,7 @@ export default function ChatBotScreen() {
       setTimeout(() => {
         const botResponse = {
           id: Date.now() + 1,
-          text: "Thank you for reaching out. I'm here to listen and provide support. As a Cal State LA student, you have access to many wellness resources. Would you like me to help you find specific services or just talk through what you're experiencing?",
+          text: "Thank you for reaching out. I’m here to listen and provide support. As a Cal State LA student, you have access to many wellness resources. Would you like me to help you find specific services or just talk through what you’re experiencing?",
           isBot: true,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };

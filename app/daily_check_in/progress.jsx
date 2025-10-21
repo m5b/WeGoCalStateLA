@@ -6,17 +6,17 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Platform,
-  Dimensions,
+  // Platform removed
+  // Dimensions removed
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Calendar, TrendingUp, Award, Download, Share2 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { ArrowLeft, Calendar, Download, Share2 } from 'lucide-react-native';
+import { Colors } from '../../constant/Colors';
+import { isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
-const { width: screenWidth } = Dimensions.get('window');
+// Removed unused screenWidth derived from Dimensions
 
 // Mock data for visualizations
 const mockMoodData = [

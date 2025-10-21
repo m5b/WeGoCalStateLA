@@ -10,7 +10,7 @@ import {
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react-native';
-import Colors from '../../../constant/Colors';
+import { Colors } from '../../../constant/Colors';
 
 export default function PHQ9DisclaimerScreen() {
   return (
@@ -55,12 +55,12 @@ export default function PHQ9DisclaimerScreen() {
               
               <View style={styles.bulletPoint}>
                 <View style={styles.bullet} />
-                <Text style={styles.bulletText}>If you're experiencing thoughts of harming yourself, please contact emergency services or the National Suicide Prevention Lifeline at 988 immediately.</Text>
+                <Text style={styles.bulletText}>If you’re experiencing thoughts of harming yourself, please contact emergency services or the National Suicide Prevention Lifeline at 988 immediately.</Text>
               </View>
             </View>
             
             <Text style={styles.instructionText}>
-              The assessment consists of 9 questions about how you've been feeling over the past 2 weeks. Please answer honestly for the most accurate results.
+              The assessment consists of 9 questions about how you’ve been feeling over the past 2 weeks. Please answer honestly for the most accurate results.
             </Text>
           </View>
           

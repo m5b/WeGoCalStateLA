@@ -11,20 +11,16 @@ import {
   Switch,
   Alert,
   Platform,
-  Dimensions,
 } from 'react-native';
-import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, ChevronRight, CreditCard as Edit2 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  // Removed unused darkModeEnabled state
   const [dataSharing, setDataSharing] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   
@@ -43,20 +39,7 @@ export default function ProfileScreen() {
     Alert.alert('Success', 'Profile information updated successfully!');
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive',
-          onPress: () => router.replace('/authentication/login')
-        },
-      ]
-    );
-  };
+
 
   const renderWebProfileInfo = () => {
     if (isEditing) {
@@ -261,27 +244,19 @@ export default function ProfileScreen() {
                   <Text style={styles.webSupportText}>Terms of Service</Text>
                   <ChevronRight size={20} color="#64748b" />
                 </TouchableOpacity>
-                
-                <TouchableOpacity style={styles.webSupportCard}>
-                  <Text style={styles.webSupportText}>About WeGo</Text>
-                  <ChevronRight size={20} color="#64748b" />
-                </TouchableOpacity>
               </View>
             </View>
           </View>
 
-          {/* Logout */}
+          {/* Actions */}
           <View style={styles.webActionsSection}>
-            <TouchableOpacity 
-              style={styles.webLogoutButton}
-              onPress={handleLogout}
-            >
+            <TouchableOpacity style={styles.webLogoutButton}>
               <LinearGradient
-                colors={['#ef4444', '#dc2626']}
+                colors={[Colors.ERROR, '#b91c1c']}
                 style={styles.webLogoutGradient}
               >
-                <LogOut size={20} color={Colors.WHITE} />
-                <Text style={styles.webLogoutText}>Sign Out</Text>
+                <LogOut size={18} color={Colors.WHITE} />
+                <Text style={styles.webLogoutText}>Logout</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -290,115 +265,12 @@ export default function ProfileScreen() {
     );
   }
 
-  const renderProfileInfo = () => {
-    if (isEditing) {
-      return (
-        <View style={styles.editForm}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Name</Text>
-            <TextInput
-              style={styles.textInput}
-              value={userData.name}
-              onChangeText={(text) => setUserData({...userData, name: text})}
-            />
-          </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={styles.textInput}
-              value={userData.email}
-              keyboardType="email-address"
-              onChangeText={(text) => setUserData({...userData, email: text})}
-            />
-          </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Major</Text>
-            <TextInput
-              style={styles.textInput}
-              value={userData.major}
-              onChangeText={(text) => setUserData({...userData, major: text})}
-            />
-          </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Year</Text>
-            <TextInput
-              style={styles.textInput}
-              value={userData.year}
-              onChangeText={(text) => setUserData({...userData, year: text})}
-            />
-          </View>
-          
-          <TouchableOpacity 
-            style={styles.saveButton}
-            onPress={handleSaveProfile}
-          >
-            <LinearGradient
-              colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
-              style={styles.saveButtonGradient}
-            >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    
-    return (
-      <View style={styles.profileInfo}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Name</Text>
-          <Text style={styles.infoValue}>{userData.name}</Text>
-        </View>
-        
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Email</Text>
-          <Text style={styles.infoValue}>{userData.email}</Text>
-        </View>
-        
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Student ID</Text>
-          <Text style={styles.infoValue}>{userData.studentId}</Text>
-        </View>
-        
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Major</Text>
-          <Text style={styles.infoValue}>{userData.major}</Text>
-        </View>
-        
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Year</Text>
-          <Text style={styles.infoValue}>{userData.year}</Text>
-        </View>
-        
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Joined</Text>
-          <Text style={styles.infoValue}>{userData.joinedDate}</Text>
-        </View>
-        
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => setIsEditing(true)}
-        >
-          <LinearGradient
-            colors={[Colors.SECONDARY, Colors.DARK_GOLD]}
-            style={styles.editButtonGradient}
-          >
-            <Edit2 size={16} color={Colors.WHITE} />
-            <Text style={styles.editButtonText}>Edit Profile</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
+  // Mobile Layout
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+        colors={[Colors.PRIMARY, '#1e40af']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -407,12 +279,12 @@ export default function ProfileScreen() {
               source={{ uri: 'https://randomuser.me/api/portraits/lego/1.jpg' }} 
               style={styles.profileImage} 
             />
-            <TouchableOpacity style={styles.changePhotoButton}>
-              <Text style={styles.changePhotoText}>Change Photo</Text>
-            </TouchableOpacity>
           </View>
           <Text style={styles.profileName}>{userData.name}</Text>
           <Text style={styles.profileRole}>Cal State LA Student</Text>
+          <TouchableOpacity style={styles.changePhotoButton}>
+            <Text style={styles.changePhotoText}>Change Photo</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -420,98 +292,163 @@ export default function ProfileScreen() {
         {/* Profile Information */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <User size={20} color={Colors.PRIMARY} />
-            <Text style={styles.sectionTitle}>Profile Information</Text>
+            <User size={24} color={Colors.PRIMARY} />
+            <Text style={styles.sectionTitle}>Student Information</Text>
           </View>
-          {renderProfileInfo()}
+
+          {!isEditing ? (
+            <View style={styles.profileInfo}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Name</Text>
+                <Text style={styles.infoValue}>{userData.name}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>{userData.email}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Student ID</Text>
+                <Text style={styles.infoValue}>{userData.studentId}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Major</Text>
+                <Text style={styles.infoValue}>{userData.major}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Year</Text>
+                <Text style={styles.infoValue}>{userData.year}</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.editButton}
+                onPress={() => setIsEditing(true)}
+              >
+                <LinearGradient
+                  colors={[Colors.SECONDARY, '#d97706']}
+                  style={styles.editButtonGradient}
+                >
+                  <Edit2 size={18} color={Colors.WHITE} />
+                  <Text style={styles.editButtonText}>Edit Profile</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.editForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userData.name}
+                  onChangeText={(text) => setUserData({...userData, name: text})}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userData.email}
+                  keyboardType="email-address"
+                  onChangeText={(text) => setUserData({...userData, email: text})}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Major</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userData.major}
+                  onChangeText={(text) => setUserData({...userData, major: text})}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Year</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userData.year}
+                  onChangeText={(text) => setUserData({...userData, year: text})}
+                />
+              </View>
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
+              >
+                <LinearGradient
+                  colors={[Colors.PRIMARY, '#1e40af']}
+                  style={styles.saveButtonGradient}
+                >
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Settings */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Settings size={20} color={Colors.PRIMARY} />
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <Settings size={24} color={Colors.PRIMARY} />
+            <Text style={styles.sectionTitle}>Preferences</Text>
           </View>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Bell size={20} color={Colors.TEXT_SECONDARY} />
+              <Bell size={20} color={Colors.PRIMARY} />
               <Text style={styles.settingText}>Notifications</Text>
             </View>
             <Switch
-              trackColor={{ false: Colors.LIGHT_GRAY, true: Colors.PRIMARY_LIGHT }}
-              thumbColor={notificationsEnabled ? Colors.PRIMARY : Colors.GRAY}
+              trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
+              thumbColor={notificationsEnabled ? Colors.PRIMARY : '#9ca3af'}
               onValueChange={setNotificationsEnabled}
               value={notificationsEnabled}
             />
           </View>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Settings size={20} color={Colors.TEXT_SECONDARY} />
-              <Text style={styles.settingText}>Dark Mode</Text>
+              <Shield size={20} color={Colors.PRIMARY} />
+              <Text style={styles.settingText}>Data Privacy</Text>
             </View>
             <Switch
-              trackColor={{ false: Colors.LIGHT_GRAY, true: Colors.PRIMARY_LIGHT }}
-              thumbColor={darkModeEnabled ? Colors.PRIMARY : Colors.GRAY}
-              onValueChange={setDarkModeEnabled}
-              value={darkModeEnabled}
-            />
-          </View>
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Shield size={20} color={Colors.TEXT_SECONDARY} />
-              <Text style={styles.settingText}>Data Sharing</Text>
-            </View>
-            <Switch
-              trackColor={{ false: Colors.LIGHT_GRAY, true: Colors.PRIMARY_LIGHT }}
-              thumbColor={dataSharing ? Colors.PRIMARY : Colors.GRAY}
+              trackColor={{ false: '#e2e8f0', true: Colors.PRIMARY + '40' }}
+              thumbColor={dataSharing ? Colors.PRIMARY : '#9ca3af'}
               onValueChange={setDataSharing}
               value={dataSharing}
             />
           </View>
         </View>
 
-        {/* Support */}
+        {/* Menu */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <HelpCircle size={20} color={Colors.PRIMARY} />
+            <HelpCircle size={24} color={Colors.PRIMARY} />
             <Text style={styles.sectionTitle}>Support</Text>
           </View>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>Help Center</Text>
-            <ChevronRight size={20} color={Colors.TEXT_SECONDARY} />
+            <ChevronRight size={20} color="#64748b" />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>Privacy Policy</Text>
-            <ChevronRight size={20} color={Colors.TEXT_SECONDARY} />
+            <ChevronRight size={20} color="#64748b" />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuText}>Terms of Service</Text>
-            <ChevronRight size={20} color={Colors.TEXT_SECONDARY} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>About WeGoToCalStateLA</Text>
-            <ChevronRight size={20} color={Colors.TEXT_SECONDARY} />
+            <ChevronRight size={20} color="#64748b" />
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <LogOut size={20} color={Colors.ERROR} />
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-        
+        {/* Actions */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.logoutButton}>
+            <LogOut size={20} color={Colors.ERROR} />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Version */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={styles.versionText}>App Version 1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

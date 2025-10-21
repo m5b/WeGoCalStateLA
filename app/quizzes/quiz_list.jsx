@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   ScrollView,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,11 +19,9 @@ import {
   Users,
   Shield
 } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export default function QuizListScreen() {
   const quizzes = [
@@ -146,8 +143,8 @@ export default function QuizListScreen() {
               <Text style={styles.webDisclaimerTitle}>Important Notice</Text>
               <Text style={styles.webDisclaimerText}>
                 These assessments are for educational purposes and should not replace professional medical advice. 
-                If you're experiencing a mental health crisis, please contact the Crisis Text Line (text HOME to 741741) 
-                or call 988 for the Suicide & Crisis Lifeline.
+                If you’re experiencing a mental health crisis, please contact the Crisis Text Line (text HOME to 741741) 
+                or call 988 for the Suicide and Crisis Lifeline.
               </Text>
             </View>
           </View>
@@ -242,9 +239,7 @@ export default function QuizListScreen() {
           <View style={styles.disclaimerCard}>
             <Text style={styles.disclaimerTitle}>Important Notice</Text>
             <Text style={styles.disclaimerText}>
-              These assessments are for educational purposes and should not replace professional medical advice. 
-              If you're experiencing a mental health crisis, please contact the Crisis Text Line (text HOME to 741741) 
-              or call 988 for the Suicide & Crisis Lifeline.
+              These assessments are for educational purposes and should not replace professional medical advice. If you’re experiencing a mental health crisis, please contact the Crisis Text Line (text HOME to 741741) or call 988 for the Suicide and Crisis Lifeline.
             </Text>
           </View>
         </View>
@@ -443,7 +438,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   
-  // Web Styles
   webContainer: {
     flex: 1,
     backgroundColor: '#f8fafc',

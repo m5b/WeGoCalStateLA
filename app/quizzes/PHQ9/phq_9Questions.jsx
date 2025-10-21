@@ -6,14 +6,11 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, ChevronRight } from 'lucide-react-native';
-import Colors from '../../../constant/Colors';
-
-const { width } = Dimensions.get('window');
+import { Colors } from '../../../constant/Colors';
 
 export default function PHQ9QuestionsScreen() {
   const [answers, setAnswers] = useState({

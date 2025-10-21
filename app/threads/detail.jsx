@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, TextInput, Button, TouchableOpacity } from 'react-native';
 import { ThreadsProvider, useThreads } from './threadStore';
 import { useLocalSearchParams } from 'expo-router';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 
 function ReplyItem({ item }) {
   return (

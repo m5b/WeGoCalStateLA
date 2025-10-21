@@ -4,16 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, Menu, X, Sparkles, Bell, Search, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
-import Colors from '../constant/Colors';
+import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, Menu, X, Sparkles, Bell, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
+import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export default function WebLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

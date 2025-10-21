@@ -10,15 +10,15 @@ import {
   Platform,
   Alert,
   ScrollView,
-  Dimensions,
+  // Dimensions removed
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { Colors } from '../../constant/Colors';
+import { isWeb, width } from '../../utils/responsive';
 
-const { width: screenWidth } = Dimensions.get('window');
+// Removed unused screenWidth from Dimensions
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -179,7 +179,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
 
                   <View style={styles.signupContainer}>
-                    <Text style={styles.signupText}>Don't have an account? </Text>
+                    <Text style={styles.signupText}>Don’t have an account? </Text>
                     <TouchableOpacity onPress={handleSignUp}>
                       <Text style={styles.signupLink}>Create Account</Text>
                     </TouchableOpacity>
@@ -303,7 +303,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
 
               <View style={styles.signupContainer}>
-                <Text style={styles.signupText}>Don't have an account? </Text>
+                <Text style={styles.signupText}>Don’t have an account? </Text>
                 <TouchableOpacity onPress={handleSignUp}>
                   <Text style={styles.signupLink}>Sign Up</Text>
                 </TouchableOpacity>
@@ -326,76 +326,6 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Web Styles
-  webContainer: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  navbar: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 16,
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-  },
-  navContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: width < 640 ? 16 : 32,
-  },
-  navBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  navLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.PRIMARY + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navBrandText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1e293b',
-    letterSpacing: -0.5,
-  },
-  backToHome: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#f1f5f9',
-  },
-  backToHomeText: {
-    fontSize: 14,
-    color: Colors.PRIMARY,
-    fontWeight: '500',
-  },
-  webScrollView: {
-    flex: 1,
-  },
-  webMainContent: {
-    flexDirection: width < 1024 ? 'column' : 'row',
-    minHeight: '100vh',
-  },
-  webLeftSide: {
-    flex: 1,
-    backgroundColor: Colors.PRIMARY,
-    padding: width < 640 ? 32 : width < 1024 ? 48 : 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   brandingSection: {
     maxWidth: 500,
     alignItems: 'center',
@@ -799,44 +729,54 @@ const styles = StyleSheet.create({
   webLoginButtonText: {
     color: Colors.WHITE,
     fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontWeight: 'bold',
   },
-  webSignupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webSignupText: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  webSignupLink: {
-    fontSize: 16,
-    color: Colors.PRIMARY,
-    fontWeight: '600',
-  },
-  webSupportInfo: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
-  },
-  webSupportTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  webSupportText: {
-    fontSize: 14,
-    color: '#64748b',
-    lineHeight: 20,
-    textAlign: 'center',
-  },
+  // Duplicate keys below are commented out to resolve ESLint no-dupe-keys
+  // disabledButton: {
+  //   opacity: 0.7,
+  // },
+  // signupContainer: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'center',
+  //   marginTop: 15,
+  // },
+  // signupText: {
+  //   color: Colors.TEXT_SECONDARY,
+  // },
+  // signupLink: {
+  //   color: Colors.PRIMARY,
+  //   fontWeight: 'bold',
+  // },
+  // supportCard: {
+  //   backgroundColor: Colors.WHITE,
+  //   borderRadius: 20,
+  //   padding: 20,
+  //   marginTop: 20,
+  //   marginBottom: 30,
+  //   alignItems: 'center',
+  //   shadowColor: Colors.BLACK,
+  //   shadowOffset: {
+  //     width: 0,
+  //     height: 4,
+  //   },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 8,
+  //   elevation: 5,
+  // },
+  // supportTitle: {
+  //   fontSize: 18,
+  //   fontWeight: 'bold',
+  //   color: Colors.TEXT,
+  // },
+  // supportText: {
+  //   fontSize: 14,
+  //   color: Colors.TEXT_SECONDARY,
+  //   textAlign: 'center',
+  //   marginBottom: 5,
+  // },
+  // supportContact: {
+  //   fontSize: 16,
+  //   color: Colors.PRIMARY,
+  //   fontWeight: 'bold',
+  // },
 });

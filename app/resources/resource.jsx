@@ -6,17 +6,15 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Platform,
-  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight, BookOpen, Users, Clock, MapPin, ExternalLink, TriangleAlert as AlertTriangle } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
-import { responsive, isWeb, width } from '../../utils/responsive';
+import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
+import { Colors } from '../../constant/Colors';
+import { isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
-const { width: screenWidth } = Dimensions.get('window');
+// removed unused screenWidth
 
 export default function ResourceScreen() {
   const resourceCategories = [
@@ -85,35 +83,7 @@ export default function ResourceScreen() {
     }
   ];
 
-  const campusServices = [
-    {
-      title: 'Student Health & Psychological Services',
-      description: 'Comprehensive mental health support including individual counseling, group therapy, and psychiatric services',
-      location: 'Health Center, Room 110',
-      phone: '(323) 343-3300',
-      hours: 'Mon-Fri: 8:00 AM - 5:00 PM',
-      icon: Heart,
-      color: Colors.PRIMARY
-    },
-    {
-      title: 'Counseling & Psychological Services',
-      description: 'Professional counseling services for students dealing with stress, anxiety, depression, and other concerns',
-      location: 'Student Affairs Building',
-      phone: '(323) 343-3371',
-      hours: 'Mon-Fri: 8:00 AM - 5:00 PM',
-      icon: Brain,
-      color: Colors.INFO
-    },
-    {
-      title: 'Dean of Students Office',
-      description: 'Support for students facing personal, academic, or financial challenges',
-      location: 'University-Student Union',
-      phone: '(323) 343-5110',
-      hours: 'Mon-Fri: 8:00 AM - 5:00 PM',
-      icon: Users,
-      color: Colors.SECONDARY
-    }
-  ];
+  // campusServices array removed (unused)
 
   if (isWeb) {
     return (
