@@ -633,13 +633,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.PRIMARY,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
+  /* duplicate formTitle removed */
   supportCard: {
     backgroundColor: Colors.WHITE,
     borderRadius: 16,
@@ -663,11 +657,7 @@ const styles = StyleSheet.create({
   },
   
   // Web Styles
-  webContainer: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-    minHeight: '100vh',
-  },
+  /* duplicate webContainer removed */
   webLoginSection: {
     flex: 1,
     justifyContent: 'center',
