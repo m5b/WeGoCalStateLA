@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock } from 'lucide-react-native';
+import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock, MessageSquare } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { responsive, isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
@@ -44,6 +44,14 @@ const quickActions = [
       route: 'resources'
     },
     {
+      id: 'threads',
+      title: 'Threads',
+      subtitle: 'Share anonymously',
+      icon: MessageSquare,
+      color: Colors.SECONDARY,
+      route: 'threads'
+    },
+    {
       id: 'progress',
       title: 'My Progress',
       subtitle: 'Track your wellness journey',
@@ -54,6 +62,7 @@ const quickActions = [
   ];
 
 export default function HomeScreen() {
+  const [activeTab, setActiveTab] = useState('home');
   const webQuickActionsGrid = {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -258,8 +267,6 @@ export default function HomeScreen() {
     );
   }
 
-  const [activeTab, setActiveTab] = useState('home');
-
   const navigateToScreen = (screen) => {
     switch (screen) {
       case 'events':
@@ -282,6 +289,9 @@ export default function HomeScreen() {
         break;
       case 'chat':
         router.push('/chat_bot/chatbotui');
+        break;
+      case 'threads':
+        router.push('/threads/feed');
         break;
       default:
         break;
@@ -408,6 +418,15 @@ export default function HomeScreen() {
               onPress={() => {
                 setActiveTab('quizzes');
                 navigateToScreen('quizzes');
+              }}
+            />
+            <TabButton
+              icon={MessageSquare}
+              label="Threads"
+              isActive={activeTab === 'threads'}
+              onPress={() => {
+                setActiveTab('threads');
+                navigateToScreen('threads');
               }}
             />
             <TabButton

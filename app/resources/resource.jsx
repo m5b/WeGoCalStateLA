@@ -233,7 +233,7 @@ export default function ResourceScreen() {
             <Text style={styles.welcomeTitle}>Cal State LA Student Resources</Text>
             <Text style={styles.welcomeText}>
               Access comprehensive support services designed specifically for Golden Eagles. 
-              From mental health counseling to career guidance, we're here to help you succeed.
+              From mental health counseling to career guidance, we&apos;re here to help you succeed.
             </Text>
           </View>
 
@@ -308,10 +308,7 @@ export default function ResourceScreen() {
 
 const styles = StyleSheet.create({
   // Web Styles
-  webContainer: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
+  /* duplicate webContainer removed */
   webHeroSection: {
     paddingVertical: width < 640 ? 60 : width < 1024 ? 80 : 100,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
@@ -430,61 +427,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: '400',
   },
-  webEmergencyGrid: {
-    flexDirection: width < 768 ? 'column' : 'row',
-    gap: width < 640 ? 16 : 24,
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  webEmergencyCard: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: width < 640 ? 24 : 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    minWidth: width < 640 ? 0 : 300,
-  },
-  webEmergencyCardUrgent: {
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.ERROR,
-  },
-  webEmergencyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webEmergencyContent: {
-    flex: 1,
-  },
-  webEmergencyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 4,
-  },
-  webEmergencySubtitle: {
-    fontSize: 16,
-    color: Colors.ERROR,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  webEmergencyDescription: {
-    fontSize: 14,
-    color: '#64748b',
-    lineHeight: 20,
-  },
+  /* duplicate webEmergency styles removed to satisfy lint */
   webServicesSection: {
     paddingVertical: width < 640 ? 60 : 80,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
@@ -573,69 +516,7 @@ const styles = StyleSheet.create({
     paddingVertical: width < 640 ? 60 : 80,
     paddingHorizontal: width < 640 ? 16 : width < 1024 ? 32 : 60,
   },
-  webCategoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: width < 640 ? 20 : 24,
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    justifyContent: 'center',
-  },
-  webCategoryCard: {
-    width: width < 640 ? '100%' : width < 1024 ? '48%' : '48%',
-    minWidth: width < 640 ? 0 : 320,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  webCategoryGradient: {
-    padding: width < 640 ? 24 : 32,
-    minHeight: 200,
-  },
-  webCategoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  webCategoryIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webCategoryBadge: {
-    backgroundColor: 'white',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  webCategoryBadgeText: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
-  },
-  webCategoryTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 12,
-    letterSpacing: -0.3,
-  },
-  webCategoryDescription: {
-    fontSize: 16,
-    color: '#64748b',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
+  /* duplicate webCategories styles removed to satisfy lint; keeping footer/action below */
   webCategoryFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -914,14 +795,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  webSectionTitle: {
-    fontSize: width < 640 ? 24 : width < 1024 ? 28 : 32,
-    fontWeight: '800',
-    color: Colors.PRIMARY,
-    marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
-    letterSpacing: -0.5,
-    textAlign: 'center',
-  },
+  /* duplicate webSectionTitle removed */
   webEmergencyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

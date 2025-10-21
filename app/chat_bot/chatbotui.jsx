@@ -274,162 +274,16 @@ export default function ChatBotScreen() {
 
 const styles = StyleSheet.create({
   // Web Styles
-  webContainer: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-    maxHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-  },
+  /* duplicate webContainer removed */
   webChatHeader: {
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
     paddingVertical: 20,
   },
-  webHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: width < 640 ? 16 : 32,
-  },
-  webHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  webBotAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.PRIMARY + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webChatTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 4,
-  },
-  webStatusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  webOnlineStatus: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.SUCCESS,
-  },
-  webStatusText: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  webHeaderRight: {
-    // Header right content
-  },
-  webSafetyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: Colors.SUCCESS + '10',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  webSafetyText: {
-    fontSize: 12,
-    color: Colors.SUCCESS,
-    fontWeight: '600',
-  },
-  webMessagesContainer: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  webMessagesContent: {
-    paddingVertical: 20,
-  },
-  webChatContent: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: width < 640 ? 16 : 32,
-  },
-  webSupportNotice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  webSupportNoticeText: {
-    fontSize: 14,
-    color: '#92400e',
-    flex: 1,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  webInputContainer: {
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingVertical: 20,
-  },
-  webInputContent: {
-    maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
-    paddingHorizontal: width < 640 ? 16 : 32,
-  },
-  webInputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 16,
-    marginBottom: 8,
-  },
-  webTextInput: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: '#1e293b',
-    maxHeight: 120,
-    backgroundColor: '#f8fafc',
-    fontWeight: '400',
-  },
-  webSendButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  webSendButtonGradient: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webDisabledSendButton: {
-    opacity: 0.5,
-  },
-  webInputHint: {
-    fontSize: 12,
-    color: '#9ca3af',
-    textAlign: 'center',
-    fontWeight: '400',
-  },
+  /* duplicate webHeaderContent removed */
+  /* duplicate webHeaderLeft/webBotAvatar/webChatTitle/webStatusIndicator/webOnlineStatus/webStatusText/webHeaderRight/webSafetyBadge/webSafetyText removed */
+  /* duplicate webMessagesContainer/webMessagesContent/webChatContent/webSupportNotice/webSupportNoticeText/webInputContainer/webInputContent/webInputRow/webTextInput/webSendButton/webSendButtonGradient/webDisabledSendButton/webInputHint removed */
   
   // Mobile Styles (existing)
   container: {
@@ -631,20 +485,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
   },
-  webChatHeader: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 20,
-    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
-    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
+  /* duplicate webChatHeader removed */
   webHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',

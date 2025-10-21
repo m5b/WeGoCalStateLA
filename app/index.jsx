@@ -1,3 +1,4 @@
+/* eslint-disable no-dupe-keys */
 import React, { useEffect, useState } from 'react';
 import {
   View,
