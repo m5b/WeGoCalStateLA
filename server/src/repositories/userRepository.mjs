@@ -5,7 +5,7 @@ async function findByUserID(userId) {
     "select user_id, email from users where user_id = ?",
     [userId]
   );
-  return row[0];
+  return row[0] || null;
 }
 
 async function findByEmail(email) {
@@ -14,15 +14,48 @@ async function findByEmail(email) {
     [email]
   );
 
-  return row[0];
+  return row[0] || null;
+}
+
+async function findByGoogleId(googleId) {
+  const [row] = await connectionPool.query(
+    "select user_id, email from users where google_id = ?",
+    [googleId]
+  );
+
+  return row[0] || null;
 }
 
 async function createUser(email, displayName) {
   const [result] = await connectionPool.query(
-    "INSERT INTO users (email, name) VALUES (?, ?)",
+    "INSERT INTO users (email, display_name) VALUES (?, ?)",
     [email, displayName]
+  );
+  return result.insertId;
+}
+
+//google
+async function updateUserGoogleId(userId, googleId) {
+  const [result] = await connectionPool.query(
+    "update users set google_id = ? where user_id = ?",
+    [googleId, userId]
   );
   return result;
 }
 
-export { findByEmail, findByUserID, createUser };
+async function insertGoogleUser({ displayName, email, googleId }) {
+  const [result] = await connectionPool.query(
+    "INSERT INTO users (email, display_name, google_id) VALUES (?, ?, ?)",
+    [email, displayName, googleId]
+  );
+  return result.insertId;
+}
+
+export {
+  findByEmail,
+  findByUserID,
+  createUser,
+  findByGoogleId,
+  updateUserGoogleId,
+  insertGoogleUser,
+};
