@@ -5,7 +5,8 @@ CREATE TABLE users (
     email varchar(100) UNIQUE NOT NULL,
     display_name varchar(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    google_id varchar(64) UNIQUE
 );
 
 -- migrate:down
