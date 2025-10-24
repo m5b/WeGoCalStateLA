@@ -1,22 +1,22 @@
-import { Strategy as googleStrategy } from "passport-google-oauth20";
-import handleGoogleLogin from "../services/googleAuthServices.mjs";
+import { Strategy as googleStrategy } from 'passport-google-oauth20'
+import handleGoogleLogin from '../services/googleAuthServices.mjs'
 
 const strategy = new googleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    //tempoary place holder for now
-    callbackURL: `${process.env.SERVER_URL_DEV}${process.env.GOOGLE_CALLBACK_URL}`,
-  },
-  async (acccessToken, refreshToken, profile, cb) => {
-    //console.log(profile);
-    try {
-      const { sub, name, email } = profile._json;
-      const result = await handleGoogleLogin({ sub, email, name });
-      return cb(null, result);
-    } catch (err) {
-      return cb(err, null);
+    {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        //tempoary place holder for now
+        callbackURL: `${process.env.SERVER_URL_DEV}${process.env.GOOGLE_CALLBACK_URL}`,
+    },
+    async (acccessToken, refreshToken, profile, cb) => {
+        //console.log(profile);
+        try {
+            const { sub, name, email } = profile._json
+            const result = await handleGoogleLogin({ sub, email, name })
+            return cb(null, result)
+        } catch (err) {
+            return cb(err, null)
+        }
     }
-  }
-);
-export default strategy;
+)
+export default strategy
