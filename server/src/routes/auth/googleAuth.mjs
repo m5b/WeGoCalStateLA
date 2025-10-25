@@ -15,10 +15,12 @@ router.get(
     }),
     (req, res) => {
         const token = req.user.token
+        //store the jwt token in the cookie
         res.cookie('auth-token', token, {
             httpOnly: true,
             maxAge: 60000 * 60,
         })
+        //temp holder as for now
         res.redirect('/api/auth')
     }
 )

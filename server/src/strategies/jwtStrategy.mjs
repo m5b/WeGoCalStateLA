@@ -4,6 +4,7 @@ import { findByUserID } from '../repositories/userRepository.mjs'
 const strategy = new jwtStrategy(
     {
         secretOrKey: process.env.JWT_SECRET,
+        //reteive the jwt token from the cookies
         jwtFromRequest: (req) => {
             let token = null
             if (req && req.cookies) {
@@ -12,6 +13,7 @@ const strategy = new jwtStrategy(
             return token
         },
     },
+    //call back function for verfie the jwt
     async (jwt_payload, done) => {
         const { userId } = jwt_payload
         if (!userId) {

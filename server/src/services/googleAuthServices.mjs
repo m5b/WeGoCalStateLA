@@ -20,11 +20,12 @@ function issueJwTForUser({ userId, email }) {
         }
     )
 }
-
+// helper function for linking a existing user to a google oauth
 async function linkToExistingUser(userId, googleId) {
     await updateUserGoogleId(userId, googleId)
 }
 
+//main entry point for handleling the sign in using google
 async function handleGoogleLogin({ googleId, email, displayName }) {
     //check if user already sigun up by google
     let user = await findByGoogleId(googleId)
@@ -51,6 +52,7 @@ async function handleGoogleLogin({ googleId, email, displayName }) {
             return new Error('something There is conflict with account')
         }
     }
+    //creation of the jwt token
     const token = issueJwTForUser({
         userId: user.user_id,
         email: user.email,
