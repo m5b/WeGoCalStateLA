@@ -12,7 +12,11 @@ const strategy = new googleStrategy(
         //console.log(profile);
         try {
             const { sub, name, email } = profile._json
-            const result = await handleGoogleLogin({ sub, email, name })
+            const result = await handleGoogleLogin({
+                displayName: name,
+                googleId: sub,
+                email: email,
+            })
             return cb(null, result)
         } catch (err) {
             return cb(err, null)
