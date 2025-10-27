@@ -6,7 +6,7 @@ import {
     insertGoogleUser,
     updateUserGoogleId,
 } from '../repositories/userRepository.mjs'
-
+import generateUserName from './usernameGenerator.mjs'
 //generate jwt using provided payload
 function issueJwTForUser({ userId, email }) {
     return jwt.sign(
@@ -20,13 +20,14 @@ function issueJwTForUser({ userId, email }) {
         }
     )
 }
+
 // helper function for linking a existing user to a google oauth
 async function linkToExistingUser(userId, googleId) {
     await updateUserGoogleId(userId, googleId)
 }
 
 //main entry point for handleling the sign in using google
-async function handleGoogleLogin({ googleId, email, displayName }) {
+async function handleGoogleLogin({ googleId, email }) {
     //check if user already sigun up by google
     let user = await findByGoogleId(googleId)
 
@@ -40,8 +41,9 @@ async function handleGoogleLogin({ googleId, email, displayName }) {
         }
         //first time user sign up by google using this email, therefore create account
         else if (!existUserByEmail) {
+            const username = await generateUserName()
             const newUserId = await insertGoogleUser({
-                displayName: displayName,
+                username: username,
                 email: email,
                 googleId: googleId,
             })

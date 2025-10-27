@@ -11,13 +11,12 @@ const strategy = new googleStrategy(
     async (acccessToken, refreshToken, profile, cb) => {
         //console.log(profile);
         try {
-            const { sub, name, email } = profile._json
-            const result = await handleGoogleLogin({
-                displayName: name,
+            const { sub, email } = profile._json
+            const user = await handleGoogleLogin({
                 googleId: sub,
                 email: email,
             })
-            return cb(null, result)
+            return cb(null, user)
         } catch (err) {
             return cb(err, null)
         }
