@@ -14,6 +14,7 @@ router.get(
         session: false,
     }),
     (req, res) => {
+        console.log(req.user.user)
         const token = req.user.token
         //store the jwt token in the cookie
         res.cookie('auth-token', token, {
