@@ -1,5 +1,5 @@
 import { Strategy as googleStrategy } from 'passport-google-oauth20'
-import handleGoogleLogin from '../services/googleAuthServices.mjs'
+import { handleGoogleLogin } from '../services/googleAuthServices.mjs'
 
 const strategy = new googleStrategy(
     {

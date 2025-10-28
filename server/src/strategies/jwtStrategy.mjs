@@ -1,6 +1,6 @@
 import { Strategy as jwtStrategy, ExtractJwt } from 'passport-jwt'
 import { findByUserID } from '../repositories/userRepository.mjs'
-import camelcaseKeys from 'camelcase-keys'
+import dbMapper from '../util/dbMapper.mjs'
 const strategy = new jwtStrategy(
     {
         secretOrKey: process.env.JWT_SECRET,
@@ -22,7 +22,7 @@ const strategy = new jwtStrategy(
                 null
             )
         }
-        const user = camelcaseKeys(await findByUserID(userId))
+        const user = dbMapper.fromDb(await findByUserID(userId))
         //user need to create a account since can't not find in the database
         if (!user) {
             return done(null, null)
