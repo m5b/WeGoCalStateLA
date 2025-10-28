@@ -7,6 +7,7 @@ import {
     updateUserGoogleId,
 } from '../repositories/userRepository.mjs'
 import generateUserName from './usernameGenerator.mjs'
+import camelcaseKeys from 'camelcase-keys'
 //generate jwt using provided payload
 function issueJwTForUser({ userId, email }) {
     return jwt.sign(
@@ -33,11 +34,11 @@ async function handleGoogleLogin({ googleId, email }) {
 
     if (!user) {
         //check if user already sign up using email and password but never sign up with google before
-        const existUserByEmail = await findByEmail(email)
+        const existUserByEmail = camelcaseKeys(await findByEmail(email))
         if (existUserByEmail && !existUserByEmail.google_id) {
             //link the google with the existing user
-            await linkToExistingUser(existUserByEmail.user_id, googleId)
-            user = await findByUserID(existUserByEmail.user_id)
+            await linkToExistingUser(existUserByEmail.userId, googleId)
+            user = await findByUserID(existUserByEmail.userId)
         }
         //first time user sign up by google using this email, therefore create account
         else if (!existUserByEmail) {
@@ -54,9 +55,10 @@ async function handleGoogleLogin({ googleId, email }) {
             return new Error('something There is conflict with account')
         }
     }
+    user = camelcaseKeys(user)
     //creation of the jwt token
     const token = issueJwTForUser({
-        userId: user.user_id,
+        userId: user.userId,
         email: user.email,
     })
     return { user, token }
