@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import authRouter from './auth/googleAuth.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import { signup } from './auth/signup.mjs'
+import { login } from './auth/login.mjs'
+import generateUserName from '../services/usernameGenerator.mjs'
 
 const router = Router()
 
@@ -12,8 +15,10 @@ router.get('/test', requireJwtAuth, (req, res) => {
     res.send('HI')
 })
 
+router.get('/hi', (req,res) => {res.send(generateUserName())})
+
 //router for signup
-router.post("/singup",signup)
+router.post("/signup",signup)
 
 //router for login
 router.post("/login",login)

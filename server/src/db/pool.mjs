@@ -19,9 +19,10 @@ const connectionPool = mysql.createPool({
     //how long can a idle connection stay in the pool, 1min = 60000 milliseconds
     idleTimeout: 60000,
 
-    ssl: {
-        minVersion: 'TLSv1.2',
-    },
+    // ssl: {
+    //     minVersion: 'TLSv1.2',
+    // },
+    ssl:false
 })
 
 export default connectionPool
