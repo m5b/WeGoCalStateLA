@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,20 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const passwordRef = useRef(null);
+
+  // Native app mock login: only one credential pair works on iOS/Android.
+  const VALID_EMAIL = 'student@csla.edu';
+  const VALID_PASSWORD = 'GoldenEagles123!';
+
+  const handleGoogleAuth = (mode = 'login') => {
+    // Same backend entry for login/signup via Google; backend decides create vs sign-in
+    if (Platform.OS === 'web') {
+      window.location.href = '/api/auth/google';
+    } else {
+      Alert.alert('Google Auth', 'Google sign-in is available on web in this dev build.');
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -33,11 +47,27 @@ export default function LoginScreen() {
     }
 
     setIsLoading(true);
-    
-    setTimeout(() => {
+
+    if (Platform.OS === 'web') {
+      // Preserve simulated web login
+      setTimeout(() => {
+        setIsLoading(false);
+        router.push('/home_screen/home');
+      }, 1000);
+      return;
+    }
+
+    // iOS/Android: enforce single working mock credential
+    const ok = email.trim().toLowerCase() === VALID_EMAIL && password === VALID_PASSWORD;
+    if (ok) {
+      setTimeout(() => {
+        setIsLoading(false);
+        router.push('/home_screen/home');
+      }, 700);
+    } else {
       setIsLoading(false);
-      router.push('/home_screen/home');
-    }, 1500);
+      Alert.alert('Login failed', 'Invalid email or password. Use the approved test account.');
+    }
   };
 
   const handleForgotPassword = () => {
@@ -113,6 +143,24 @@ export default function LoginScreen() {
                   <Text style={styles.formSubtitle}>Sign in to your WeGo account</Text>
                 </View>
 
+                {/* Social Login */}
+                <View style={styles.socialContainer}>
+                  <TouchableOpacity
+                    style={styles.googleButton}
+                    onPress={() => handleGoogleAuth('login')}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Divider */}
+                <View style={styles.dividerRow}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
                 <View style={styles.loginForm}>
                   <View style={styles.inputContainer}>
                     <View style={styles.inputIconContainer}>
@@ -127,6 +175,8 @@ export default function LoginScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoCorrect={false}
+                      returnKeyType="next"
+                      onSubmitEditing={() => passwordRef.current && passwordRef.current.focus()}
                     />
                   </View>
 
@@ -142,6 +192,9 @@ export default function LoginScreen() {
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
+                      ref={passwordRef}
+                      returnKeyType="go"
+                      onSubmitEditing={handleLogin}
                     />
                     <TouchableOpacity
                       style={styles.passwordToggle}
@@ -227,16 +280,26 @@ export default function LoginScreen() {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.contentPadding}>
-            {/* University Branding */}
-            <View style={styles.brandingCard}>
-              <User size={80} color={Colors.PRIMARY} />
-              <Text style={styles.universityTitle}>Cal State LA</Text>
-              <Text style={styles.universitySubtitle}>Golden Eagles Mental Wellness</Text>
-            </View>
-
             {/* Login Form */}
             <View style={styles.formCard}>
               <Text style={styles.formTitle}>Sign In to Your Account</Text>
+              {/* Social Login */}
+              <View style={styles.socialContainer}>
+                <TouchableOpacity
+                  style={styles.googleButton}
+                  onPress={() => handleGoogleAuth('login')}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or</Text>
+                <View style={styles.dividerLine} />
+              </View>
               
               <View style={styles.inputContainer}>
                 <View style={styles.inputIconContainer}>
@@ -251,6 +314,8 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current && passwordRef.current.focus()}
                 />
               </View>
 
@@ -266,6 +331,9 @@ export default function LoginScreen() {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
+                  ref={passwordRef}
+                  returnKeyType="go"
+                  onSubmitEditing={handleLogin}
                 />
                 <TouchableOpacity
                   style={styles.passwordToggle}
@@ -326,6 +394,78 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Web container and layout fixes
+  webContainer: {
+    flex: 1,
+    backgroundColor: '#f1f5f9',
+  },
+  webScrollView: {
+    flex: 1,
+  },
+  navbar: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    paddingHorizontal: width < 640 ? 16 : 24,
+    paddingVertical: 12,
+  },
+  navContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  navBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  navLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: Colors.PRIMARY + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navBrandText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.PRIMARY,
+    letterSpacing: -0.3,
+  },
+  backToHome: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  backToHomeText: {
+    color: Colors.PRIMARY,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  webMainContent: {
+    flexDirection: width < 1024 ? 'column' : 'row',
+    minHeight: 'calc(100vh - 60px)',
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  webLeftSide: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    padding: width < 640 ? 24 : width < 1024 ? 40 : 64,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   brandingSection: {
     maxWidth: 500,
     alignItems: 'center',
@@ -387,6 +527,56 @@ const styles = StyleSheet.create({
   loginFormContainer: {
     width: '100%',
     maxWidth: 400,
+  },
+  socialContainer: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  googleButton: {
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleButtonText: {
+    color: '#1e293b',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  googleAltButton: {
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: Colors.PRIMARY + '10',
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleAltButtonText: {
+    color: Colors.PRIMARY,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e2e8f0',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   formHeader: {
     marginBottom: 40,

@@ -402,7 +402,8 @@ function MobileSplashScreen() {
    }));
 
    const handleEnterApp = () => {
-     router.push('/home_screen/home');
+     // Navigate directly to the login screen on mobile
+     router.push('/authentication/login');
    };
 
    return (
