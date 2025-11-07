@@ -27,20 +27,41 @@ WeGoToCalStateLA is a comprehensive mental health and wellness platform designed
    cd WeGoApp
    ```
 
-2. **Install dependencies**
+2. **Install dependencies (client and server)**
    ```bash
+   # Client (Expo app)
+   cd client
    npm install
-   # or
-   yarn install
+
+   # Server (Express API)
+   cd ../server
+   npm install
    ```
 
-3. **Start the development server**
+3. **Environment setup (server)**
+   - Copy `.env.example` to `.env` in `server/` and fill values:
+     - `PORT=3000`
+     - `DATABASE_URL` or individual `DB_*` fields (optional during early dev)
+     - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+     - `GOOGLE_CALLBACK_URL=/auth/google/callback`
+     - `JWT_SECRET`
+     - `CLIENT_URL_DEV` and `SERVER_URL_DEV` (e.g., `CLIENT_URL_DEV=http://localhost:8085`, `SERVER_URL_DEV=http://localhost:3000/api`)
+
+4. **Start the servers (two terminals)**
    ```bash
-   npx expo start
+   # Terminal 1: API server
+   cd server
+   npm run dev
+
+   # Terminal 2: Client app
+   cd client
+   npm run dev
+   # For web-only preview
+   npx expo start --web
    ```
 
-4. **Run on different platforms**
-   - **Web**: Press `w` in the terminal or visit `http://localhost:8081`
+5. **Run on different platforms**
+   - **Web**: Press `w` in Expo dev tools (port may vary, e.g., `http://localhost:8085`)
    - **iOS Simulator**: Press `i` (requires Xcode on macOS)
    - **Android Emulator**: Press `a` (requires Android Studio)
    - **Physical Device**: Scan QR code with Expo Go app
@@ -88,13 +109,21 @@ npx expo build
 - [x] **Cross-Platform Support** - Web, iOS, and Android compatibility
 - [x] **Responsive Design** - Mobile-first approach with desktop optimization
 
+### Recent UI Changes (Login/Signup)
+- Removed large profile icon from mobile login and signup pages.
+- Removed redundant white branding card from mobile login.
+- Signup page UI mirrors the clean login UI (gradient header, form card, spacing).
+- Unified email/username into a single `Email Address / Username` field.
+- Google button uses clean white-bordered style consistent across login and signup.
+
 ## 🚧 What's Missing - Frontend
 
 ### Partially Implemented Features
 - [ ] **Authentication System**
   - ✅ Login/signup UI components and form validation
   - ✅ Mock authentication flow (setTimeout-based)
-  - ❌ Real backend authentication integration
+  - ✅ Google OAuth flow wired on the server (`/api/auth/google`)
+  - ❌ Client-side wiring to consume server JWT cookie and handle post-auth redirects
   - ❌ Session management and JWT handling
   - ❌ Password reset functionality (routes to non-existent screens)
   - ❌ Actual user data persistence
@@ -131,7 +160,8 @@ npx expo build
 
 ### Core Backend Services
 - [ ] **Authentication Service**
-  - User registration and login endpoints
+  - Google OAuth endpoints implemented (`GET /api/auth/google`, `GET /api/auth/google/callback` issuing `auth-token`)
+  - User registration and login endpoints (email/password)
   - JWT token management and refresh
   - Multi-factor authentication (MFA)
   - Password reset and email verification
@@ -211,10 +241,20 @@ npx expo build
   - Forms have validation but no data persistence
   - Responsive design works across web and mobile
   - Mock authentication flows implemented
-- **Backend Development**: 0% Complete (needs full implementation)
+- **Backend Development**: Auth backbone present (Google OAuth implemented); other APIs pending
 - **Data Storage**: Local state only (no AsyncStorage or cloud sync)
 - **Testing**: Minimal (needs comprehensive testing suite)
-- **Deployment**: Development only (http://localhost:8081)
+- **Deployment**: Development only (Expo dev server; port may vary, e.g., `http://localhost:8085`)
+
+## 🔧 Environment Variables (Server)
+
+Create `server/.env` based on `server/.env.example`:
+- `PORT`: API port (default `3000`)
+- `DATABASE_URL` or `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL`: typically `/auth/google/callback`
+- `JWT_SECRET`: used to sign `auth-token`
+- `CLIENT_URL_DEV`, `SERVER_URL_DEV`: e.g., `CLIENT_URL_DEV=http://localhost:8085`, `SERVER_URL_DEV=http://localhost:3000/api`
 
 ## 📋 Next Steps & Implementation Priority
 
@@ -314,3 +354,14 @@ For technical support or questions about the platform, please contact the develo
 ---
 
 **Note**: This application is currently in active development. The frontend is largely complete with modern UI/UX, but backend services require full implementation before production deployment.
+## 🔐 Authentication (Current Behavior)
+
+- **Web Google Sign-in**: Client redirects to `GET /api/auth/google` (server starts OAuth, then handles `GET /api/auth/google/callback`). On success, the server issues a JWT and sets it as `auth-token` cookie, then redirects to `/api/auth` (landing route TBD on client side).
+- **Mobile Google Sign-in**: Not active in the development build; shows an informational alert.
+- **Email/Password (web & mobile)**: Present as UI only; not wired to backend yet.
+- **Mock Credentials (mobile app login)**: Only this pair works on iOS/Android during dev:
+  - Email: `student@csla.edu`
+  - Password: `GoldenEagles123!`
+- **Signup Email Field**: Combined into a single `Email Address / Username` field to reduce friction.
+
+Environment variables for auth are defined in `server/.env.example`.
