@@ -35,6 +35,15 @@ async function findByUsername(username) {
     return row[0] || null
 }
 
+async function updateByUserId(userId, sqlQuery, dataList) {
+    dataList.push(userId)
+    const [result] = await connectionPool.query(
+        sqlQuery + 'where user_id = ?',
+        dataList
+    )
+    return result
+}
+
 async function createUser(email, displayName) {
     const [result] = await connectionPool.query(
         'INSERT INTO users (email, display_name) VALUES (?, ?)',
@@ -68,4 +77,5 @@ export {
     updateUserGoogleId,
     insertGoogleUser,
     findByUsername,
+    updateByUserId,
 }
