@@ -6,8 +6,8 @@ CREATE TABLE comments (
     content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_thread FOREIGN KEY (thread_id) REFERENCES threads (thread_id) ON DELETE CASCADE
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comments_thread FOREIGN KEY (thread_id) REFERENCES threads (thread_id) ON DELETE CASCADE
 );
 
 -- migrate:down
