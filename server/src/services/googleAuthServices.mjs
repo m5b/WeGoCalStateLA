@@ -8,6 +8,7 @@ import {
 } from '../repositories/userRepository.mjs'
 import generateUserName from './usernameGenerator.mjs'
 import dbMapper from '../util/dbMapper.mjs'
+import { ConflictError } from '../errors/conflictError.mjs'
 //generate jwt using provided payload
 function issueJwTForUser(userId) {
     return jwt.sign(
@@ -29,12 +30,14 @@ async function linkToExistingUser(userId, googleId) {
 //main entry point for handleling the sign in using google
 async function handleGoogleLogin({ googleId, email }) {
     //check if user already sigun up by google
+    //case where user have a googId sign up using the email
     let user = await findByGoogleId(googleId)
 
     if (!user) {
         //check if user already sign up using email and password but never sign up with google before
         const existUserByEmail = dbMapper.fromDb(await findByEmail(email))
-        if (existUserByEmail && !existUserByEmail.google_id) {
+        //case where user have a account but never link to the google, thereforo link them
+        if (existUserByEmail && !existUserByEmail.googleId) {
             //link the google with the existing user
             await linkToExistingUser(existUserByEmail.userId, googleId)
             user = await findByUserID(existUserByEmail.userId)
@@ -49,9 +52,12 @@ async function handleGoogleLogin({ googleId, email }) {
             })
             user = await findByUserID(newUserId)
         }
-        //case where there is a user record where email is same but with a different google_id
+        //case where we can not found the user under this googleId, but where we can find user with a email using this googleId  but a diffent googleId, most likely being server errror
         else {
-            return new Error('something There is conflict with account')
+            return new ConflictError(
+                'Email already linked to a different Google account.',
+                null
+            )
         }
     }
     user = dbMapper.fromDb(user)

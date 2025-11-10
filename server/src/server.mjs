@@ -5,6 +5,9 @@ import passport from 'passport'
 import googleStrategy from './strategies/googleStrategy.mjs'
 import jwtStrategy from './strategies/jwtStrategy.mjs'
 import cookieParser from 'cookie-parser'
+import errorHandler from './middlewares/errorHandler.mjs'
+import cors from 'cors'
+import { corsConfig } from './config/corsConfig.mjs'
 passport.use(googleStrategy)
 passport.use(jwtStrategy)
 
@@ -13,6 +16,8 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
+app.use(cors(corsConfig))
 app.use('/api', router)
+app.use(errorHandler)
 
 app.listen(process.env.PORT || 3000)
