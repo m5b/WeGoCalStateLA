@@ -3,7 +3,7 @@ import googleAuthRouter from './auth/googleAuth.mjs'
 import localAuthRouter from './auth/login.mjs'
 import signupRouter from './auth/signup.mjs'
 import userRouter from './userRoutes.mjs'
-import threadsRouter from './threads/threads.mjs'
+import threadsRouter from './threadsRoutes.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 
 const router = Router()
