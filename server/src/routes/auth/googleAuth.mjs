@@ -11,7 +11,7 @@ router.get(
 router.get(
     '/google/callback',
     passport.authenticate('google', {
-        failureRedirect: '/api/auth',
+        failureRedirect: process.env.CLIENT_URL_DEV + '/authentication/login',
         session: false,
     }),
     (req, res) => {
@@ -20,9 +20,10 @@ router.get(
         res.cookie('auth-token', token, {
             httpOnly: true,
             maxAge: 60000 * 60,
+            sameSite: 'lax',
         })
         //temp holder as for now
-        res.redirect('/api/auth')
+        res.redirect(process.env.CLIENT_URL_DEV)
     }
 )
 

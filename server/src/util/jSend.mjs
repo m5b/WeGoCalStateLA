@@ -1,16 +1,24 @@
 export const jsend = {
-    success(data) {
+    success(data = null) {
         const result = {
             status: 'success',
-            data,
+            data: data,
         }
         return result
     },
-    fail(data) {
+    fail(data, message) {
         const result = {
             status: 'fail',
-            data,
+            data: data,
+            message: message,
         }
+
         return result
+    },
+    error(message) {
+        const result = {
+            status: 'error',
+            message: message,
+        }
     },
 }
