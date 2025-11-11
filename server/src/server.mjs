@@ -13,11 +13,10 @@ passport.use(jwtStrategy)
 
 const app = express()
 //using this middleware allow express to parase the incoming request with json req.body
+app.use(cors(corsConfig))
 app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
-app.use(cors(corsConfig))
 app.use('/api', router)
 app.use(errorHandler)
-
 app.listen(process.env.PORT || 3000)
