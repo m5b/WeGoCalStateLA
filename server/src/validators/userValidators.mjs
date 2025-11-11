@@ -1,11 +1,18 @@
 import * as z from 'zod'
-export const userIDSchema = z.coerce.number({
-    error: 'Input userId is not a number',
+export const userIDSchema = z.object({
+    userId: z.coerce
+        .number({
+            message: 'Not a number',
+        })
+        .int({ message: 'Not a integer' }),
 })
 
-export const usernameSchema = z
-    .string()
-    .max(21, { message: 'String must be at most 21 characters long' })
+export const usernameSchema = z.object({
+    username: z
+        .string()
+        .min(5, { messsage: 'String must be at least 5 character long' })
+        .max(21, { message: 'String must be at most 21 characters long' }),
+})
 
 export const userSchema = z
     .object({
