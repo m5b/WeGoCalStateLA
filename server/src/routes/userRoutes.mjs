@@ -32,7 +32,7 @@ router.patch('/me', requireJwtAuth, async (req, res) => {
     const result = await patchCurrentUser(userId, payload)
     const user = await getCurrentUser(userId)
     const userDisplay = new UserDto(user, { scope: 'private' })
-    res.status(200).send(jsend.success(user))
+    res.status(200).send(jsend.success(userDisplay))
 })
 
 router.delete('/me', requireJwtAuth, async (req, res) => {
