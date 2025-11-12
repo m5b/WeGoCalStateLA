@@ -1,8 +1,21 @@
 import connectionPool from '../db/pool.mjs'
 
-export async function findByThreadID(threadID){
+export async function getAllThreadIDs(){
+    // returns list of all threadIDs
+    // will not return deleted threads
+
     const [row] = await connectionPool.query(
-        'select * from threads where thread_id = ?',
+        'SELECT thread_id FROM threads WHERE deleted_at IS NULL'
+    )
+    return row
+}
+
+export async function findByThreadID(threadID){
+    // returns data from given threadID
+    // WILL NOT CHECK IF THREAD IS DELETED
+
+    const [row] = await connectionPool.query(
+        'SELECT thread_id, display_name AS author, title, content, threads.created_at, threads.updated_at, status FROM threads INNER JOIN users ON threads.user_id = users.user_id WHERE thread_id = ?',
         [threadID]
     )
     return row[0] || null

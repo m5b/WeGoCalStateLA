@@ -1,6 +1,6 @@
-const FIELDS = ['threadId', 'author', 'title', 'content', 'createdAt', 'updatedAt', 'status']
+const FIELDS = ['commentId', 'body', 'author']
 
-export default class ThreadDto {
+export class CommentDto {
     constructor(thread) {
         FIELDS.forEach((p) => {
             this[p] = thread[p]
