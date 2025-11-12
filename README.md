@@ -156,12 +156,28 @@ npx expo build
 - [ ] **Over-the-Air Updates** - Expo OTA update system
 - [ ] **AsyncStorage Integration** - Local data persistence
 
+## 🗺️ What Still Needs Integration
+
+- Client-side auth handling:
+  - Read `auth-token` cookie after Google or email/password login on web.
+  - Implement post-auth redirect on client (e.g., to `/home_screen/home`).
+  - Session check using `GET /api/user/me` to hydrate user state.
+- Mobile auth:
+  - Implement native Google OAuth (Expo AuthSession) and JWT/cookie handling.
+  - Replace mobile mock credentials with real API calls.
+- Error handling:
+  - Map server JSend responses to client UI (success/fail/error).
+- Data & features:
+  - Replace thread mocks with real endpoints (create/list/reply/like/report).
+  - Persist assessments and check-ins to backend; add analytics endpoints.
+  - Implement password reset and email verification flows.
+
 ## ❌ What's Missing - Backend (Complete Implementation Needed)
 
 ### Core Backend Services
 - [ ] **Authentication Service**
   - Google OAuth endpoints implemented (`GET /api/auth/google`, `GET /api/auth/google/callback` issuing `auth-token`)
-  - User registration and login endpoints (email/password)
+  - Email/password endpoints implemented (`POST /api/signup`, `POST /api/login`)
   - JWT token management and refresh
   - Multi-factor authentication (MFA)
   - Password reset and email verification
@@ -241,7 +257,7 @@ npx expo build
   - Forms have validation but no data persistence
   - Responsive design works across web and mobile
   - Mock authentication flows implemented
-- **Backend Development**: Auth backbone present (Google OAuth implemented); other APIs pending
+- **Backend Development**: Auth backbone present (Google OAuth; email/password signup/login implemented); user profile CRUD partially implemented
 - **Data Storage**: Local state only (no AsyncStorage or cloud sync)
 - **Testing**: Minimal (needs comprehensive testing suite)
 - **Deployment**: Development only (Expo dev server; port may vary, e.g., `http://localhost:8085`)
@@ -255,6 +271,28 @@ Create `server/.env` based on `server/.env.example`:
 - `GOOGLE_CALLBACK_URL`: typically `/auth/google/callback`
 - `JWT_SECRET`: used to sign `auth-token`
 - `CLIENT_URL_DEV`, `SERVER_URL_DEV`: e.g., `CLIENT_URL_DEV=http://localhost:8085`, `SERVER_URL_DEV=http://localhost:3000/api`
+
+## 📡 API Endpoints (Server)
+
+Base: `http://localhost:3000/api`
+- `GET /auth/google` → Start Google OAuth
+- `GET /auth/google/callback` → Issue JWT cookie `auth-token`
+- `POST /signup` → Email/password registration
+- `POST /login` → Email/password login (issues `auth-token` cookie)
+- `GET /user/me` → Get current user (JWT required)
+- `PATCH /user/me` → Update current user display name (JWT required)
+- `DELETE /user/me` → Soft delete current user (JWT required)
+- `GET /user/profile/:username` → Public profile lookup
+- `GET /test` → JWT test route
+
+Response format uses a JSend-style wrapper for success/fail/error.
+
+## 🔌 Client Integrations
+
+- OAuth: Web login/signup buttons redirect to `/api/auth/google`.
+- Email/password: UI present; hook up to server via `client/services/api.js` using `POST /api/signup` and `POST /api/login`.
+- Threads: `client/services/threads.js` uses local mocks (no network calls yet).
+- Base API URL: `client/services/api.js` points to `http://localhost:3000`; adjust to proxy or environment if needed.
 
 ## 📋 Next Steps & Implementation Priority
 
@@ -356,9 +394,9 @@ For technical support or questions about the platform, please contact the develo
 **Note**: This application is currently in active development. The frontend is largely complete with modern UI/UX, but backend services require full implementation before production deployment.
 ## 🔐 Authentication (Current Behavior)
 
-- **Web Google Sign-in**: Client redirects to `GET /api/auth/google` (server starts OAuth, then handles `GET /api/auth/google/callback`). On success, the server issues a JWT and sets it as `auth-token` cookie, then redirects to `/api/auth` (landing route TBD on client side).
+- **Web Google Sign-in**: Client redirects to `GET /api/auth/google`; server handles `GET /api/auth/google/callback`, issues `auth-token` cookie, then redirects to `/api/auth`.
 - **Mobile Google Sign-in**: Not active in the development build; shows an informational alert.
-- **Email/Password (web & mobile)**: Present as UI only; not wired to backend yet.
+- **Email/Password (web & mobile)**: UI present; backend exposes `POST /api/signup` and `POST /api/login` (client wiring pending).
 - **Mock Credentials (mobile app login)**: Only this pair works on iOS/Android during dev:
   - Email: `student@csla.edu`
   - Password: `GoldenEagles123!`
