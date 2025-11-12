@@ -7,7 +7,7 @@ import {
 } from '../services/userService.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 import {
-    userIDSchema,
+    userIdSchema,
     userSchema,
     usernameSchema,
 } from '../validators/userValidators.mjs'
@@ -16,7 +16,7 @@ import { jsend } from '../util/jSend.mjs'
 const router = Router()
 
 router.get('/me', requireJwtAuth, async (req, res) => {
-    const { userId } = userIDSchema.parse({
+    const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
     const user = await getCurrentUser(userId)
@@ -25,7 +25,7 @@ router.get('/me', requireJwtAuth, async (req, res) => {
 })
 
 router.patch('/me', requireJwtAuth, async (req, res) => {
-    const { userId } = userIDSchema.parse({
+    const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
     const payload = userSchema.parse(req.body)
@@ -36,7 +36,7 @@ router.patch('/me', requireJwtAuth, async (req, res) => {
 })
 
 router.delete('/me', requireJwtAuth, async (req, res) => {
-    const { userId } = userIDSchema.parse({
+    const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
     const reulst = await deleteCurrentUser(userId)

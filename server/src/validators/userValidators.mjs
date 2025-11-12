@@ -1,5 +1,5 @@
 import * as z from 'zod'
-export const userIDSchema = z.object({
+export const userIdSchema = z.object({
     userId: z.coerce
         .number({
             message: 'Not a number',

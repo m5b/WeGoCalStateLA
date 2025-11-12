@@ -10,11 +10,24 @@ export default function errorHandler(err, req, res, next) {
 
     if (err instanceof ZodError) {
         const data = {}
-        err.issues.forEach((issue) => {
-            data[issue[path[0]]] = issue.message
-        })
+        for (const issue of err.issues) {
+            const key =
+                issue.path && issue.path.length > 0
+                    ? issue.path.join('.')
+                    : '_global'
+            if (data[key]) {
+                if (Array.isArray(data[key])) {
+                    data[key].push(issue.message)
+                } else {
+                    data[key] = [data[key], issue.message]
+                }
+            } else {
+                data[key] = issue.message
+            }
+        }
         return res.status(400).json(jsend.fail(data, 'Validation Error'))
     }
+
     if (err instanceof AppError) {
         //check for custom error
         return res

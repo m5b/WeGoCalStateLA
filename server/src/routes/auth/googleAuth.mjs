@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import passport from 'passport'
 import { issueJwTForUser } from '../../services/googleAuthServices.mjs'
-
+import { cookieConfig } from '../../config/cookieConfig.mjs'
 const router = Router()
 
 router.get(
@@ -18,11 +18,7 @@ router.get(
     (req, res) => {
         const token = issueJwTForUser(req.user.userId)
         //store the jwt token in the cookie
-        res.cookie('auth-token', token, {
-            httpOnly: true,
-            maxAge: 60000 * 60,
-            sameSite: 'lax',
-        })
+        res.cookie('auth-token', token, cookieConfig)
         //temp holder as for now
         res.redirect(process.env.CLIENT_URL_DEV)
     }

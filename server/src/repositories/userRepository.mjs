@@ -44,10 +44,10 @@ export async function updateByUserId(userId, sqlQuery, dataList) {
     return result
 }
 
-export async function createUser({ email, username }) {
+export async function insertUser({ email, username, passwordHash }) {
     const [result] = await connectionPool.query(
-        'INSERT INTO users (email, username, display_name) VALUES (?, ?, ?)',
-        [email, username, username]
+        'INSERT INTO users (email, username, display_name, password_hash) VALUES (?, ?, ?, ?)',
+        [email, username, username, passwordHash]
     )
     return result.insertId
 }
@@ -61,7 +61,7 @@ export async function deleteUser(userId) {
 }
 
 //google
-export async function updateUserGoogleId(userId, googleId) {
+export async function updateUserGoogleId({ userId, googleId }) {
     const [result] = await connectionPool.query(
         'update users set google_id = ? where user_id = ? and deleted_at is NULL',
         [googleId, userId]

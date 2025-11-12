@@ -1,43 +1,19 @@
-import { findByEmail } from "../../repositories/userRepository.mjs";
-import bcrypt from "bcrypt";
 import { Router } from 'express'
-
-import { issueJwTForUser } from "../../services/googleAuthServices.mjs";
+import { issueJwTForUser } from '../../services/googleAuthServices.mjs'
+import { handleUserLogin } from '../../services/loginService.mjs'
+import { emailPasswordSchema } from '../../validators/authValidators.mjs'
+import { cookieConfig } from '../../config/cookieConfig.mjs'
+import { jsend } from '../../util/jSend.mjs'
 const router = Router()
 
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
-  }
-
-  try {
-    const user = await findByEmail(email);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const matched = await bcrypt.compare(password, user.password_hash);
-    if (!matched) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
-
+router.post('/login', async (req, res) => {
+    const { email, password } = emailPasswordSchema.parse(req.body)
+    const user = await handleUserLogin({ email: email, password: password })
     // Generate JWT
-    const token = issueJwTForUser(user.userId);
-    console.log(token);
+    const token = issueJwTForUser(user.userId)
     // Store token in HTTP-only cookie
-    res.cookie("auth-token", token, {
-      httpOnly: true,
-      maxAge: 60000 * 60,
-    });
-
-    return res.status(200).json({ message: "Login successful" });
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({ error: err })
-    }
-};
+    res.cookie('auth-token', token, cookieConfig)
+    return res.json(jsend.success({ auth: 'authentication acquired' }))
+})
 
 export default router
