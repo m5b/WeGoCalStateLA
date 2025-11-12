@@ -20,7 +20,7 @@ router.get(
         //store the jwt token in the cookie
         res.cookie('auth-token', token, cookieConfig)
         //temp holder as for now
-        res.redirect(process.env.CLIENT_URL_DEV)
+        res.redirect(process.env.CLIENT_URL_DEV || process.env.SERVER_URL_DEV)
     }
 )
 
