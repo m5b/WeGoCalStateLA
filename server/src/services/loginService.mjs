@@ -13,7 +13,7 @@ export async function handleUserLogin({ email, password }) {
     const matched = await bcrypt.compare(password, user.passwordHash)
     if (!matched) {
         throw new UnauthorizedError({
-            auth: 'Unmatch password',
+            password: 'Unmatch password',
         })
     }
     return user

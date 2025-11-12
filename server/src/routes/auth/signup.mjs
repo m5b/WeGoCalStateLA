@@ -7,6 +7,6 @@ const router = Router()
 router.post('/signup', async (req, res) => {
     const validatedPayload = emailPasswordSchema.parse(req.body)
     await handleUserSignup(validatedPayload)
-    res.json(jsend.success({ auth: 'user created' }))
+    res.json(jsend.success({ auth: 'User created' }))
 })
 export default router
