@@ -23,7 +23,20 @@ All responses are JSON.
   "data": {
     "fieldOrContext": "Explanation of what went wrong"
   },
-  "message": "Message explaning what went wrong"
+  "message": "Message explaning what went wrong" //(optional)
+}
+```
+
+### Fail due to validation
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "_global": "Explantion of what goes wrong globaly, it could be a structure error, additon json field and etc" // could be a list
+    "fieldOrContext": "Explanation of what went wrong" // could be a list
+  },
+  "message": "Validation Error" //(optional)
 }
 ```
 
@@ -69,6 +82,95 @@ fetch("/api/users/me", {
 ```
 
 ## Auth Endpoints
+
+### 3.1 POST /auth/signup
+
+#### **Behavior**
+
+password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (5 - 21)
+
+#### **Request**
+
+```json
+{
+  "email": "a@gmail.com",
+  "password": "123456778"
+}
+```
+
+#### **Response**
+
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": {
+    "auth": "User created"
+  }
+}
+```
+
+##### 409 Conflict
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "email": "Email already taken"
+  }
+}
+```
+
+### 3.2 POST /auth/login
+
+#### **Behavior**
+
+Login by local, afterware the response will assign a cookie which contain the jwt token for authication
+
+#### **Request**
+
+```json
+{
+  "email": "a@gmail.com",
+  "password": "123456778"
+}
+```
+
+#### **Response**
+
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": {
+    "auth": "authentication acquired"
+  }
+}
+```
+
+##### 404 Not Found
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "email": "Can not found the user of the given email"
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "password": "Unmatch password"
+  }
+}
+```
 
 ### 3.3 GET /auth/google
 
