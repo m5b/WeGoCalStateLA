@@ -1,4 +1,12 @@
-const FIELDS = ['threadId', 'author', 'title', 'content', 'createdAt', 'updatedAt', 'status']
+const FIELDS = [
+    'threadId',
+    'author',
+    'title',
+    'content',
+    'createdAt',
+    'updatedAt',
+    'status',
+]
 
 export default class ThreadDto {
     constructor(thread) {

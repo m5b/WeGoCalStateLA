@@ -13,6 +13,5 @@ export default class UserDto {
                 this[p] = user[p]
             })
         }
-        return { user: this }
     }
 }
