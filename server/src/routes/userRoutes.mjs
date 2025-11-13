@@ -20,7 +20,7 @@ router.get('/me', requireJwtAuth, async (req, res) => {
         userId: req.user.userId,
     })
     const userDisplay = new UserDto(req.user, { scope: 'private' })
-    res.status(200).json(jsend.success(userDisplay))
+    res.status(200).json(jsend.success({user: userDisplay}))
 })
 
 router.patch('/me', requireJwtAuth, async (req, res) => {
@@ -31,7 +31,7 @@ router.patch('/me', requireJwtAuth, async (req, res) => {
     const result = await patchCurrentUser(userId, payload)
     const user = await getCurrentUser(userId)
     const userDisplay = new UserDto(user, { scope: 'private' })
-    res.status(200).send(jsend.success(userDisplay))
+    res.status(200).send(jsend.success({ user: userDisplay }))
 })
 
 router.delete('/me', requireJwtAuth, async (req, res) => {
@@ -46,7 +46,8 @@ router.get('/profile/:username', async (req, res) => {
     const { username } = usernameSchema.parse({ username: req.params.username })
     const user = await getUserResource(username)
     const userDisplay = new UserDto(user, { scope: 'public' })
-    res.status(200).json(jsend.success(userDisplay))
+
+    res.status(200).json(jsend.success({ user: userDisplay }))
 })
 
 export default router

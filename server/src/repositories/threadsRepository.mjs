@@ -1,6 +1,6 @@
 import connectionPool from '../db/pool.mjs'
 
-export async function getAllThreadIDs(){
+export async function getAllThreadIDs() {
     // returns list of all threadIDs
     // will not return deleted threads
 
@@ -10,7 +10,7 @@ export async function getAllThreadIDs(){
     return row
 }
 
-export async function findByThreadID(threadID){
+export async function findByThreadID(threadID) {
     // returns data from given threadID
     // WILL NOT CHECK IF THREAD IS DELETED
 
