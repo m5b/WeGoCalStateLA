@@ -1,6 +1,6 @@
 import connectionPool from '../db/pool.mjs'
 
-export async function getCommentIDsByThread(threadID){
+export async function getCommentIDsByThread(threadID) {
     // returns commentIDs directly responding to threadID
     // will not return deleted comments
 
@@ -11,7 +11,7 @@ export async function getCommentIDsByThread(threadID){
     return row || null
 }
 
-export async function getCommentIDsByParent(commentID){
+export async function getCommentIDsByParent(commentID) {
     // returns commentIDs responding to the given commentID
     // will not return deleted comments
 
@@ -22,7 +22,7 @@ export async function getCommentIDsByParent(commentID){
     return row || null
 }
 
-export async function findByCommentID(commentID){
+export async function findByCommentID(commentID) {
     // returns data from given commentID
     // WILL NOT CHECK IF THREAD IS DELETED
 
@@ -31,4 +31,12 @@ export async function findByCommentID(commentID){
         [commentID]
     )
     return row[0] || null
+}
+
+export async function getCommentsByThreadId(threadId) {
+    const [row] = await connectionPool.query(
+        'select * from comments INNER JOIN users on users.user_id = comments.user_id where thread_id = ? ',
+        [threadId]
+    )
+    return row
 }

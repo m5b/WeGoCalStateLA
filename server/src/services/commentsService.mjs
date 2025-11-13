@@ -1,7 +1,8 @@
 import {
     getCommentIDsByThread,
     getCommentIDsByParent,
-    findByCommentID
+    findByCommentID,
+    getCommentsByThreadId,
 } from '../repositories/commentsRepository.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
@@ -9,10 +10,7 @@ import { NotFoundError } from '../errors/notFoundError.mjs'
 export async function getCommentIDsByThreadID(threadID) {
     const ids = dbMapper.fromDb(await getCommentIDsByThread(threadID))
     if (!ids) {
-        throw new NotFoundError(
-            null,
-            'Cannot find IDs with the given token'
-        )
+        throw new NotFoundError(null, 'Cannot find IDs with the given token')
     }
     return ids
 }
@@ -20,10 +18,7 @@ export async function getCommentIDsByThreadID(threadID) {
 export async function getCommentIDsByParentID(parentID) {
     const ids = dbMapper.fromDb(await getCommentIDsByParent(parentID))
     if (!ids) {
-        throw new NotFoundError(
-            null,
-            'Cannot find IDs with the given token'
-        )
+        throw new NotFoundError(null, 'Cannot find IDs with the given token')
     }
     return ids
 }
@@ -37,4 +32,9 @@ export async function getComment(commentId) {
         )
     }
     return comment
+}
+
+export async function getCommentsResource(threadId) {
+    const comments = dbMapper.fromDb(await getCommentsByThreadId(threadId))
+    return comments
 }
