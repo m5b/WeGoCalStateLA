@@ -1,6 +1,7 @@
 import {
     findByThreadID,
     getAllThreadIDs,
+    createThreadRecord,
 } from '../repositories/threadsRepository.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
@@ -16,4 +17,9 @@ export async function getThread(threadID) {
 export async function getThreadIDs() {
     const ids = dbMapper.fromDb(await getAllThreadIDs())
     return ids
+}
+
+export async function createThread(data) {
+    const created = await createThreadRecord(data)
+    return dbMapper.fromDb(created)
 }

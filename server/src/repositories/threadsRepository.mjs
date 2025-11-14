@@ -20,3 +20,12 @@ export async function findByThreadID(threadID) {
     )
     return row[0] || null
 }
+
+export async function createThreadRecord({userId, title, parent_id, content, threadId,}) {
+  const [result] = await connectionPool.query(
+        'INSERT into threads (user_id, thread_id, parent_id, title, content) VALUES (?, ?, ?, ?, ?)', [userId, threadId, parentId, title, content]
+    )
+
+    return result.insertId
+
+}
