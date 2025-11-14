@@ -1,8 +1,8 @@
 import { Strategy as jwtStrategy, ExtractJwt } from 'passport-jwt'
-import { findByUserID } from '../repositories/userRepository.mjs'
+import {getCurrentUser} from "../services/userService.mjs";
 import dbMapper from '../util/dbMapper.mjs'
 import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
-import { NotFoundError } from '../errors/notFoundError.mjs'
+
 const strategy = new jwtStrategy(
     {
         secretOrKey: process.env.JWT_SECRET,
@@ -23,17 +23,16 @@ const strategy = new jwtStrategy(
                 false
             )
         }
-        const user = dbMapper.fromDb(await findByUserID(userId))
-        //user need to create a account since can't not find in the database
-        if (!user) {
-            return done(
-                new NotFoundError({
-                    auth: 'Can not found user of given token',
-                }),
-                false
-            )
+        try{
+            const user = await getCurrentUser(userId)
+            return done(null, user)
         }
-        return done(null, user)
+        catch (err){
+            done(err, false)
+        }
+
+
+
     }
 )
 

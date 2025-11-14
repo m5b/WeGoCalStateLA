@@ -2,8 +2,8 @@ import {
     findByUserID,
     findByUsername,
     updateByUserId,
-    deleteUser,
 } from '../repositories/userRepository.mjs'
+import {deleteUser} from "../repositories/authRepository.mjs";
 import buildPatchQuery from '../util/buildPatchQuery.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'

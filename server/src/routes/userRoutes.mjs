@@ -19,8 +19,7 @@ router.get('/me', requireJwtAuth, async (req, res) => {
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
-    const user = await getCurrentUser(userId)
-    const userDisplay = new UserDto(user, { scope: 'private' })
+    const userDisplay = new UserDto(req.user, { scope: 'private' })
     res.status(200).json(jsend.success(userDisplay))
 })
 
@@ -39,7 +38,7 @@ router.delete('/me', requireJwtAuth, async (req, res) => {
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
-    const reulst = await deleteCurrentUser(userId)
+    const result = await deleteCurrentUser(userId)
     res.status(200).send(jsend.success())
 })
 

@@ -3,9 +3,9 @@ import {
     findByEmail,
     findByGoogleId,
     findByUserID,
-    insertGoogleUser,
-    updateUserGoogleId,
 } from '../repositories/userRepository.mjs'
+import {insertGoogleUser,
+    updateUserGoogleId,} from "../repositories/authRepository.mjs"
 import generateUserName from './usernameGenerator.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { ConflictError } from '../errors/conflictError.mjs'

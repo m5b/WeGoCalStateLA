@@ -1,10 +1,10 @@
 import { NotFoundError } from '../errors/notFoundError.mjs'
 import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
 import dbMapper from '../util/dbMapper.mjs'
-import { findByEmail } from '../repositories/userRepository.mjs'
+import { findAuthUserByEmail } from '../repositories/authRepository.mjs'
 import bcrypt from 'bcrypt'
 export async function handleUserLogin({ email, password }) {
-    const user = dbMapper.fromDb(await findByEmail(email))
+    const user = dbMapper.fromDb(await findAuthUserByEmail(email))
     if (!user) {
         throw new NotFoundError({
             email: 'Can not found the user of the given email',

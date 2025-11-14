@@ -1,5 +1,5 @@
 import { ConflictError } from '../errors/conflictError.mjs'
-import { insertUser } from '../repositories/userRepository.mjs'
+import { insertUser } from '../repositories/authRepository.mjs'
 import generateUserName from '../services/usernameGenerator.mjs'
 import { findByEmail } from '../repositories/userRepository.mjs'
 import bcrypt from 'bcrypt'
