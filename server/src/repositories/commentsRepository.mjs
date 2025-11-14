@@ -40,3 +40,12 @@ export async function getCommentsByThreadId(threadId) {
     )
     return row
 }
+
+export async function insertComment({userId, threadId, title, content, parentId}) {
+    const [result] = await connectionPool.query(
+        'INSERT into comments (user_id, thread_id, parent_id, title, content) VALUES (?, ?, ?, ?, ?)', [userId, threadId, parentId, title, content]
+    )
+
+    return result.insertId
+
+}

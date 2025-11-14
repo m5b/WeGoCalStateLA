@@ -3,6 +3,7 @@ import {
     getCommentIDsByParent,
     findByCommentID,
     getCommentsByThreadId,
+    insertComment,
 } from '../repositories/commentsRepository.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
@@ -37,4 +38,12 @@ export async function getComment(commentId) {
 export async function getCommentsResource(threadId) {
     const comments = dbMapper.fromDb(await getCommentsByThreadId(threadId))
     return comments
+}
+
+export async function createComment({title, threadId, userId, content, parentId}) {
+
+    const commentId = await insertComment({userId:userId, threadId: threadId, title: title, content: content, parentId: parentId})
+
+    return
+
 }
