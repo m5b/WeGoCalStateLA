@@ -55,12 +55,12 @@ export function ThreadsProvider({ children }) {
     }
   };
 
-  const addThread = async (text) => {
-    const created = await createThread({ text });
-    dispatch({ type: 'ADD_THREAD', payload: created });
+  const addThread = async (data) => {
+    const created = await createThread(data);
+    dispatch({ type: "ADD_THREAD", payload: created });
     return created;
   };
-
+  
   const addReply = async (threadId, text) => {
     const created = await createReply(threadId, { text });
     dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created } });

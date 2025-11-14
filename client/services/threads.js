@@ -1,90 +1,106 @@
-// Thread API stubs for initial development
-// No network calls yet — returns mock data and simulates latency
+let NEXT_ID = 3;
 
-let mockThreads = [
+let THREADS = [
   {
-    id: 't1',
-    author: 'Anonymous User',
-    createdAt: Date.now() - 1000 * 60 * 120,
-    text: 'Welcome to WeGo threads! Share thoughts and support each other.',
+    id: "1",
+    author: "WeGo Team",
+    caption: "Welcome to WeGo threads! Share thoughts and support each other.",
+    text: "Welcome to WeGo threads! Share thoughts and support each other.",
     likes: 24,
+    imageUri: null,
+    date: "",
+    time: "",
+    location: "",
+    createdAt: Date.now() - 1000 * 60 * 60,
     replies: [
       {
-        id: 'r1',
-        author: 'Anonymous Brain',
-        createdAt: Date.now() - 1000 * 60 * 90,
-        text: 'Happy to be here! Remember to be kind.',
-        likes: 4,
+        id: "r1",
+        author: "Student A",
+        text: "Excited to try this out!",
+        createdAt: Date.now() - 1000 * 60 * 30,
       },
     ],
   },
   {
-    id: 't2',
-    author: 'Anonymous Thinker',
-    createdAt: Date.now() - 1000 * 60 * 240,
-    text: 'Any tips for staying focused during midterms?',
+    id: "2",
+    author: "Student B",
+    caption: "Any tips for staying focused during midterms?",
+    text: "Any tips for staying focused during midterms?",
     likes: 156,
+    imageUri: null,
+    date: "",
+    time: "",
+    location: "",
+    createdAt: Date.now() - 1000 * 60 * 10,
     replies: [
       {
-        id: 'r2',
-        author: 'Anonymous Philosopher',
-        createdAt: Date.now() - 1000 * 60 * 110,
-        text: 'Pomodoro and breaks help a lot. Also hydrate!',
-        likes: 67,
+        id: "r2",
+        author: "Student C",
+        text: "I like to use 25-minute focus blocks and short walks.",
+        createdAt: Date.now() - 1000 * 60 * 5,
       },
     ],
   },
 ];
 
-const delay = (ms = 400) => new Promise((res) => setTimeout(res, ms));
+function delay(ms = 300) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export async function getFeed() {
   await delay();
-  // Return newest first
-  return mockThreads
-    .slice()
-    .sort((a, b) => b.createdAt - a.createdAt);
+  return THREADS.map((t) => ({
+    replies: [],
+    ...t,
+    replies: t.replies ?? [],
+  }));
 }
 
-export async function createThread({ text, author = 'Anonymous Eagle #' + Math.floor(Math.random() * 9999) }) {
+export async function createThread(data) {
   await delay();
-  const newThread = {
-    id: 't' + (Math.random().toString(36).slice(2)),
-    author,
-    createdAt: Date.now(),
-    text,
+  const id = String(NEXT_ID++);
+  const now = Date.now();
+
+  const thread = {
+    id,
+    author: "Alex J.", 
     likes: 0,
     replies: [],
+    createdAt: now,
+    text: data.caption || data.text || "",
+    ...data,
   };
-  mockThreads.unshift(newThread);
-  return newThread;
+
+  THREADS = [thread, ...THREADS];
+  return thread;
 }
 
-export async function createReply(threadId, { text, author = 'Anonymous' }) {
+export async function createReply(threadId, { text }) {
   await delay();
-  const thread = mockThreads.find((t) => t.id === threadId);
-  if (!thread) throw new Error('Thread not found');
+  const thread = THREADS.find((t) => String(t.id) === String(threadId));
+  if (!thread) throw new Error("Thread not found");
+
   const reply = {
-    id: 'r' + (Math.random().toString(36).slice(2)),
-    author,
-    createdAt: Date.now(),
+    id: `r-${thread.id}-${(thread.replies?.length ?? 0) + 1}`,
+    author: "Alex J.",
     text,
-    likes: 0,
+    createdAt: Date.now(),
   };
-  thread.replies.push(reply);
   return reply;
 }
 
+
 export async function toggleLike(threadId) {
-  await delay(200);
-  const thread = mockThreads.find((t) => t.id === threadId);
-  if (!thread) throw new Error('Thread not found');
-  thread.likes = (thread.likes || 0) + 1;
+  await delay();
+  const thread = THREADS.find((t) => String(t.id) === String(threadId));
+  if (!thread) throw new Error("Thread not found");
+
+  thread.likes = (thread.likes ?? 0) + 1; 
   return thread.likes;
 }
 
-export async function reportContent(threadId, reason = 'inappropriate') {
-  await delay(300);
-  // Stub: would enqueue report to moderation service
-  return { ok: true, threadId, reason };
+export async function reportContent(threadId, reason) {
+  await delay();
+  console.log("Report submitted:", { threadId, reason });
+  return { ok: true };
 }

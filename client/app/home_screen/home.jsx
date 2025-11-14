@@ -10,56 +10,99 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, TrendingUp, Clock, MessageSquare } from 'lucide-react-native';
+import {
+  Chrome as Home,
+  Calendar,
+  Brain,
+  BookOpen,
+  User,
+  MessageCircle,
+  Heart,
+  TrendingUp,
+  Clock,
+  MessageSquare,
+} from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 
 const quickActions = [
-    {
-      id: 'daily',
-      title: 'Daily Check-in',
-      subtitle: 'How are you feeling today?',
-      icon: Heart,
-      color: Colors.GREEN,
-      route: 'daily'
-    },
-    {
-      id: 'quiz',
-      title: 'Wellness Quiz',
-      subtitle: 'Take a mental health assessment',
-      icon: Brain,
-      color: Colors.PRIMARY,
-      route: 'quizzes'
-    },
-    {
-      id: 'resources',
-      title: 'Resources',
-      subtitle: 'Find help and support',
-      icon: BookOpen,
-      color: Colors.INFO,
-      route: 'resources'
-    },
-    {
-      id: 'threads',
-      title: 'Threads',
-      subtitle: 'Share anonymously',
-      icon: MessageSquare,
-      color: Colors.SECONDARY,
-      route: 'threads'
-    },
-    {
-      id: 'progress',
-      title: 'My Progress',
-      subtitle: 'Track your wellness journey',
-      icon: TrendingUp,
-      color: Colors.SECONDARY,
-      route: 'profile'
-    }
-  ];
+  {
+    id: 'daily',
+    title: 'Daily Check-in',
+    subtitle: 'How are you feeling today?',
+    icon: Heart,
+    color: Colors.GREEN,
+    route: 'daily',
+  },
+  {
+    id: 'quiz',
+    title: 'Wellness Quiz',
+    subtitle: 'Take a mental health assessment',
+    icon: Brain,
+    color: Colors.PRIMARY,
+    route: 'quizzes',
+  },
+  {
+    id: 'resources',
+    title: 'Resources',
+    subtitle: 'Find help and support',
+    icon: BookOpen,
+    color: Colors.INFO,
+    route: 'resources',
+  },
+  {
+    id: 'threads',
+    title: 'Threads',
+    subtitle: 'Share anonymously',
+    icon: MessageSquare,
+    color: Colors.SECONDARY,
+    route: 'threads',
+  },
+  {
+    id: 'progress',
+    title: 'My Progress',
+    subtitle: 'Track your wellness journey',
+    icon: TrendingUp,
+    color: Colors.SECONDARY,
+    route: 'profile',
+  },
+];
 
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('home');
+
+  const navigateToScreen = (screen) => {
+    switch (screen) {
+      case 'events':
+        router.push('/home_screen/events');
+        break;
+      case 'quizzes':
+        router.push('/quizzes/quiz_list');
+        break;
+      case 'resources':
+        router.push('/resources/resource');
+        break;
+      case 'profile':
+        router.push('/profile');
+        break;
+      case 'daily':
+        router.push('/daily_check_in/daily');
+        break;
+      case 'progress':
+        router.push('/daily_check_in/progress');
+        break;
+      case 'chat':
+        router.push('/chat_bot/chatbotui');
+        break;
+      case 'threads':
+        router.push('/threads/feed');
+        break;
+      default:
+        break;
+    }
+  };
+
   const webQuickActionsGrid = {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -134,7 +177,7 @@ export default function HomeScreen() {
       marginBottom: width < 640 ? 24 : width < 1024 ? 32 : 40,
       letterSpacing: -0.5,
     },
-    webQuickActionsGrid: webQuickActionsGrid,
+    webQuickActionsGrid,
     webActionCard: {
       backgroundColor: '#f8fafc',
       borderRadius: 16,
@@ -212,14 +255,20 @@ export default function HomeScreen() {
   if (Platform.OS === 'web') {
     return (
       <WebLayout>
-        <ScrollView style={webStyles.webContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={webStyles.webContainer}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Welcome Section */}
           <View style={webStyles.webWelcomeSection}>
             <View style={webStyles.webWelcomeContent}>
               <Text style={webStyles.webWelcomeTitle}>Welcome Back!</Text>
-              <Text style={webStyles.webWelcomeSubtitle}>Cal State LA Golden Eagles</Text>
+              <Text style={webStyles.webWelcomeSubtitle}>
+                Cal State LA Golden Eagles
+              </Text>
               <Text style={webStyles.webWelcomeDescription}>
-                Take charge of your mental health with personalized tools and resources designed for Cal State LA students.
+                Take charge of your mental health with personalized tools and
+                resources designed for Cal State LA students.
               </Text>
             </View>
           </View>
@@ -235,11 +284,18 @@ export default function HomeScreen() {
                   onPress={() => navigateToScreen(action.route)}
                   activeOpacity={0.8}
                 >
-                  <View style={[webStyles.webActionIcon, { backgroundColor: action.color + '20' }]}>
+                  <View
+                    style={[
+                      webStyles.webActionIcon,
+                      { backgroundColor: action.color + '20' },
+                    ]}
+                  >
                     <action.icon size={28} color={action.color} />
                   </View>
                   <Text style={webStyles.webActionTitle}>{action.title}</Text>
-                  <Text style={webStyles.webActionSubtitle}>{action.subtitle}</Text>
+                  <Text style={webStyles.webActionSubtitle}>
+                    {action.subtitle}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -251,12 +307,17 @@ export default function HomeScreen() {
             <View style={webStyles.webHighlightCard}>
               <View style={webStyles.webHighlightHeader}>
                 <Clock size={20} color={Colors.SECONDARY} />
-                <Text style={webStyles.webHighlightTitle}>Daily Inspiration</Text>
+                <Text style={webStyles.webHighlightTitle}>
+                  Daily Inspiration
+                </Text>
               </View>
               <Text style={webStyles.webHighlightText}>
-                “Mental health is not a destination, but a process. It’s about how you drive, not where you’re going.”
+                “Mental health is not a destination, but a process. It’s about
+                how you drive, not where you’re going.”
               </Text>
-              <Text style={webStyles.webHighlightAuthor}>- Noam Shpancer</Text>
+              <Text style={webStyles.webHighlightAuthor}>
+                - Noam Shpancer
+              </Text>
             </View>
           </View>
         </ScrollView>
@@ -264,49 +325,13 @@ export default function HomeScreen() {
     );
   }
 
-  const navigateToScreen = (screen) => {
-    switch (screen) {
-      case 'events':
-        router.push('/home_screen/events');
-        break;
-      case 'quizzes':
-        router.push('/quizzes/quiz_list');
-        break;
-      case 'resources':
-        router.push('/resources/resource');
-        break;
-      case 'profile':
-        router.push('/profile');
-        break;
-      case 'daily':
-        router.push('/daily_check_in/daily');
-        break;
-      case 'progress':
-        router.push('/daily_check_in/progress');
-        break;
-      case 'chat':
-        router.push('/chat_bot/chatbotui');
-        break;
-      case 'threads':
-        router.push('/threads/feed');
-        break;
-      default:
-        break;
-    }
-  };
-
-
-
   const TabButton = ({ icon: Icon, label, isActive, onPress }) => (
-    <TouchableOpacity 
-      style={[styles.tabButton, isActive && styles.activeTabButton]} 
+    <TouchableOpacity
+      style={[styles.tabButton, isActive && styles.activeTabButton]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Icon 
-        size={24} 
-        color={isActive ? Colors.WHITE : Colors.LIGHT_BLUE} 
-      />
+      <Icon size={24} color={isActive ? Colors.WHITE : Colors.LIGHT_BLUE} />
       <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
         {label}
       </Text>
@@ -327,13 +352,17 @@ export default function HomeScreen() {
       </LinearGradient>
 
       {/* Main Content */}
-      <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.mainContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.contentPadding}>
           {/* Welcome Card */}
           <View style={styles.welcomeCard}>
             <Text style={styles.welcomeTitle}>Your Wellness Journey</Text>
             <Text style={styles.welcomeText}>
-              Take charge of your mental health with personalized tools and resources designed for Cal State LA students.
+              Take charge of your mental health with personalized tools and
+              resources designed for Cal State LA students.
             </Text>
           </View>
 
@@ -347,7 +376,12 @@ export default function HomeScreen() {
                 onPress={() => navigateToScreen(action.route)}
                 activeOpacity={0.8}
               >
-                <View style={[styles.actionIconContainer, { backgroundColor: action.color + '20' }]}>
+                <View
+                  style={[
+                    styles.actionIconContainer,
+                    { backgroundColor: action.color + '20' },
+                  ]}
+                >
                   <action.icon size={28} color={action.color} />
                 </View>
                 <Text style={styles.actionTitle}>{action.title}</Text>
@@ -363,7 +397,8 @@ export default function HomeScreen() {
               <Text style={styles.highlightTitle}>Today’s Focus</Text>
             </View>
             <Text style={styles.highlightText}>
-              “Mental health is not a destination, but a process. It’s about how you drive, not where you’re going.”
+              “Mental health is not a destination, but a process. It’s about how
+              you drive, not where you’re going.”
             </Text>
             <View style={styles.highlightFooter}>
               <Text style={styles.highlightAuthor}>- Noam Shpancer</Text>
