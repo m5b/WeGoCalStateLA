@@ -1,49 +1,59 @@
 import { Router } from 'express'
-import { getThread, getThreadIDs } from '../services/threadsService.mjs'
-import { getCommentsResource } from '../services/commentsService.mjs'
-import { threadIdSchema } from '../validators/threadsValidators.mjs'
-import { createCommentSchema } from '../validators/commentsValidators.mjs'
+import {
+    deleteThreadByThreadId, getThreadResourceByThreadId,
+    getUserThreadResource,
+    patchThreadResourceByThreadId, postThreadResource,
+} from '../services/threadsService.mjs'
+import {
+    threadIdSchema,
+    threadPatchSchema, threadPostSchema,
+} from '../validators/threadsValidators.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
-import CommentDto from '../dtos/commentDto.mjs'
 import { jsend } from '../util/jSend.mjs'
-import buildCommentsTree from '../util/commentTreeBuilder.mjs'
+import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 const router = Router()
 
-router.get('/all', async (req, res) => {
-    const ids = await getThreadIDs()
-    res.json(jsend.success({ threadIds: ids }))
+//tested
+router.get('/me', requireJwtAuth, async (req, res) => {
+    const threads = await getUserThreadResource(req.user.userId)
+    const threadDtos = threads.map((thread) => new ThreadDto(thread))
+    res.send(jsend.success({ threads: threadDtos }))
 })
 
-router.get('/:threadId', async (req, res) => {
-    const threadId = threadIdSchema.parse(req.params.threadId)
-    const thread = await getThread(threadId)
-    res.json(jsend.success(thread))
+//tested
+router.post('/me', requireJwtAuth, async (req, res) => {
+    const payload = threadPostSchema.parse(req.body)
+    const thread = await postThreadResource(req.user.userId, payload)
+    res.json(jsend.success({thread: new ThreadDto(thread)}))
 })
 
-router.get('/:threadId/comments', async (req, res) => {
-    const threadId = threadIdSchema.parse(req.params.threadId)
-    const thread = await getThread(threadId)
-    const comments = await getCommentsResource(threadId)
-    const commentDtos = comments.map(
-        (comment) => new CommentDto(comment, { scope: 'public' })
-    )
-
-    const commentTrees = buildCommentsTree(commentDtos)
-    res.send(jsend.success({ thread, comments: commentTrees }))
-})
-
-router.post('/threadId/comments', async (req, res) => {
-    
-    const threadId = threadIdSchema.parse(req.params.threadId)
-
-    const data = createCommentSchema.parse({
-        ...req.body,
-        threadId,
+//tested
+router.patch('/me/:threadId', requireJwtAuth, async (req, res) => {
+    const {threadId} = threadIdSchema.parse({
+        threadId: req.params.threadId,
     })
 
-    const newComment = await createComment(data)
-
-    res.json(jsend.success(newComment))
+    const payload = threadPatchSchema.parse(req.body)
+    const thread = await patchThreadResourceByThreadId(req.user, threadId, payload)
+    console.log(thread)
+    res.send(jsend.success({ thread:  new ThreadDto(thread)}))
 })
+//tested
+router.delete('/me/:threadId', requireJwtAuth, async (req, res) => {
+    const {threadId} = threadIdSchema.parse({
+        threadId: req.params.threadId,
+    })
+    await deleteThreadByThreadId(threadId, req.user.userId)
+    res.send(jsend.success(null))
+})
+
+
+//tested
+router.get('/:threadId', async (req, res) => {
+    const {threadId} = threadIdSchema.parse({threadId: req.params.threadId})
+    const thread = await getThreadResourceByThreadId(threadId)
+    res.json(jsend.success({thread: new ThreadDto(thread)}))
+})
+//tested
 
 export default router
