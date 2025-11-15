@@ -1,51 +1,81 @@
 import connectionPool from '../db/pool.mjs'
 
-export async function getCommentIDsByThread(threadID) {
-    // returns commentIDs directly responding to threadID
-    // will not return deleted comments
-
-    const [row] = await connectionPool.query(
-        'SELECT comment_id FROM comments WHERE thread_id = ? AND deleted_at IS NULL AND parent_id IS NULL',
-        [threadID]
-    )
-    return row || null
-}
-
-export async function getCommentIDsByParent(commentID) {
-    // returns commentIDs responding to the given commentID
-    // will not return deleted comments
-
-    const [row] = await connectionPool.query(
-        'SELECT comment_id FROM comments WHERE parent_id = ? AND deleted_at IS NULL',
-        [commentID]
-    )
-    return row || null
-}
-
-export async function findByCommentID(commentID) {
+export async function findByCommentId(commentId) {
     // returns data from given commentID
     // WILL NOT CHECK IF THREAD IS DELETED
 
     const [row] = await connectionPool.query(
-        'SELECT comment_id, content AS body, display_name AS author FROM comments INNER JOIN users ON comments.user_id = users.user_id WHERE comment_id = ?',
-        [commentID]
+        " SELECT c.comment_id AS comment_id,\n" +
+        "       c.content    AS content,\n" +
+        "       c.created_at AS created_at,\n" +
+        "       c.updated_at AS updated_at,\n" +
+        "       c.deleted_at AS deleted_at,\n" +
+        "       c.status     AS status,\n" +
+        "       c.thread_id  AS thread_id,\n" +
+        "       CASE\n" +
+        "              WHEN c.deleted_at IS NULL THEN u.user_id\n" +
+        "              ELSE NULL\n" +
+        "       END AS user_id,\n" +
+        "       CASE\n" +
+        "              WHEN c.deleted_at IS NULL THEN u.username\n" +
+        "              ELSE NULL\n" +
+        "       END AS username\n" +
+        "FROM   comments c\n" +
+        "JOIN   users u\n" +
+        "ON     c.user_id = u.user_id\n" +
+        "WHERE  c.comment_id = ? ",
+        [commentId]
     )
     return row[0] || null
 }
 
-export async function getCommentsByThreadId(threadId) {
+export async function findByThreadId(threadId) {
     const [row] = await connectionPool.query(
-        'select * from comments INNER JOIN users on users.user_id = comments.user_id where thread_id = ? ',
+        " SELECT c.comment_id AS comment_id,\n" +
+        "       c.content    AS content,\n" +
+        "       c.created_at AS created_at,\n" +
+        "       c.updated_at AS updated_at,\n" +
+        "       c.deleted_at AS deleted_at,\n" +
+        "       c.status     AS status,\n" +
+        "       c.thread_id  AS thread_id,\n" +
+        "       CASE\n" +
+        "              WHEN c.deleted_at IS NULL THEN u.user_id\n" +
+        "              ELSE NULL\n" +
+        "       END AS user_id,\n" +
+        "       CASE\n" +
+        "              WHEN c.deleted_at IS NULL THEN u.username\n" +
+        "              ELSE NULL\n" +
+        "       END AS username\n" +
+        "FROM   comments c\n" +
+        "JOIN   users u\n" +
+        "ON     c.user_id = u.user_id\n" +
+        "WHERE  c.thread_id = ? ",
         [threadId]
     )
     return row
 }
 
-export async function insertComment({userId, threadId, title, content, parentId}) {
+export async function insertComment({userId, threadId, content, parentId}) {
     const [result] = await connectionPool.query(
-        'INSERT into comments (user_id, thread_id, parent_id, title, content) VALUES (?, ?, ?, ?, ?)', [userId, threadId, parentId, title, content]
+        'INSERT into comments (user_id, thread_id, parent_id , content) VALUES (?, ?, ?, ?)', [userId, threadId, parentId, content]
     )
 
     return result.insertId
+}
 
+export async function updateByCommentId(commentId, sqlQuery, dataList) {
+    dataList.push(commentId)
+    const [result] = await connectionPool.query(
+        sqlQuery + 'where comment_id = ? and deleted_at is NULL',
+        dataList
+    )
+    return result.insertId
+}
+
+export async function deleteByCommentId(commentId) {
+    const [result] = await connectionPool.query(
+        "Update comments set deleted_at = NOW()  , content = '[Deleted]', status = 'delete' where comment_id = ? ",
+        [commentId]
+    )
+    return;
 }
