@@ -11,6 +11,9 @@ import {
 import ThreadDto from '../dtos/threadDto.mjs'
 import { jsend } from '../util/jSend.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import {getCommentsResourceTreeByThreadId} from "../services/commentsService.mjs";
+import CommentDto from "../dtos/commentDto.mjs";
+import buildCommentsTree from "../util/commentTreeBuilder.mjs";
 const router = Router()
 
 //tested
@@ -53,6 +56,18 @@ router.get('/:threadId', async (req, res) => {
     const {threadId} = threadIdSchema.parse({threadId: req.params.threadId})
     const thread = await getThreadResourceByThreadId(threadId)
     res.json(jsend.success({thread: new ThreadDto(thread)}))
+})
+
+//tested
+router.get('/:threadId/comments', async (req, res) => {
+    const {threadId} = threadIdSchema.parse({threadId: req.params.threadId})
+    const thread = await getThreadResourceByThreadId(threadId)
+    const comments = await getCommentsResourceTreeByThreadId(threadId)
+    const commentDtos = comments.map(
+        (comment) => new CommentDto(comment, { scope: 'public' })
+    )
+    const commentTrees = buildCommentsTree(commentDtos)
+    res.send(jsend.success({ thread: new ThreadDto(thread), comments: commentTrees }))
 })
 //tested
 

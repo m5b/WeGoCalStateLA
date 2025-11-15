@@ -15,7 +15,7 @@ import buildPatchQuery from "../util/buildPatchQuery.mjs";
 export async function getThreadResourceByThreadId(threadId) {
     const thread = dbMapper.fromDb(await findByThreadId(threadId))
     if (!thread) {
-        throw new NotFoundError(null, 'Cannot find thread with the given identifier')
+        throw new NotFoundError({thread: "Cannot find thread with the given identifier"})
     }
     return thread
 }
