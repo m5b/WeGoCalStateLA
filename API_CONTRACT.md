@@ -11,7 +11,7 @@ All responses are JSON.
 ```json
 {
   "status": "success",
-  "data": { ... }
+  "data": {}
 }
 ```
 
@@ -89,6 +89,21 @@ fetch("/api/users/me", {
 
 password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (5 - 21)
 
+#### **Example**
+```js
+const res = await fetch('http://localhost:3000/api/auth/signup', {
+        method: 'POST',
+        credentials: "include",
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({
+            email: "example2@gmail.com",
+            password: "ndN123456!"
+        })
+    });
+const {status, data} = await res.json();
+```
 #### **Request**
 
 ```json
@@ -126,8 +141,24 @@ password must contain at least one uppercase letter, one lowercase letter, one n
 
 #### **Behavior**
 
-Login by local, afterware the response will assign a cookie which contain the jwt token for authication
+Login by local, afterward the response will assign a cookie which contain the jwt token for authication
 
+#### **Example**
+```js
+const res = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        credentials: "include",
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({
+            email: "example2@gmail.com",
+            password: "ndN123456!"
+        })
+    });
+const {status, data} = await res.json();
+console.log(data);
+```
 #### **Request**
 
 ```json
@@ -178,6 +209,14 @@ Login by local, afterware the response will assign a cookie which contain the jw
 
 Login by google, afterware the response will assign a cookie which contain the jwt token for authication
 
+#### **Example**
+For more information check this [link](https://stackoverflow.com/questions/72382892/access-to-fetch-at-https-accounts-google-com-o-oauth2-v2-auth-has-been-blocked)
+```html
+<a href="http://localhost:3000/api/auth/google">
+    Sign in with Google
+</a>
+```
+
 #### **Request**
 
 - No body
@@ -198,6 +237,23 @@ auth-token required, handle by browser
 #### **Behavior**
 
 Get current user's resource
+
+#### **Example**
+```js
+const res = await fetch('http://localhost:3000/api/user/me', {
+        method: 'GET',
+        credentials: "include",
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        // body:JSON.stringify({
+        //     email: "example2@gmail.com",
+        //     password: "ndN123456!"
+        // })
+    });
+    const data = await res.json();
+    console.log(data);
+```
 
 #### **Response**
 
@@ -238,7 +294,7 @@ auth-token required, handle by browser
 
 #### **Behavior**
 
-modify current current user's resource. As right now, only user's display name are changeable, thing like email we need do authication for that, in the future, we can add more modifiable field
+modify current user's resource. As right now, only user's display name are changeable, thing like email we need do authication for that, in the future, we can add more modifiable field
 
 #### **Request**
 
@@ -362,6 +418,731 @@ Get other user's public information profile by their given username
   "status": "fail",
   "data": {
     "username": "Can not found the user of give username"
+  }
+}
+```
+
+## 5. Thread Endpoints
+
+### 5.1 GET /threads/me
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **Behavior**
+Get all the thread posted by the current login user
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "threads": []
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+### 5.2 POST /threads/me
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **Behavior**
+Post a thread under login user's account.
+
+#### **Request**
+
+
+```json
+{
+  "title": "string,  20-200 chars",
+  "content": "string, at least 1-20000 chars"
+}
+```
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "thread":{
+      "author": "weekly-geosecto",
+      "body": "hello!",
+      "createdAt": "2025-11-20T11:48:46.000Z",
+      "status": "active",
+      "threadId": 113335,
+      "title": "This is just a random title to make it 20 chars long ",
+      "updatedAt": "2025-11-20T11:48:46.000Z",
+      "userId": 11
+    }
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+### 5.3 PATCH /threads/me/:threadId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+threadId
+
+#### **Behavior**
+Post a thread under login user's account.
+
+#### **Request**
+
+Allowed fields(atlease one field has to be defined)
+
+```json
+{
+  "title": "string,  20-200 chars",
+  "content": "string, at least 1-20000 chars"
+}
+```
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "thread":{
+      "author": "weekly-geosecto",
+      "body": "hello!",
+      "createdAt": "2025-11-20T11:48:46.000Z",
+      "status": "active",
+      "threadId": 113335,
+      "title": "This is just a random title to make it 20 chars long ",
+      "updatedAt": "2025-11-20T11:48:46.000Z",
+      "userId": 11
+    }
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "You don't have ownership for this thread"
+  }
+}
+```
+
+### 5.4 DELETE /threads/me/:threadId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+threadId
+
+#### **Behavior**
+DELETE a thread under login user's account.
+
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": null
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "You don't have ownership for this thread"
+  }
+}
+```
+
+### 5.5 GET /threads/:threadId
+
+#### **Auth**
+
+Not Required
+
+#### **parameter**
+
+threadId
+
+#### **Behavior**
+
+Get other thread information 
+
+#### **Response**
+
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": {
+    "thread": {
+      "threadId": 1,
+      "userId": 1,
+      "body": "Welcome everyone to WeGoApp!",
+      "title": "Welcome Thread",
+      "author": "alice01",
+      "createdAt": "2025-11-15T10:06:46.000Z",
+      "updatedAt": "2025-11-15T10:06:46.000Z",
+      "status": "active"
+    }
+  }
+}
+```
+
+##### 404 Not Found
+
+```json
+{
+  "status": "fail",
+  "data": {"thread": "Cannot find thread with the given identifier"}
+}
+```
+
+
+### 5.5 GET /threads/:threadId/comments
+
+#### **Auth**
+
+Not Required
+
+#### **parameter**
+
+threadId
+
+#### **Behavior**
+
+Get other thread and comments tree information
+
+#### **Response**
+
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": {
+    "thread": {
+      "threadId": 1,
+      "userId": 1,
+      "body": "Welcome everyone to WeGoApp!",
+      "title": "Welcome Thread",
+      "author": "alice01",
+      "createdAt": "2025-11-15T10:06:46.000Z",
+      "updatedAt": "2025-11-15T10:06:46.000Z",
+      "status": "active"
+    },
+
+  "comments": [
+    {
+      "commentId": 1,
+      "body": "Excited to join!",
+      "author": "bob02",
+      "userId": 2,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 2,
+      "body": "Welcome Bob!",
+      "author": "charlie03",
+      "userId": 3,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 3,
+      "body": "Thanks Charlie!",
+      "author": "dana04",
+      "userId": 4,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 4,
+      "body": "This community is awesome.",
+      "author": "eve05",
+      "userId": 5,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 24,
+      "body": "[Deleted]",
+      "author": null,
+      "userId": null,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 25,
+      "body": "I never thought of that",
+      "author": "weekly-geosecto",
+      "userId": 11,
+      "threadId": 1,
+      "replies": []
+    },
+    {
+      "commentId": 26,
+      "body": "I never thought of that",
+      "author": "weekly-geosecto",
+      "userId": 11,
+      "threadId": 1,
+      "replies": []
+    }
+  ]
+  }
+}
+```
+
+##### 404 Not Found
+
+```json
+{
+  "status": "fail",
+  "data": {"thread": "Cannot find thread with the given identifier"}
+}
+```
+
+### 5.6 GET /threads/
+
+#### **Auth**
+
+Not Required
+
+
+#### **Behavior**
+
+Get ALL thread(include deleted thread)
+
+#### **Response**
+
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "threads": [
+      {
+        "threadId": 1,
+        "userId": 1,
+        "body": "Welcome everyone to WeGoApp!",
+        "title": "Welcome Thread",
+        "author": "alice01",
+        "createdAt": "2025-11-15T10:06:46.000Z",
+        "updatedAt": "2025-11-15T10:06:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 2,
+        "userId": 2,
+        "body": "Share your best tips here.",
+        "title": "Tips for New Users",
+        "author": "bob02",
+        "createdAt": "2025-11-15T10:06:46.000Z",
+        "updatedAt": "2025-11-15T10:06:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 3,
+        "userId": 3,
+        "body": "Talk about programming topics.",
+        "title": "Let’s Discuss Coding",
+        "author": "charlie03",
+        "createdAt": "2025-11-15T10:06:46.000Z",
+        "updatedAt": "2025-11-15T10:06:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 4,
+        "userId": 4,
+        "body": "What games do you play?",
+        "title": "Favorite Games",
+        "author": "dana04",
+        "createdAt": "2025-11-15T10:06:46.000Z",
+        "updatedAt": "2025-11-15T10:06:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 5,
+        "userId": 5,
+        "body": "Anything goes here!",
+        "title": "Random Chat",
+        "author": "eve05",
+        "createdAt": "2025-11-15T10:06:46.000Z",
+        "updatedAt": "2025-11-15T10:06:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 113335,
+        "userId": 11,
+        "body": "hello!",
+        "title": "This is just a random title to make it 20 chars long ",
+        "author": "weekly-geosecto",
+        "createdAt": "2025-11-20T11:48:46.000Z",
+        "updatedAt": "2025-11-20T11:48:46.000Z",
+        "status": "active"
+      },
+      {
+        "threadId": 113336,
+        "userId": 11,
+        "body": "hello!",
+        "title": "This is just a  long ",
+        "author": "weekly-geosecto",
+        "createdAt": "2025-11-20T11:51:53.000Z",
+        "updatedAt": "2025-11-20T11:51:53.000Z",
+        "status": "active"
+      }
+    ]
+  }
+}
+```
+
+## 6. Comment Endpoints
+
+### 6.1 GET /comments/me
+#### **Auth**
+auth-token required, handle by browser
+
+#### **Behavior**
+Get all the comments posted by the current login user
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "comments": []
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+
+### 6.2 POST /comments/me/thread/:threadId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+threadId
+
+#### **Behavior**
+Post a comment under login user's account.
+
+#### **Request**
+
+
+```json
+{
+  "content": "string, at least 1-100000 chars"
+}
+```
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "comment": {
+      "commentId": 212563,
+      "body": "this is a comment under thread 1",
+      "author": "weekly-geosecto",
+      "parentId": null,
+      "userId": 11,
+      "threadId": 1,
+      "createdAt": "2025-11-21T02:18:29.000Z",
+      "updatedAt": "2025-11-21T02:18:29.000Z",
+      "status": "active"
+    }
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+
+##### 404 Not Found
+```json
+{
+  "status": "fail",
+  "data": {
+    "thread": "Cannot find thread with the given identifier"
+  },
+  "message": "Not found"
+}
+```
+
+### 6.3 POST /comments/me/thread/:threadId/comment/:parentId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+threadId, parentId
+
+#### **Behavior**
+Post a comment under login user's account. With the parameter threadId and parentId, the user able to post a comment under a thread and a parent comment
+
+#### **Request**
+
+
+```json
+{
+  "content": "string, at least 1-100000 chars"
+}
+```
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "comment": {
+      "commentId": 212564,
+      "body": "this is a comment under thread 1 and comment 1",
+      "author": "weekly-geosecto",
+      "parentId": 1,
+      "userId": 11,
+      "threadId": 1,
+      "createdAt": "2025-11-21T02:26:25.000Z",
+      "updatedAt": "2025-11-21T02:26:25.000Z",
+      "status": "active"
+    }
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+
+##### 404 Not Found
+```json
+{
+  "status": "fail",
+  "data": {
+    "thread": "Cannot find thread with the given identifier"
+  },
+  "message": "Not found"
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "thread": "Cannot find thread with the given identifier"
+  },
+  "message": "Not found"
+}
+```
+```json
+{
+  "status": "fail",
+  "data": null,
+  "message": "Cannot find comment with the given identifier"
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "comment": "The comment does not belong to this thread"
+  },
+  "message": "Not found"
+}
+```
+
+### 6.4 PATCH /comments/me/:commentId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+commentId
+
+#### **Behavior**
+edit a comment under login user's account.
+
+#### **Request**
+
+Allowed fields(atlease one field has to be defined)
+
+```json
+{
+  "content": "string, at least 1-100000 chars"
+}
+```
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": {
+    "comment": {
+      "commentId": 212563,
+      "body": "Hello man",
+      "author": "weekly-geosecto",
+      "parentId": null,
+      "userId": 11,
+      "threadId": 1,
+      "createdAt": "2025-11-21T02:18:29.000Z",
+      "updatedAt": "2025-11-21T02:35:29.000Z",
+      "status": "active"
+    }
+  }
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "You don't have ownership for this comment"
+  },
+  "message": "Unauthorized"
+}
+```
+
+### 5.4 DELETE /comments/me/:commentId
+
+#### **Auth**
+auth-token required, handle by browser
+
+#### **parameter**
+
+commentId
+
+#### **Behavior**
+DELETE a comment under login user's account.
+
+
+#### **Response**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": null
+}
+```
+
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "Missing or invalid token"
+  }
+}
+```
+
+```json
+{
+  "status": "fail",
+  "data": {
+    "auth": "You don't have ownership for this comment"
   }
 }
 ```
