@@ -1,5 +1,5 @@
 import {
-    deleteByCommentId, findByCommentId, findByThreadId,
+    deleteByCommentId, findByCommentId, findByThreadId, findByUserId,
     insertComment, updateByCommentId,
 } from '../repositories/commentsRepository.mjs'
 import dbMapper from '../util/dbMapper.mjs'
@@ -15,11 +15,15 @@ export async function getCommentResourceByCommentId(commentId) {
     const comment = dbMapper.fromDb(await findByCommentId(commentId))
     if (!comment) {
         throw new NotFoundError(
-            null,
-            'Cannot find comment with the given identifier'
+            {comment:"Can not found the parent comment resource given the identifier"},
         )
     }
     return comment
+}
+
+export async function getCommentResourceByUserId(userId) {
+    const comments = dbMapper.fromDb(await findByUserId(userId))
+    return comments
 }
 
 export async function getCommentsResourceTreeByThreadId(threadId) {
@@ -53,24 +57,21 @@ export async function patchCommentResourceByCommentId(user, commentId, payload) 
 
 export async function createComment(userId, threadId, payload, parentId) {
     const thread = await getThreadResourceByThreadId(threadId)
-    let comment=  await getCommentResourceByCommentId(parentId)
-    if((!thread) || (!comment) || comment.threadId !== thread.threadId) {
-        const data = {}
-        if (!thread) {
-            data["thread"] = "Can not found the thread resource given the identifier"
-        }
+    if(!thread){
+        throw new NotFoundError({thread: "Can not found the thread resource given the identifier"})
+    }
+    if(parentId != null){
+        const comment=  await getCommentResourceByCommentId(parentId)
         if(!comment){
-            data["parentComment"] = "Can not found the parent comment resource given the identifier"
+            throw new NotFoundError({comment:"Can not found the parent comment resource given the identifier"})
         }
-        if(comment.threadId !== thread.threadId){
-            data["thread"] = "There is no such comment inside the thread"
+        if(comment.threadId !== threadId){
+            throw new NotFoundError({comment:"The comment does not belong to this thread"})
         }
-
-        throw new NotFoundError(data)
     }
     const {content} = payload
     const commentId = await insertComment({userId:userId, threadId: threadId, content: content, parentId: parentId})
-    comment = await getCommentResourceByCommentId(commentId)
+    const comment = await getCommentResourceByCommentId(commentId)
     return comment
 }
 

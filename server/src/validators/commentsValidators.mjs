@@ -10,4 +10,4 @@ export const commentIdSchema = z.object({
 
 export const commentSchema = z.object({
     content: z.string({message: "Not a String"}).min(1).max(100000),
-})
+}).strict()

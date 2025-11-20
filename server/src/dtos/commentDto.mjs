@@ -1,5 +1,5 @@
-const DEFINE_PUBLIC_FIELDS = ['commentId', 'body', 'author', 'parentId', "userId", "threadId"]
-const PUBLIC_FIELDS = ['commentId', 'content', 'username', 'parentId', "userId", "threadId"]
+const DEFINE_PUBLIC_FIELDS = ['commentId', 'body', 'author', 'parentId', "userId", "threadId", "createdAt", "updatedAt", "status"]
+const PUBLIC_FIELDS = ['commentId', 'content', 'username', 'parentId', "userId", "threadId", "createdAt", "updatedAt", "status"]
 export default class CommentDto {
     constructor(comment, { scope }) {
         if (scope === 'public') {

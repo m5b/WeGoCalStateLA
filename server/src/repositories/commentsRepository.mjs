@@ -12,6 +12,7 @@ export async function findByCommentId(commentId) {
         "       c.deleted_at AS deleted_at,\n" +
         "       c.status     AS status,\n" +
         "       c.thread_id  AS thread_id,\n" +
+        "       c.parent_id  AS parent_id,\n" +
         "       CASE\n" +
         "              WHEN c.deleted_at IS NULL THEN u.user_id\n" +
         "              ELSE NULL\n" +
@@ -23,12 +24,32 @@ export async function findByCommentId(commentId) {
         "FROM   comments c\n" +
         "JOIN   users u\n" +
         "ON     c.user_id = u.user_id\n" +
-        "WHERE  c.comment_id = ? ",
+        "WHERE  c.comment_id = ?\n",
         [commentId]
     )
     return row[0] || null
 }
 
+export async function findByUserId(userId){
+    const [row] = await connectionPool.query(
+        " SELECT c.comment_id AS comment_id,\n" +
+        "       c.parent_id  AS parent_id,\n" +
+        "       c.content    AS content,\n" +
+        "       c.created_at AS created_at,\n" +
+        "       c.updated_at AS updated_at,\n" +
+        "       c.status     AS status,\n" +
+        "       c.thread_id  AS thread_id,\n" +
+        "       c.user_id    AS user_id\n" +
+        "FROM   comments c\n" +
+        "JOIN   users u\n" +
+        "ON     c.user_id = u.user_id\n" +
+        "WHERE  c.user_id = ?" +
+        " AND c.deleted_at IS NULL\n" +
+        "ORDER BY c.created_at DESC",
+        [userId]
+    )
+    return row
+}
 export async function findByThreadId(threadId) {
     const [row] = await connectionPool.query(
         " SELECT c.comment_id AS comment_id,\n" +
