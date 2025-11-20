@@ -3,7 +3,7 @@ import {
     findByUserId,
     findByThreadId,
     updateByThreadId,
-    deleteByThreadId,
+    deleteByThreadId, findAllThread,
 } from '../repositories/threadsRepository.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
@@ -11,6 +11,11 @@ import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
 import {GoneError} from "../errors/goneError.mjs";
 import buildPatchQuery from "../util/buildPatchQuery.mjs";
 
+
+export async function getAllThreadResource(){
+    const threads = dbMapper.fromDb(await findAllThread())
+    return threads
+}
 
 export async function getThreadResourceByThreadId(threadId) {
     const thread = dbMapper.fromDb(await findByThreadId(threadId))
@@ -22,7 +27,6 @@ export async function getThreadResourceByThreadId(threadId) {
 
 export async function getUserThreadResource(userId) {
     const threads = dbMapper.fromDb(await findByUserId(userId))
-    console.log(threads)
     return threads
 }
 

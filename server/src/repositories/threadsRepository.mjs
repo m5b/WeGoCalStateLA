@@ -1,5 +1,32 @@
 import connectionPool from '../db/pool.mjs'
 
+
+export async  function findAllThread(){
+    const [row] = await connectionPool.query(
+        'SELECT t.thread_id AS thread_id,\n' +
+        ' t.title AS title, \n' +
+        ' t.content AS content, \n' +
+        ' t.created_at AS created_at, \n' +
+        ' t.updated_at As updated_at, \n' +
+        ' t.deleted_at As deleted_at, \n' +
+        ' t.status As status,  \n' +
+        'Case\n' +
+        '\twhen t.deleted_at is NULL Then u.user_id\n' +
+        '    else null\n' +
+        'end as user_id,\n' +
+        'Case\n' +
+        '\twhen t.deleted_at is NULL Then u.username\n' +
+        '    else null\n' +
+        'end as username,\n' +
+        'Case\n' +
+        '\twhen t.deleted_at is NULL Then u.display_name\n' +
+        '    else null\n' +
+        'end as display_name\n' +
+        'FROM threads t \n' +
+        'JOIN users u ON t.user_id = u.user_id \n'
+    )
+    return row
+}
 export async function findByThreadId(threadId) {
     const [row] = await connectionPool.query(
         'SELECT t.thread_id AS thread_id,\n' +

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import {
-    deleteThreadByThreadId, getThreadResourceByThreadId,
+    deleteThreadByThreadId, getAllThreadResource, getThreadResourceByThreadId,
     getUserThreadResource,
     patchThreadResourceByThreadId, postThreadResource,
 } from '../services/threadsService.mjs'
@@ -14,8 +14,15 @@ import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 import {getCommentsResourceTreeByThreadId} from "../services/commentsService.mjs";
 import CommentDto from "../dtos/commentDto.mjs";
 import buildCommentsTree from "../util/commentTreeBuilder.mjs";
+
 const router = Router()
 
+
+router.get("/", async (req, res) => {
+    const threads = await getAllThreadResource()
+    const threadDtos = threads.map((thread) => new ThreadDto(thread))
+    res.send(jsend.success({ threads: threadDtos }))
+})
 //tested
 router.get('/me', requireJwtAuth, async (req, res) => {
     const threads = await getUserThreadResource(req.user.userId)
