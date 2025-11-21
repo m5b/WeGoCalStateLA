@@ -33,7 +33,7 @@ export default function QuizListScreen() {
       questions: '7 questions',
       icon: Brain,
       color: Colors.PRIMARY,
-      route: '/quizzes/gad_7Disclaimer'
+      route: '/quizzes/GAD7/gad_7Disclaimer'  //Fixed routed to correct path
     },
     {
       id: 'phq9',
@@ -43,7 +43,7 @@ export default function QuizListScreen() {
       questions: '9 questions',
       icon: Heart,
       color: Colors.ERROR,
-      route: '/quizzes/phq_9Disclaimer'
+      route: '/quizzes/PHQ9/phq_9Disclaimer'  //Fixed routed to correct path
     }
   ];
 
