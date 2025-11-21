@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,59 +7,110 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
+import {
   ArrowLeft,
-  Calendar,
-  Clock,
-  MapPin,
   Star,
   Trophy,
-  Heart
+  Heart,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
+import { getFeed } from '../../services/threads'; // threadStore
 
 const { width } = Dimensions.get('window');
 
+// ------- Event Card -------
+function EventCard({ title, date, location, description, onPress, imageUrl }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.95}
+      onPress={onPress}
+      style={eventStyles.card}
+    >
+      {/* Image on top */}
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={eventStyles.eventImage}
+        />
+      ) : null}
+
+      {/* Text content with left accent */}
+      <View style={eventStyles.contentRow}>
+        <View style={eventStyles.leftAccent} />
+        <View style={eventStyles.inner}>
+          <Text style={eventStyles.title}>{title}</Text>
+          <Text style={eventStyles.date}>{date}</Text>
+          <Text style={eventStyles.location}>{location}</Text>
+
+          {description ? (
+            <Text style={eventStyles.description}>{description}</Text>
+          ) : null}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function EventsScreen() {
   const [todayInspiration] = useState(
-    "Remember: Every small step towards wellness is a victory worth celebrating."
+    'Remember: Every small step towards wellness is a victory worth celebrating.'
   );
 
-  const events = [
-    {
-      id: 1,
-      title: 'Mindfulness Meditation Session',
-      date: 'Today',
-      time: '3:00 PM',
-      location: 'Student Union',
-      category: 'Mental Health'
-    },
-    {
-      id: 2,
-      title: 'Stress Management Workshop',
-      date: 'Tomorrow',
-      time: '1:00 PM',
-      location: 'Wellness Center',
-      category: 'Workshop'
-    },
-    {
-      id: 3,
-      title: 'Golden Eagles Support Group',
-      date: 'Wednesday',
-      time: '5:00 PM',
-      location: 'Health Center',
-      category: 'Support'
+  const [events, setEvents] = useState([]);          //holds event data
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
+
+  // load threads → convert to events
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const threads = await getFeed(); // threads
+
+        const mapped = threads
+          .filter(t => t.imageUri || t.location || t.date || t.time)
+          .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+          .map(t => ({
+            id: t.id,
+            title: t.caption || 'Shared Event',
+            date: t.date || '',
+            time: t.time || '',
+            location: t.location || '',
+            imageUrl: t.imageUri || null,
+          }));
+
+        setEvents(mapped);
+        setCurrentEventIndex(0);
+      } catch (e) {
+        console.warn('Failed to load events', e);
+      }
     }
-  ];
+
+    loadEvents();
+  }, []);
 
   const scores = [
     { label: 'Daily Check-ins', value: '7 days', icon: Heart, color: Colors.GREEN },
     { label: 'Quizzes Completed', value: '3', icon: Trophy, color: Colors.SECONDARY },
-    { label: 'Wellness Score', value: '85%', icon: Star, color: Colors.PRIMARY }
+    { label: 'Wellness Score', value: '85%', icon: Star, color: Colors.PRIMARY },
   ];
+
+  const handleNextEvent = () => {
+    if (!events.length) return;
+    setCurrentEventIndex(prev => (prev + 1) % events.length);
+  };
+
+  const handlePrevEvent = () => {
+    if (!events.length) return;
+    setCurrentEventIndex(prev => (prev - 1 + events.length) % events.length);
+  };
+
+  const hasEvents = events.length > 0;
+  const current = hasEvents ? events[currentEventIndex] : null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,7 +120,7 @@ export default function EventsScreen() {
         style={styles.header}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
           >
@@ -87,36 +138,68 @@ export default function EventsScreen() {
           <Text style={styles.inspirationText}>{todayInspiration}</Text>
         </View>
 
-        {/* Upcoming Events */}
+        {/* Upcoming Events - Carousel */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upcoming Events</Text>
-          {events.map((event) => (
-            <View key={event.id} style={styles.eventCard}>
-              <View style={styles.eventBorder} />
-              <View style={styles.eventContent}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryText}>{event.category}</Text>
-                  </View>
+
+          {hasEvents ? (
+            <>
+              <View style={styles.carouselRow}>
+                {/* Left Arrow */}
+                <TouchableOpacity
+                  onPress={handlePrevEvent}
+                  style={styles.arrowButton}
+                  disabled={events.length <= 1}
+                >
+                  <ChevronLeft
+                    size={26}
+                    color={events.length <= 1 ? Colors.GRAY : Colors.PRIMARY}
+                  />
+                </TouchableOpacity>
+
+                {/* Card container keeps arrows close to card */}
+                <View style={styles.carouselCardContainer}>
+                  <EventCard
+                    title={current.title}
+                    date={`${current.date}${current.time ? ` at ${current.time}` : ''}`}
+                    location={current.location}
+                    description={current.description}
+                    imageUrl={current.imageUrl}
+                    onPress={() => router.push(`/events/${current.id}`)}
+                  />
                 </View>
-                <View style={styles.eventDetails}>
-                  <View style={styles.eventDetailRow}>
-                    <Calendar size={16} color={Colors.PRIMARY} />
-                    <Text style={styles.eventDate}>{event.date}</Text>
-                  </View>
-                  <View style={styles.eventDetailRow}>
-                    <Clock size={16} color={Colors.SECONDARY} />
-                    <Text style={styles.eventTime}>{event.time}</Text>
-                  </View>
-                  <View style={styles.eventDetailRow}>
-                    <MapPin size={16} color={Colors.GRAY} />
-                    <Text style={styles.eventLocation}>{event.location}</Text>
-                  </View>
-                </View>
+
+                {/* Right Arrow */}
+                <TouchableOpacity
+                  onPress={handleNextEvent}
+                  style={styles.arrowButton}
+                  disabled={events.length <= 1}
+                >
+                  <ChevronRight
+                    size={26}
+                    color={events.length <= 1 ? Colors.GRAY : Colors.PRIMARY}
+                  />
+                </TouchableOpacity>
               </View>
-            </View>
-          ))}
+
+              {/* Dots indicator */}
+              <View className="dotsRow" style={styles.dotsRow}>
+                {events.map((event, index) => (
+                  <View
+                    key={event.id}
+                    style={[
+                      styles.dot,
+                      index === currentEventIndex && styles.dotActive,
+                    ]}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.noEventsText}>
+              No events yet. Share one from the Threads tab!
+            </Text>
+          )}
         </View>
 
         {/* Progress Cards */}
@@ -127,11 +210,18 @@ export default function EventsScreen() {
               <View key={index} style={styles.scoreCard}>
                 <View style={styles.scoreBorder} />
                 <View style={styles.scoreContent}>
-                  <View style={[styles.scoreIconContainer, { backgroundColor: score.color + '20' }]}>
+                  <View
+                    style={[
+                      styles.scoreIconContainer,
+                      { backgroundColor: score.color + '20' },
+                    ]}
+                  >
                     <score.icon size={24} color={score.color} />
                   </View>
                   <Text style={styles.scoreLabel}>{score.label}</Text>
-                  <Text style={[styles.scoreValue, { color: score.color }]}>{score.value}</Text>
+                  <Text style={[styles.scoreValue, { color: score.color }]}>
+                    {score.value}
+                  </Text>
                 </View>
               </View>
             ))}
@@ -141,6 +231,56 @@ export default function EventsScreen() {
     </SafeAreaView>
   );
 }
+
+const eventStyles = StyleSheet.create({
+  card: {
+    width: Math.min(360, width - 40),
+    backgroundColor: Colors.WHITE,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: Colors.BLACK,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  eventImage: {
+    width: '100%',
+    height: 180,
+  },
+  contentRow: {
+    flexDirection: 'row',
+    backgroundColor: Colors.WHITE,
+  },
+  leftAccent: {
+    width: 6,
+    backgroundColor: Colors.PRIMARY,
+  },
+  inner: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+    marginBottom: 6,
+  },
+  date: {
+    color: Colors.PRIMARY,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  location: {
+    color: Colors.GRAY,
+    marginBottom: 10,
+  },
+  description: {
+    color: Colors.DARK_GRAY || '#333',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -214,79 +354,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.PRIMARY,
     marginBottom: 16,
+    textAlign: 'center',
   },
-  eventCard: {
-    backgroundColor: Colors.WHITE,
-    borderRadius: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    shadowColor: Colors.BLACK,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  eventBorder: {
-    width: 4,
-    backgroundColor: Colors.PRIMARY,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-  },
-  eventContent: {
-    flex: 1,
-    padding: 20,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  eventTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.PRIMARY,
-    flex: 1,
-    marginRight: 12,
-  },
-  categoryBadge: {
-    backgroundColor: Colors.LIGHT_BLUE + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  categoryText: {
-    fontSize: 12,
-    color: Colors.PRIMARY,
-    fontWeight: '600',
-  },
-  eventDetails: {
-    gap: 8,
-  },
-  eventDetailRow: {
+  // carousel
+  carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
-  eventDate: {
-    fontSize: 14,
-    color: Colors.PRIMARY,
-    marginLeft: 8,
-    fontWeight: '600',
+  carouselCardContainer: {
+    width: Math.min(360, width - 40),
+    alignItems: 'center',
   },
-  eventTime: {
-    fontSize: 14,
-    color: Colors.SECONDARY,
-    marginLeft: 8,
-    fontWeight: '600',
+  arrowButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 16,
   },
-  eventLocation: {
-    fontSize: 14,
-    color: Colors.GRAY,
-    marginLeft: 8,
+  dotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 8,
+    columnGap: 6,
   },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.GRAY,
+    opacity: 0.4,
+  },
+  dotActive: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.PRIMARY,
+    opacity: 1,
+  },
+  // progress cards
   scoresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -338,4 +443,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  noEventsText: {
+  color: Colors.TEXT_MUTED,
+  textAlign: "center",
+  marginTop: 10,
+  fontSize: 16,
+},
+
 });

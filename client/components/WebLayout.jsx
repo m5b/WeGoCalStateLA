@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessageCircle, Heart, Menu, X, Sparkles, Bell, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, Brain, BookOpen, User, MessagesSquare, MessageCircle, Heart, Menu, X, Sparkles, Bell, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 
@@ -19,11 +19,10 @@ export default function WebLayout({ children }) {
   const navigationItems = [
     { name: 'Home', icon: Home, route: '/home_screen/home', active: pathname === '/home_screen/home' || pathname === '/' },
     { name: 'Daily Check-in', icon: Heart, route: '/daily_check_in/daily', active: pathname.includes('/daily_check_in') },
-    { name: 'Assessments', icon: Brain, route: '/quizzes/quiz_list', active: pathname.includes('/quizzes') },
+    { name: 'Threads', icon: MessagesSquare, route: '/threads/feed', active: pathname.includes('/threads') }, //Replace Assessments with Threads
     { name: 'Events', icon: Calendar, route: '/home_screen/events', active: pathname === '/home_screen/events' },
     { name: 'Resources', icon: BookOpen, route: '/resources/resource', active: pathname.includes('/resources') },
     { name: 'AI Assistant', icon: MessageCircle, route: '/chat_bot/chatbotui', active: pathname.includes('/chat_bot') },
-    { name: 'Threads', icon: MessageCircle, route: '/threads/feed', active: pathname.includes('/threads') },
     { name: 'Profile', icon: User, route: '/profile', active: pathname.includes('/profile') },
   ];
 
