@@ -1,4 +1,4 @@
-import connectionPool from '../db/pool.mjs'
+import connectionPool from '../lib/pool.mjs'
 
 export async function findByUserID(userId) {
     const [row] = await connectionPool.query(

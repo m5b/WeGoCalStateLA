@@ -1,4 +1,4 @@
-import connectionPool from '../db/pool.mjs'
+import connectionPool from '../lib/pool.mjs'
 
 export async function findAuthUserByEmail(email){
     const[row] = await connectionPool.query(
