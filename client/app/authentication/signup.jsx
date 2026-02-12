@@ -44,9 +44,7 @@ export default function SignupScreen() {
       console.error('OAuth error:', error);
       Alert.alert('Error', 'An error occurred during sign-up. Please try again.');
     } finally {
-      if (!isWeb) {
-        setOauthLoading(false);
-      }
+      setOauthLoading(false);
     }
   };
 
@@ -126,7 +124,12 @@ export default function SignupScreen() {
                     {oauthLoading ? (
                       <ActivityIndicator color={Colors.PRIMARY} />
                     ) : (
-                      <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                      <View style={styles.googleButtonContent}>
+                        <View style={styles.googleIconWrapper}>
+                          <Text style={styles.googleIconText}>G</Text>
+                        </View>
+                        <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                      </View>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -237,7 +240,12 @@ export default function SignupScreen() {
                   {oauthLoading ? (
                     <ActivityIndicator color={Colors.PRIMARY} />
                   ) : (
-                    <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                    <View style={styles.googleButtonContent}>
+                      <View style={styles.googleIconWrapper}>
+                        <Text style={styles.googleIconText}>G</Text>
+                      </View>
+                      <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                    </View>
                   )}
                 </TouchableOpacity>
               </View>
@@ -611,6 +619,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
+  },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  googleIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4285F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleIconText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
   },
   buttonDisabled: {
     opacity: 0.6,

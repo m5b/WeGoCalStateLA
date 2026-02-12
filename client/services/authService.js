@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { apiGet } from './api';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export async function initiateGoogleLogin() {
   if (Platform.OS === 'web') {
