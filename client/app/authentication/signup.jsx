@@ -1,27 +1,52 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Dimensions, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Dimensions, SafeAreaView, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Sparkles, ArrowLeft, GraduationCap, Shield, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import { useAuth } from '../../context/AuthContext';
+import { initiateGoogleLogin, checkAuth } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function SignupScreen() {
-  // Do not implement mocked signup flows; Google OAuth delegates to backend.
-  // Email inputs are present for future expansion but are not wired.
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
-  const handleGoogleSignup = () => {
-    // Backend partner: ensure server exposes `/api/auth/google` to start OAuth.
-    // On successful callback, set JWT cookie and redirect back to client app.
-    if (isWeb) {
-      window.location.href = '/api/auth/google';
-    } else {
-      Alert.alert('Google Sign Up', 'Google sign-up is available on web in this dev build.');
+  const handleGoogleSignup = async () => {
+    try {
+      setOauthLoading(true);
+
+      if (isWeb) {
+        await initiateGoogleLogin();
+      } else {
+        const result = await initiateGoogleLogin();
+
+        if (result.type === 'success') {
+          const userData = await checkAuth();
+          if (userData && userData.userId) {
+            login(userData);
+            router.push('/home_screen/home');
+          } else {
+            Alert.alert('Error', 'Failed to authenticate. Please try again.');
+          }
+        } else if (result.type === 'cancel') {
+          console.log('User cancelled OAuth');
+        } else {
+          Alert.alert('Error', 'Google sign-up failed. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('OAuth error:', error);
+      Alert.alert('Error', 'An error occurred during sign-up. Please try again.');
+    } finally {
+      if (!isWeb) {
+        setOauthLoading(false);
+      }
     }
   };
 
@@ -93,11 +118,16 @@ export default function SignupScreen() {
                 {/* Google Sign Up */}
                 <View style={styles.socialContainer}>
                   <TouchableOpacity
-                    style={styles.googleAltButton}
+                    style={[styles.googleAltButton, oauthLoading && styles.buttonDisabled]}
                     onPress={handleGoogleSignup}
                     activeOpacity={0.85}
+                    disabled={oauthLoading}
                   >
-                    <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                    {oauthLoading ? (
+                      <ActivityIndicator color={Colors.PRIMARY} />
+                    ) : (
+                      <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
 
@@ -199,11 +229,16 @@ export default function SignupScreen() {
               {/* Social Signup */}
               <View style={styles.socialContainer}>
                 <TouchableOpacity
-                  style={styles.googleButton}
+                  style={[styles.googleButton, oauthLoading && styles.buttonDisabled]}
                   onPress={handleGoogleSignup}
                   activeOpacity={0.85}
+                  disabled={oauthLoading}
                 >
-                  <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                  {oauthLoading ? (
+                    <ActivityIndicator color={Colors.PRIMARY} />
+                  ) : (
+                    <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                  )}
                 </TouchableOpacity>
               </View>
 
@@ -576,5 +611,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import googleAuthRouter from './auth/googleAuth.mjs'
 import localAuthRouter from './auth/login.mjs'
 import signupRouter from './auth/signup.mjs'
+import sessionRouter from './auth/session.mjs'
 import userRouter from './userRoutes.mjs'
 import threadsRouter from './threadsRoutes.mjs'
 import commentsRouter from './commentsRoutes.mjs'
@@ -12,6 +13,7 @@ const router = Router()
 router.use('/auth', googleAuthRouter)
 router.use('/auth', localAuthRouter)
 router.use('/auth', signupRouter)
+router.use('/auth', sessionRouter)
 router.use('/user', userRouter)
 router.use('/threads', threadsRouter)
 router.use('/comments', commentsRouter)

@@ -10,33 +10,61 @@ import {
   Platform,
   Alert,
   ScrollView,
-  // Dimensions removed
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
+import { useAuth } from '../../context/AuthContext';
+import { initiateGoogleLogin, checkAuth } from '../../services/authService';
 
 // Removed unused screenWidth from Dimensions
 
 export default function LoginScreen() {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
   const passwordRef = useRef(null);
 
   // Native app mock login: only one credential pair works on iOS/Android.
   const VALID_EMAIL = 'student@csla.edu';
   const VALID_PASSWORD = 'GoldenEagles123!';
 
-  const handleGoogleAuth = (mode = 'login') => {
-    // Same backend entry for login/signup via Google; backend decides create vs sign-in
-    if (Platform.OS === 'web') {
-      window.location.href = '/api/auth/google';
-    } else {
-      Alert.alert('Google Auth', 'Google sign-in is available on web in this dev build.');
+  const handleGoogleAuth = async () => {
+    try {
+      setOauthLoading(true);
+
+      if (isWeb) {
+        await initiateGoogleLogin();
+      } else {
+        const result = await initiateGoogleLogin();
+
+        if (result.type === 'success') {
+          const userData = await checkAuth();
+          if (userData && userData.userId) {
+            login(userData);
+            router.push('/home_screen/home');
+          } else {
+            Alert.alert('Error', 'Failed to authenticate. Please try again.');
+          }
+        } else if (result.type === 'cancel') {
+          console.log('User cancelled OAuth');
+        } else {
+          Alert.alert('Error', 'Google login failed. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('OAuth error:', error);
+      Alert.alert('Error', 'An error occurred during login. Please try again.');
+    } finally {
+      if (!isWeb) {
+        setOauthLoading(false);
+      }
     }
   };
 
@@ -146,11 +174,16 @@ export default function LoginScreen() {
                 {/* Social Login */}
                 <View style={styles.socialContainer}>
                   <TouchableOpacity
-                    style={styles.googleButton}
-                    onPress={() => handleGoogleAuth('login')}
+                    style={[styles.googleButton, oauthLoading && styles.buttonDisabled]}
+                    onPress={handleGoogleAuth}
                     activeOpacity={0.85}
+                    disabled={oauthLoading}
                   >
-                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                    {oauthLoading ? (
+                      <ActivityIndicator color={Colors.PRIMARY} />
+                    ) : (
+                      <Text style={styles.googleButtonText}>Continue with Google</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
 
@@ -286,11 +319,16 @@ export default function LoginScreen() {
               {/* Social Login */}
               <View style={styles.socialContainer}>
                 <TouchableOpacity
-                  style={styles.googleButton}
-                  onPress={() => handleGoogleAuth('login')}
+                  style={[styles.googleButton, oauthLoading && styles.buttonDisabled]}
+                  onPress={handleGoogleAuth}
                   activeOpacity={0.85}
+                  disabled={oauthLoading}
                 >
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  {oauthLoading ? (
+                    <ActivityIndicator color={Colors.PRIMARY} />
+                  ) : (
+                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                  )}
                 </TouchableOpacity>
               </View>
 
@@ -969,4 +1007,7 @@ const styles = StyleSheet.create({
   //   color: Colors.PRIMARY,
   //   fontWeight: 'bold',
   // },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
 });
