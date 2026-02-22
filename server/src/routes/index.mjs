@@ -5,7 +5,8 @@ import signupRouter from './auth/signup.mjs'
 import userRouter from './userRoutes.mjs'
 import threadsRouter from './threadsRoutes.mjs'
 import commentsRouter from './commentsRoutes.mjs'
-import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import { jsend } from '../util/jSend.mjs'
+import { VOPRFPublicKey } from '../lib/voprf.mjs'
 
 const router = Router()
 
@@ -17,8 +18,10 @@ router.use('/threads', threadsRouter)
 router.use('/comments', commentsRouter)
 
 //route for testing jwt
-router.get('/test', requireJwtAuth, (req, res) => {
-    res.send('HI')
+router.get('/public-key', (req, res) => {
+    res.json(jsend.success({
+        publicKey: VOPRFPublicKey
+    }))
 })
 
 export default router

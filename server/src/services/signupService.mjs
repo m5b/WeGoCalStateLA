@@ -1,18 +1,29 @@
-import { ConflictError } from '../errors/conflictError.mjs'
-import { insertUser } from '../repositories/authRepository.mjs'
-import generateUserName from '../services/usernameGenerator.mjs'
-import { findByEmail } from '../repositories/userRepository.mjs'
 import bcrypt from 'bcrypt'
-export async function handleUserSignup({ email, password }) {
-    const existing = await findByEmail(email)
-    if (existing) {
-        throw new ConflictError({ email: 'Email already taken' })
+import {
+    deleteUserByEmailHash,
+    insertUser,
+} from '../repositories/authRepository.mjs'
+import generateUserName from './usernameGenerator.mjs'
+import { findByEmailHash } from '../repositories/userRepository.mjs'
+
+
+
+export async function signupUser(emailHash, password) {
+    const user = await findByEmailHash(emailHash)
+    if(user !== null){
+        await overwriteAccountForLoginId(emailHash)
     }
-    const hashed = await bcrypt.hash(password, 10)
+    //perform password hash
+    const passwordHash = bcrypt.hash(password, 12)
     const username = await generateUserName()
-    const result = await insertUser({
-        email: email,
-        passwordHash: hashed,
+    //perform database insertion for user creation
+    await insertUser({
+        email: emailHash,
+        passwordHash: passwordHash,
         username: username,
     })
+}
+
+async function overwriteAccountForLoginId(emailHash){
+    await deleteUserByEmailHash(emailHash)
 }

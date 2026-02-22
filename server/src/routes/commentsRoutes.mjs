@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import {requireJWTAuth} from '../middlewares/requireCookie.mjs'
 import {
     createComment,
     deleteCommentByCommentId, getCommentResourceByCommentId, getCommentResourceByUserId,
@@ -17,25 +17,31 @@ const router = Router()
 
 //tested
 
-router.get('/me', requireJwtAuth, async (req, res) => {
+router.get('/me', requireJWTAuth, async (req, res) => {
     const comments = await getCommentResourceByUserId(req.user.userId)
     const commentDtos = comments.map(
         (comment) => new CommentDto(comment, { scope: 'public' })
     )
-    res.json(jsend.success({comments: commentDtos}))
+    res.json(jsend.success({ comments: commentDtos }))
 })
-router.patch("/me/:commentId", requireJwtAuth, async (req, res) => {
-    const {commentId} = commentIdSchema.parse({
+router.patch('/me/:commentId', requireJWTAuth, async (req, res) => {
+    const { commentId } = commentIdSchema.parse({
         commentId: req.params.commentId,
     })
     const payload = commentSchema.parse(req.body)
-    const comment = await patchCommentResourceByCommentId(req.user, commentId, payload)
-    res.send(jsend.success({ comment:  new CommentDto(comment, {scope: "public"})}))
+    const comment = await patchCommentResourceByCommentId(
+        req.user,
+        commentId,
+        payload
+    )
+    res.send(
+        jsend.success({ comment: new CommentDto(comment, { scope: 'public' }) })
+    )
 })
 
 //tested
-router.delete('/me/:commentId', requireJwtAuth, async (req, res) => {
-    const {commentId} = commentIdSchema.parse({
+router.delete('/me/:commentId', requireJWTAuth, async (req, res) => {
+    const { commentId } = commentIdSchema.parse({
         commentId: req.params.commentId,
     })
     await deleteCommentByCommentId(commentId, req.user.userId)
@@ -58,21 +64,45 @@ router.get('/:commentId', async (req, res) => {
 
 
 //tested
-router.post('/me/thread/:threadId/', requireJwtAuth, async (req, res) => {
-    const {threadId} = threadIdSchema.parse({threadId: req.params.threadId})
+router.post('/me/thread/:threadId/', requireJWTAuth, async (req, res) => {
+    const { threadId } = threadIdSchema.parse({ threadId: req.params.threadId })
     const payload = commentSchema.parse(req.body)
-    const comment = await createComment(req.user.userId, threadId, payload, null)
-    res.json(jsend.success({comment: new CommentDto(comment, {scope: "public"})}))
+    const comment = await createComment(
+        req.user.userId,
+        threadId,
+        payload,
+        null
+    )
+    res.json(
+        jsend.success({ comment: new CommentDto(comment, { scope: 'public' }) })
+    )
 })
 //tested
-router.post('/me/thread/:threadId/comment/:parentId', requireJwtAuth, async (req, res) => {
-    const {commentId} = commentIdSchema.parse({commentId: req.params.parentId})
-    const parentId = commentId
-    const {threadId} = threadIdSchema.parse({threadId: req.params.threadId})
-    const payload = commentSchema.parse(req.body)
-    const comment = await createComment(req.user.userId, threadId, payload, parentId)
-    res.json(jsend.success({comment: new CommentDto(comment, {scope: "public"})}))
-})
+router.post(
+    '/me/thread/:threadId/comment/:parentId',
+    requireJWTAuth,
+    async (req, res) => {
+        const { commentId } = commentIdSchema.parse({
+            commentId: req.params.parentId,
+        })
+        const parentId = commentId
+        const { threadId } = threadIdSchema.parse({
+            threadId: req.params.threadId,
+        })
+        const payload = commentSchema.parse(req.body)
+        const comment = await createComment(
+            req.user.userId,
+            threadId,
+            payload,
+            parentId
+        )
+        res.json(
+            jsend.success({
+                comment: new CommentDto(comment, { scope: 'public' }),
+            })
+        )
+    }
+)
 
 
 export default router

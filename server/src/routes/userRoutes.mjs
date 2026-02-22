@@ -5,7 +5,7 @@ import {
     getUserResource,
     deleteCurrentUser,
 } from '../services/userService.mjs'
-import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import {requireJWTAuth} from '../middlewares/requireCookie.mjs'
 import {
     userIdSchema,
     userSchema,
@@ -15,15 +15,15 @@ import UserDto from '../dtos/userDto.mjs'
 import { jsend } from '../util/jSend.mjs'
 const router = Router()
 
-router.get('/me', requireJwtAuth, async (req, res) => {
+router.get('/me', requireJWTAuth, async (req, res) => {
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
     const userDisplay = new UserDto(req.user, { scope: 'private' })
-    res.status(200).json(jsend.success({user: userDisplay}))
+    res.status(200).json(jsend.success({ user: userDisplay }))
 })
 
-router.patch('/me', requireJwtAuth, async (req, res) => {
+router.patch('/me', requireJWTAuth, async (req, res) => {
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })
@@ -34,7 +34,7 @@ router.patch('/me', requireJwtAuth, async (req, res) => {
     res.status(200).send(jsend.success({ user: userDisplay }))
 })
 
-router.delete('/me', requireJwtAuth, async (req, res) => {
+router.delete('/me', requireJWTAuth, async (req, res) => {
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
     })

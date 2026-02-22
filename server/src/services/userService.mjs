@@ -3,7 +3,7 @@ import {
     findByUsername,
     updateByUserId,
 } from '../repositories/userRepository.mjs'
-import {deleteUser} from "../repositories/authRepository.mjs";
+import {deleteUserByUserId} from "../repositories/authRepository.mjs";
 import buildPatchQuery from '../util/buildPatchQuery.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
@@ -46,5 +46,5 @@ export async function getUserResource(username) {
 }
 
 export async function deleteCurrentUser(userId) {
-    await deleteUser(userId)
+    await deleteUserByUserId(userId)
 }
