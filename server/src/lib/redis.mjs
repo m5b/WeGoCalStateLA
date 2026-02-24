@@ -24,10 +24,6 @@ redis.on('connect', () => {
     console.log('redis connect')
 })
 
-redis.on('connect', () => {
-    console.log('[redis] connect')
-})
-
 redis.on('ready', () => {
     console.log('[redis] ready')
 })

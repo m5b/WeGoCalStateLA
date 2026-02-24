@@ -1,6 +1,5 @@
 import * as client from 'openid-client'
 import {openIdConfig} from '../config/openIdConfig.mjs'
-
 const {google} = openIdConfig
 
 export const openIdClient = {
