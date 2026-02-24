@@ -10,3 +10,4 @@ docker-compose.yml
 *.md
 *.pem
 src
+test

@@ -13,5 +13,4 @@ COPY --from=builder /server/. ./
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
 

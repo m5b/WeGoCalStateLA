@@ -3,8 +3,7 @@
     "version": "1.0.0",
     "main": "./src/server.mjs",
     "scripts": {
-        "test": "vitest",
-        "test:watch": "vitest -- watch",
+        "test": "vitest --watch",
         "start": "cross-env NODE_ENV=production node ./src/server.mjs",
         "dev": "cross-env NODE_ENV=development nodemon --watch . --ext js,mjs,json --ignore node_modules --ignore .git --ignore logs --legacy-watch src/server.mjs"
     },

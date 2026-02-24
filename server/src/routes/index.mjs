@@ -24,4 +24,8 @@ router.get('/public-key', (req, res) => {
     }))
 })
 
+router.get('/health', (req, res )=>{
+    res.json(jsend.success(null))
+})
+
 export default router

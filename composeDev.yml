@@ -1,0 +1,10 @@
+services:
+  backend:
+    command: ["npm", "run", "dev"]
+
+  db:
+    volumes:
+      - db-data:/var/lib/mysql
+volumes:
+  db-data:
+

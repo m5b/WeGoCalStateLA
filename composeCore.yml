@@ -7,33 +7,26 @@ services:
       - "3000:3000"
     env_file:
       - ./server/.env.development
+    volumes:
+      - ./server/certs:/server/certs
+      - ./server/src:/server/src
+      - ./server/test:/server/test
     depends_on:
       redis:
         condition: service_healthy
       db:
         condition: service_healthy
-    volumes:
-      - ./server/certs:/server/certs
-      - ./server/src:/server/src
+
+
   redis:
     image: "redis:8.6.0-alpine"
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     command: ["redis-server"]
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-  db:
-    image: "mysql:latest"
-    ports:
-      - "3306:3306"
-    env_file:
-      - ./server/.env.development
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 1s
       timeout: 20s
-      retries: 10
-    volumes:
-      - db-data:/var/lib/mysql
 
   migrate:
     image: "amacneil/dbmate"
@@ -45,8 +38,18 @@ services:
     volumes:
       - ./server/db/migrations:/db/migrations
     command: ["up"]
-volumes:
-  db-data:
+
+  db:
+    image: "mysql:latest"
+    expose:
+      - "3306"
+    env_file:
+      - ./server/.env.development
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      interval: 10s
+      retries: 5
 
 
 
