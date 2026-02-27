@@ -35,6 +35,7 @@
     },
     "devDependencies": {
         "@testcontainers/mysql": "^11.12.0",
+        "@testcontainers/redis": "^11.12.0",
         "cross-env": "^10.1.0",
         "nodemon": "^3.1.10",
         "prettier": "3.6.2",
