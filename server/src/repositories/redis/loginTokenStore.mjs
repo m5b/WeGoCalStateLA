@@ -1,31 +1,23 @@
 import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
-import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
+import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 
-export function createOIDCStore(redis, oidcPrefix) {
-    return{
+export function createLoginTokenStore(redis, loginTokenPrefix) {
+    return {
         save,
-        consume
+        consume,
     }
-    async function save(
-        key,
-        { provider, codeVerifier, nonce, createAt, state },
-        opt = {}
-    ) {
+    async function save(key, {}, opt = {}) {
         //defalut time to live as 5 minute
         const { ttl = 300 } = opt
         // append the prefix to make system consistent
-        const prefixedKey = buildRedisKey(oidcPrefix, key)
+        const prefixedKey = buildRedisKey(loginTokenPrefix, key)
         // set the key value pair in redis using hset for better effiency
         try {
             await redis
                 .multi()
                 .hset(prefixedKey, {
-                    provider,
-                    codeVerifier,
-                    nonce,
-                    createAt,
-                    state,
+                    createAt: Date.now(),
                 })
                 .expire(prefixedKey, ttl)
                 .exec()
@@ -38,7 +30,7 @@ export function createOIDCStore(redis, oidcPrefix) {
     }
 
     async function consume(key) {
-        const prefixedKey = buildRedisKey(oidcPrefix, key)
+        const prefixedKey = buildRedisKey(loginTokenPrefix, key)
         let replies
         try {
             replies = await redis
@@ -53,7 +45,7 @@ export function createOIDCStore(redis, oidcPrefix) {
             )
         }
         //destructure the reply
-        const [[errGet, oidcValue], [errDel, delCount]] = replies
+        const [[errGet, loginValue], [errDel, delCount]] = replies
         //Redis respond us with a error
         if (errGet || errDel) {
             throw new ServiceUnavailable(
@@ -61,13 +53,14 @@ export function createOIDCStore(redis, oidcPrefix) {
                 'Signup is temporarily unavailable. Please try again.'
             )
         }
-        if (!oidcValue || Object.keys(oidcValue).length === 0) {
+        if (!loginValue || Object.keys(loginValue).length === 0) {
             throw new UnauthorizedError(
                 { error: 'invalid_auth_response' },
-                'Sign up session expired. Please try again'
+                'Login session expired. Please try again'
             )
         }
-        return oidcValue
+        return loginValue
     }
-}
 
+
+}

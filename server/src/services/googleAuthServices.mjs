@@ -1,13 +1,16 @@
-import { completeOIDCSign, startOIDCSignup } from './oidcService.mjs'
 
-export async function handleGoogleLogin(){
-    const {token, redirectURL} = await startOIDCSignup('google')
-    return {token, redirectURL}
+export function createGoogleAuthService(oidcService){
+    return{
+        startGoogleSignup,
+        completeGoogleSignup
+    }
+    async function startGoogleSignup() {
+        const { token, redirectURL } = await oidcService.startOIDCSignup()
+        return { token, redirectURL }
+    }
+
+    async function completeGoogleSignup(oidcValue, currentURL) {
+        const email = await oidcService.completeOIDCSignup(oidcValue, currentURL)
+        return email
+    }
 }
-
-export async function completeGoogleLogin(oidcValue, currentURL){
-    const email = await completeOIDCSign(oidcValue, currentURL)
-    return email
-
-}
-

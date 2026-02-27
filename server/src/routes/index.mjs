@@ -1,31 +1,21 @@
 import { Router } from 'express'
-import googleAuthRouter from './auth/googleAuth.mjs'
-import localAuthRouter from './auth/login.mjs'
-import signupRouter from './auth/signup.mjs'
-import userRouter from './userRoutes.mjs'
-import threadsRouter from './threadsRoutes.mjs'
-import commentsRouter from './commentsRoutes.mjs'
 import { jsend } from '../util/jSend.mjs'
-import { VOPRFPublicKey } from '../lib/voprf.mjs'
 
-const router = Router()
 
-router.use('/auth', googleAuthRouter)
-router.use('/auth', localAuthRouter)
-router.use('/auth', signupRouter)
-router.use('/user', userRouter)
-router.use('/threads', threadsRouter)
-router.use('/comments', commentsRouter)
+export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, signupRouter, userRouter, threadRouter, commentRouter }){
+    const router = new Router()
+    router.use('/auth', emailOTPRouter)
+    router.use('/auth', googleAuthRouter)
+    router.use('/auth', loginRouter)
+    router.use('/auth', signupRouter)
+    router.use('/user', userRouter)
+    router.use('/threads', threadRouter)
+    router.use('/comments', commentRouter)
 
-//route for testing jwt
-router.get('/public-key', (req, res) => {
-    res.json(jsend.success({
-        publicKey: VOPRFPublicKey
-    }))
-})
+    //route for testing jwt
 
-router.get('/health', (req, res )=>{
-    res.json(jsend.success(null))
-})
-
-export default router
+    router.get('/health', (req, res) => {
+        res.json(jsend.success(null))
+    })
+    return router
+}

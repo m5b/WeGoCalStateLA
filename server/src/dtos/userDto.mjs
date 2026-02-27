@@ -1,5 +1,5 @@
 const PUBLIC_FIELDS = ['userId', 'username', 'displayName', 'createdAt']
-const PRIVATE_FIELDS = ['email', 'updatedAt']
+const PRIVATE_FIELDS = ['updatedAt']
 
 export default class UserDto {
     constructor(user, { scope }) {
@@ -12,6 +12,9 @@ export default class UserDto {
             PRIVATE_FIELDS.forEach((p) => {
                 this[p] = user[p]
             })
+        }
+        else{
+            throw new TypeError("Scope must be either public or private")
         }
     }
 }

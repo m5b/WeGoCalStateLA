@@ -1,29 +1,25 @@
 import bcrypt from 'bcrypt'
-import {
-    deleteUserByEmailHash,
-    insertUser,
-} from '../repositories/authRepository.mjs'
-import generateUserName from './usernameGenerator.mjs'
-import { findByEmailHash } from '../repositories/userRepository.mjs'
+import dbMapper from '../util/dbMapper.mjs'
 
 
-
-export async function signupUser(emailHash, password) {
-    const user = await findByEmailHash(emailHash)
-    if(user !== null){
-        await overwriteAccountForLoginId(emailHash)
+export function createSignupService(userRepo){
+    /*
+    return{
+        signupUser
     }
-    //perform password hash
-    const passwordHash = bcrypt.hash(password, 12)
-    const username = await generateUserName()
-    //perform database insertion for user creation
-    await insertUser({
-        email: emailHash,
-        passwordHash: passwordHash,
-        username: username,
-    })
-}
-
-async function overwriteAccountForLoginId(emailHash){
-    await deleteUserByEmailHash(emailHash)
+    async function signupUser(emailHash, passwordHash) {
+        const user = dbMapper.fromDb(await userRepo.findByEmailHash(emailHash))
+        if (user !== null) {
+            await userRepo.deleteByUserId(user.userId)
+        }
+        //perform password hash
+        const username = await generateUserName(userRepo)
+        //perform database insertion for user creation
+        await userRepo.insertUser({
+            email: emailHash,
+            passwordHash: passwordHash,
+            username: username,
+        })
+    }
+*/
 }

@@ -1,29 +1,33 @@
 import { emailSchema, verifyOTPSchema } from '../../validators/authValidators.mjs'
-import {
-    handleOTP,
-    verifyOTP,
-} from '../../services/emailOTPService.mjs'
 import { jsend } from '../../util/jSend.mjs'
-import router from './signup.mjs'
 import {
-    otpCookieConfig,
-    verifiedCookieConfig,
+    otpTokenCookieConfig,
+    signupTokenCookieConfig,
 } from '../../config/cookieConfig.mjs'
-import { requireOTPId } from '../../middlewares/requireCookie.mjs'
-import { handleVerified } from '../../services/verifiedService.mjs'
+import { requireOTPToken } from '../../middlewares/requireCookie.mjs'
+import { Router } from 'express'
 
-router.post('/otp/send', async (req, res) => {
-    const { email } = emailSchema.parse(req.body)
-    const {key, otpCode} = await handleOTP(email)
-    res.cookie('opt_tx', key, otpCookieConfig)
+export function createEmailOTPRouter({emailService, otpService, signupTokenService}){
+    const router = new Router()
 
-    res.json(jsend.success(null))
-})
+    router.post('/otp/send', async (req, res) => {
+        const { email } = emailSchema.parse(req.body)
+        const { key, otpCode } = await otpService.saveOTP(email)
+        await emailService.sendOTPEmail(email, otpCode)
+        res.cookie('opt_tx', key, otpTokenCookieConfig)
 
-router.post('/otp/verify', requireOTPId, async (req, res) => {
-    const {otp} = verifyOTPSchema.parse(req.body)
-    const email = await verifyOTP(req.otpId, otp)
-    const verifiedToken = await handleVerified(email, "otp")
-    res.cookie("verified_tx", verifiedToken, verifiedCookieConfig)
-    res.json(jsend.success({ verifiedToken: verifiedToken }))
-})
+        res.json(jsend.success(null))
+    })
+
+    router.post('/otp/verify', requireOTPToken, async (req, res) => {
+        const { otp } = verifyOTPSchema.parse(req.body)
+        const email = await otpService.verifyOTP(req.otpToken, otp)
+        const signupToken = await signupTokenService.saveSignupToken(
+            email,
+            'otp'
+        )
+        res.cookie('signup_tx', signupToken, signupTokenCookieConfig)
+        res.json(jsend.success({ signupToken: signupToken }))
+    })
+    return router
+}

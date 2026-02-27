@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
-import { getCurrentUser } from '../services/userService.mjs'
 
 export function requireCookie(cookieName, verifyFn, option = {}) {
     //default for option
@@ -36,13 +35,9 @@ export const requireJWTAuth = requireCookie(
         if (!sub) {
             throw new UnauthorizedError({ auth: 'Invalid JWT token' })
         }
-        const user = await getCurrentUser(sub)
-        if (!user) {
-            throw new UnauthorizedError({ auth: 'User not found' })
-        }
-        return user
+        return sub
     },
-    { signed: false, attachTo: 'user' }
+    { signed: false, attachTo: 'userId' }
 )
 
 
@@ -72,7 +67,7 @@ export const requireOIDCId = requireCookie(
     { signed: false, attachTo: 'oidc', clearCookie: true }
 )
 
-export const requireOTPId = requireCookie(
+export const requireOTPToken = requireCookie(
     'opt_tx',
     async function (token) {
         //perform jwt check
@@ -94,12 +89,12 @@ export const requireOTPId = requireCookie(
         }
         return sub
     },
-    { signed: false, attachTo: 'otpId', clearCookie: true }
+    { signed: false, attachTo: 'otpToken', clearCookie: true }
 )
 
 
-export const requireVerifiedId = requireCookie(
-    'verified_tx',
+export const requireSignupToken = requireCookie(
+    'signup_tx',
     async function (token) {
         //perform jwt check
         let decoded
@@ -120,7 +115,32 @@ export const requireVerifiedId = requireCookie(
         }
         return sub
     },
-    { signed: false, attachTo: 'verifiedId', clearCookie: true }
+    { signed: false, attachTo: 'signupToken', clearCookie: true }
+)
+
+export const requireLoginToken= requireCookie(
+    'login_tx',
+    async function (token) {
+        //perform jwt check
+        let decoded
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET)
+        } catch (err) {
+            throw new UnauthorizedError(
+                { error: 'invalid_jwt' },
+                'Login session expired. Please try again'
+            )
+        }
+        const { sub } = decoded
+        if (!sub) {
+            throw new UnauthorizedError(
+                { error: 'invalid_jwt_format' },
+                'Login session expired. Please try again'
+            )
+        }
+        return sub
+    },
+    { signed: false, attachTo: 'loginToken', clearCookie: true }
 )
 
 
