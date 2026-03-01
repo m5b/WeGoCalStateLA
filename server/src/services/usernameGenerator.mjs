@@ -1,6 +1,9 @@
 import { uniqueUsernameGenerator } from 'unique-username-generator'
 import config from '../config/usernameConfig.mjs'
 export function createUsernameService(userRepo) {
+    return{
+        generateUsername
+    }
     async function generateUsername() {
         let username
         let exist = true
@@ -14,4 +17,5 @@ export function createUsernameService(userRepo) {
         }
         return username
     }
+
 }

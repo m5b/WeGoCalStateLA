@@ -1,6 +1,7 @@
 import buildPatchQuery from '../util/buildPatchQuery.mjs'
 import dbMapper from '../util/dbMapper.mjs'
 import { NotFoundError } from '../errors/notFoundError.mjs'
+import { v4 as uuidv4 } from 'uuid';
 export function createUserService({userRepo, usernameService}) {
     return{
         getByUserId,
@@ -8,10 +9,16 @@ export function createUserService({userRepo, usernameService}) {
         getByUsername,
         deleteByUserId,
         createUser,
-        getByEmailHash
+        getByEmailHash,
+        getUserCount,
+        getByUuid
 
     }
-    async function createUser(emailHash, passwordHash) {
+    async function getUserCount(){
+        const count = await userRepo.getCount()
+        return count
+    }
+    async function createUser({emailHash, passwordHash}) {
         const user = dbMapper.fromDb(await userRepo.findByEmailHash(emailHash))
         if (user !== null) {
             await deleteByUserId(user.userId)
@@ -23,6 +30,7 @@ export function createUserService({userRepo, usernameService}) {
             emailHash: emailHash,
             passwordHash: passwordHash,
             username: username,
+            userUuid: uuidv4()
         })
         return dbMapper.fromDb(await userRepo.findByUserId(insertId))
     }
@@ -33,7 +41,7 @@ export function createUserService({userRepo, usernameService}) {
         if (!user) {
             throw new NotFoundError(
                 null,
-                'Can not found current user given the userId'
+                'Can not found the user'
             )
         }
         return user
@@ -49,17 +57,17 @@ export function createUserService({userRepo, usernameService}) {
         if(!existed){
             throw new NotFoundError(
                 null,
-                'Can not found current user given the userId'
+                'Can not found current user'
             )
         }
-       const user = getByUserId(userId)
+        const user = await getByUserId(userId)
         return user
     }
 
     async function getByUsername(username) {
         const user = dbMapper.fromDb(await userRepo.findByUsername(username))
         if (!user) {
-            throw new NotFoundError(null ,'Can not found the user of given username')
+            throw new NotFoundError(null ,'Can not found the user')
         }
         return user
     }
@@ -68,7 +76,17 @@ export function createUserService({userRepo, usernameService}) {
         const user = dbMapper.fromDb(await userRepo.findByEmailHash(emailHash))
         if(!user){
             throw new NotFoundError(
-                null, 'Can not found the user of given emailHash',
+                null, 'Can not found the user',
+            )
+        }
+        return user
+    }
+
+    async function getByUuid(userUuid){
+        const user = dbMapper.fromDb(await userRepo.findByUuid(userUuid))
+        if(!user){
+            throw new NotFoundError(
+                null, 'Can not found the user',
             )
         }
         return user
@@ -78,10 +96,7 @@ export function createUserService({userRepo, usernameService}) {
         const removed = await userRepo.deleteByUserId(userId)
         //this mean not found user
         if(!removed){
-            throw new NotFoundError(
-                null,
-                'Can not found current user given the userId'
-            )
+            throw new NotFoundError(null ,"Can not found the user")
         }
     }
 }

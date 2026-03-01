@@ -3,10 +3,10 @@ import snakecaseKeys from 'snakecase-keys'
 
 const dbMapper = {
     fromDb(data) {
-        return camelcaseKeys(data, { deep: true })
+        return camelcaseKeys(data, { deep: false})
     },
     toDb(data) {
-        return snakecaseKeys(data, { deep: true })
+        return snakecaseKeys(data, { deep: false})
     },
 }
 
