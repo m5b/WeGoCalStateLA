@@ -1,9 +1,9 @@
-import { NotFoundError } from '../errors/notFoundError.mjs'
-import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
-import dbMapper from '../util/dbMapper.mjs'
+import { NotFoundError } from '../../../errors/notFoundError.mjs'
+import { UnauthorizedError } from '../../../errors/unauthorizedError.mjs'
+import dbMapper from '../../../util/dbMapper.mjs'
 
 
-export function createLoginService(authRepo, passwordService) {
+export function createLoginService({authRepo, passwordService, jwtTokenService}) {
 
     return{
         loginUser
@@ -21,6 +21,7 @@ export function createLoginService(authRepo, passwordService) {
                 password: 'Unmatch password',
             })
         }
-        return user
+        const token = jwtTokenService.issueAccessToken(user.userUuid)
+        return {token, user}
     }
 }

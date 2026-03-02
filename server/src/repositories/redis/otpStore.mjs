@@ -2,7 +2,7 @@ import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 
-export function createOTPStore(redis, otpPrefix){
+export function createOTPStore({redis, otpPrefix, opt = {}}){
     return{
         save,
         consume,
@@ -12,7 +12,6 @@ export function createOTPStore(redis, otpPrefix){
     async function save(
         key,
         { email, otpCodeHash},
-        opt = {}
     ) {
         //defalut time to live as 5 minute
         const { ttl = 300 } = opt
@@ -26,7 +25,7 @@ export function createOTPStore(redis, otpPrefix){
                     email: email,
                     otpCodeHash: otpCodeHash,
                     attempts: 0,
-                    createAt: Date.now()
+                    createdAt: Date.now()
                 })
                 .expire(prefixedKey, ttl)
                 .exec()
@@ -46,13 +45,13 @@ export function createOTPStore(redis, otpPrefix){
                 .hgetall(prefixedKey)
         } catch (err) {
             throw new ServiceUnavailable(
-                null,
+                {error: "Service down"},
                 'Signup service is temporarily unavailable. Please try again later.'
             )
         }
         if (!otpValue|| Object.keys(otpValue).length === 0) {
             throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
+                { otp : "Record don't exist" },
                 'OTP expired. Please try again'
             )
         }
@@ -62,10 +61,10 @@ export function createOTPStore(redis, otpPrefix){
     //increment the otp attempt by one
     async function verifyOTPAttempts(key , attempts) {
         const prefixedKey = buildRedisKey(otpPrefix, key)
-        if (attempts > 5) {
-            await deleteOTP(prefixedKey)
+        if (attempts >= 5) {
+            await deleteOTP(key)
             throw new UnauthorizedError(
-                null,
+                {otp: "Record don't exist"},
                 'Please request a new code, you have exceed the limit of this code'
             )
         }

@@ -1,5 +1,5 @@
 import { uniqueUsernameGenerator } from 'unique-username-generator'
-import config from '../config/usernameConfig.mjs'
+import config from '../../config/usernameConfig.mjs'
 export function createUsernameService(userRepo) {
     return{
         generateUsername

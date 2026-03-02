@@ -1,10 +1,10 @@
 import { describe, it, expect,afterEach, beforeAll,afterAll, beforeEach} from 'vitest'
-import { createUserService } from '../../../src/services/userService.mjs'
-import { createUsernameService } from '../../../src/services/usernameGenerator.mjs'
+import { createUserService } from '../../../src/services/users/userService.mjs'
+import { createUsernameService } from '../../../src/services/users/usernameGenerator.mjs'
 import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
 import dbMapper from '../../../src/util/dbMapper.mjs'
 import { NotFoundError } from '../../../src/errors/notFoundError.mjs'
-import {setupSQL} from "../../containerSetup.mjs";
+import {setupSQL} from "../../utils/containerSetup.mjs";
 import {createRandomUser, seedUsers} from "../../seed.mjs";
 
 describe("userService Integration", () => {

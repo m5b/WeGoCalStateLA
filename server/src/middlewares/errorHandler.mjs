@@ -4,7 +4,7 @@ import { jsend } from '../util/jSend.mjs'
 import { ZodError } from 'zod'
 import { ReplyError } from 'ioredis'
 export default function errorHandler(err, req, res, next) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === "test") {
         console.log(err)
     }
     //close the connection and print to stacktrace(if not in production)
@@ -44,7 +44,7 @@ export default function errorHandler(err, req, res, next) {
         }
         return res
             .status(err.statusCode)
-            .json(jsend.fail(payload, err.message))
+            .json(payload)
     }
     return res.status(500).json(jsend.error(getErrorMessage(err)))
 }

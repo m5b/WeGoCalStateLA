@@ -1,21 +1,18 @@
-import { uint8ArrayToBase64UrlString } from '../util/encoding.mjs'
+import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
 import crypto from 'crypto'
-import { signJWTToken } from '../util/generateJWTToken.mjs'
 
-export function createLoginTokenService(loginTokenStore) {
+export function createLoginTokenService({loginTokenStore, jwtTokenService}) {
     return {
         saveLoginToken,
         verifyLoginToken,
     }
-    function generateLoginToken(key) {
-        return signJWTToken({ sub: key }, '5m')
-    }
+
 
     async function saveLoginToken() {
         const key = uint8ArrayToBase64UrlString(crypto.randomBytes(32))
         await loginTokenStore.save(key, {})
         //generate token for client side
-        const token = generateLoginToken(key)
+        const token = jwtTokenService.issueLoginToken(key)
         return token
     }
 

@@ -1,15 +1,12 @@
-import crypto from 'crypto'
 import bcrypt from 'bcrypt'
-import { uint8ArrayToBase64UrlString } from '../util/encoding.mjs'
-import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
+import { UnauthorizedError } from '../../../errors/unauthorizedError.mjs'
+import {generateOTP} from "./otpGenerator.mjs";
+import {generateKey} from "./keyGenerator.mjs";
 
-export async function createOTPService(otpStore, round = 10){
+export function createOTPService({otpStore, jwtTokenService, round = 10}){
     return{
         saveOTP,
         verifyOTP,
-    }
-    function generateOTP() {
-        return crypto.randomInt(100000, 999999).toString()
     }
 
     async function saveOTP(email) {
@@ -18,15 +15,14 @@ export async function createOTPService(otpStore, round = 10){
         //hash and salt the otp
         const otpCodeHash = await bcrypt.hash(otpCode, round)
         // generate a challenge id / unique identifier to avoid expose on email
-        const key = uint8ArrayToBase64UrlString(crypto.randomBytes(32))
+        const key = generateKey(32)
         await otpStore.save(key, {
             email,
             otpCodeHash,
-            attempts: 0,
-            createAt: Date.now(),
         })
+        const token = jwtTokenService.issueOTPToken(key)
         //send the code to reciver email
-        return { key, otpCode }
+        return {key, token , otpCode}
     }
 
     async function verifyOTP(key, otpCode) {
@@ -37,7 +33,7 @@ export async function createOTPService(otpStore, round = 10){
 
         if (!(await bcrypt.compare(otpCode, otpCodeHash))) {
             throw new UnauthorizedError(
-                null,
+                {otp: "Not matched"},
                 'The code does not match our record'
             )
         }

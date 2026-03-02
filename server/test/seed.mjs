@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker'
 import { hkdf } from '../src/util/hash.mjs'
 import bcrypt from 'bcrypt'
+import {uint8ArrayToBase64UrlString} from "../src/util/encoding.mjs";
+import crypto from "crypto";
 
 export async function createRandomUser() {
     const username = faker.internet.username()
@@ -22,6 +24,16 @@ export function createRandomThread(userId){
         content: faker.lorem.paragraph(20)
     }
     return thread
+}
+
+export async function createRandomOtp() {
+    const key = uint8ArrayToBase64UrlString(crypto.randomBytes(32))
+    const code = faker.string.numeric({length: 6, allowLeadingZeros: true})
+    const otpVal = {
+        otpCodeHash: await bcrypt.hash(code, 10),
+        email: faker.internet.email()
+    }
+    return {key, otpVal}
 }
 
 export async function seedUsers(db, count){

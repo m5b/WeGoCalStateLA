@@ -1,8 +1,8 @@
-import dbMapper from '../util/dbMapper.mjs'
-import { NotFoundError } from '../errors/notFoundError.mjs'
-import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
-import {GoneError} from "../errors/goneError.mjs";
-import buildPatchQuery from "../util/buildPatchQuery.mjs";
+import dbMapper from '../../util/dbMapper.mjs'
+import { NotFoundError } from '../../errors/notFoundError.mjs'
+import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
+import {GoneError} from "../../errors/goneError.mjs";
+import buildPatchQuery from "../../util/buildPatchQuery.mjs";
 
 export function createThreadService(threadRepo) {
     return {

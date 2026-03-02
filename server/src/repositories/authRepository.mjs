@@ -7,7 +7,7 @@ export async function createAuthRepo(db){
 
     async function findByEmailHash(emailHash) {
         const [row] = await db.query(
-            'select user_id, password_hash from users where email_hash = ? and deleted_at is NULL',
+            'select user_id, userUuid, password_hash from users where email_hash = ? and deleted_at is NULL',
             [emailHash]
         )
         return row[0] || null
@@ -15,7 +15,7 @@ export async function createAuthRepo(db){
 
     async function findByUsername(username) {
         const [row] = await db.query(
-            'select user_id, password_hash from users where username = ? and deleted_at is NULL',
+            'select user_id, userUuid, password_hash from users where username = ? and deleted_at is NULL',
             [username]
         )
         return row[0] || null

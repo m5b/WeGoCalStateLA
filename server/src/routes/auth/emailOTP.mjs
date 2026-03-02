@@ -12,9 +12,9 @@ export function createEmailOTPRouter({emailService, otpService, signupTokenServi
 
     router.post('/otp/send', async (req, res) => {
         const { email } = emailSchema.parse(req.body)
-        const { key, otpCode } = await otpService.saveOTP(email)
+        const { token, otpCode } = await otpService.saveOTP(email)
         await emailService.sendOTPEmail(email, otpCode)
-        res.cookie('opt_tx', key, otpTokenCookieConfig)
+        res.cookie('otp_tx', token, otpTokenCookieConfig)
 
         res.json(jsend.success(null))
     })
@@ -27,7 +27,7 @@ export function createEmailOTPRouter({emailService, otpService, signupTokenServi
             'otp'
         )
         res.cookie('signup_tx', signupToken, signupTokenCookieConfig)
-        res.json(jsend.success({ signupToken: signupToken }))
+        res.json(jsend.success(null))
     })
     return router
 }

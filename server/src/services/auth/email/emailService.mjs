@@ -1,9 +1,9 @@
 import {SendTemplatedEmailCommand} from "@aws-sdk/client-ses"
-import {sesClient} from "../lib/ses.mjs";
+import {sesClient} from "../../../lib/ses.mjs";
 import bcrypt from 'bcrypt'
-import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
+import { UnauthorizedError } from '../../../errors/unauthorizedError.mjs'
 import crypto from 'crypto'
-import { uint8ArrayToBase64UrlString } from '../util/encoding.mjs'
+import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
 
 export function createEmailService(){
     return{

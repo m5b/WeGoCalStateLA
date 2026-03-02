@@ -4,16 +4,12 @@ import {
     expect,
     afterEach,
     beforeAll,
-    afterAll,
     beforeEach,
 } from 'vitest'
-import { MySqlContainer } from '@testcontainers/mysql'
-import { createPool } from 'mysql2/promise'
-import { runMigrations } from '../../migrateContainer.mjs'
 import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
 import dbMapper from '../../../src/util/dbMapper.mjs'
 import { createRandomUser, seedUsers } from '../../seed.mjs'
-import {setupSQL} from "../../containerSetup.mjs";
+import {setupSQL} from "../../utils/containerSetup.mjs";
 
 
 

@@ -5,30 +5,28 @@ import cookieParser from 'cookie-parser'
 import { createAPIRouter } from '../routes/index.mjs'
 import errorHandler from '../middlewares/errorHandler.mjs'
 import { createLoginTokenStore } from '../repositories/redis/loginTokenStore.mjs'
-import { redis } from '../lib/redis.mjs'
 import { redisKeysConfig } from '../config/redisKeysConfig.mjs'
 import { createOIDCStore } from '../repositories/redis/oidcStore.mjs'
 import { createSignupTokenStore } from '../repositories/redis/signupTokenStore.mjs'
 import { createAuthRepo } from '../repositories/authRepository.mjs'
-import connectionPool from '../lib/pool.mjs'
 import { createCommentRepo } from '../repositories/commentsRepository.mjs'
 import { createThreadRepo } from '../repositories/threadsRepository.mjs'
 import { createUserRepo } from '../repositories/userRepository.mjs'
-import { createUserService } from '../services/userService.mjs'
-import { createLoginTokenService } from '../services/loginTokenService.mjs'
-import { createSignupTokenService } from '../services/signupTokenService.mjs'
-import { createOIDCService } from '../services/oidcService.mjs'
-import { createGoogleAuthService } from '../services/googleAuthServices.mjs'
+import { createUserService } from '../services/users/userService.mjs'
+import { createLoginTokenService } from '../services/auth/login/loginTokenService.mjs'
+import { createSignupTokenService } from '../services/auth/signup/signupTokenService.mjs'
+import { createOIDCService } from '../services/auth/oidc/oidcService.mjs'
+import { createGoogleAuthService } from '../services/auth/oidc/googleAuthServices.mjs'
 import { openIdClient } from '../lib/openIdClient.mjs'
 import { openIdConfig } from '../config/openIdConfig.mjs'
-import { createPasswordService } from '../services/passwordService.mjs'
-import { createVOPRFService } from '../services/voprfService.mjs'
+import { createPasswordService } from '../services/users/passwordService.mjs'
+import { createVOPRFService } from '../services/auth/voprf/voprfService.mjs'
 import { evaluator, voprfClient } from '../lib/voprf.mjs'
-import { createOTPService } from '../services/otpService.mjs'
+import { createOTPService } from '../services/auth/otp/otpService.mjs'
 import { createOTPStore } from '../repositories/redis/otpStore.mjs'
-import { createEmailService } from '../services/emailService.mjs'
-import { createThreadService } from '../services/threadsService.mjs'
-import { createCommentService } from '../services/commentsService.mjs'
+import { createEmailService } from '../services/auth/email/emailService.mjs'
+import { createThreadService } from '../services/content/threadsService.mjs'
+import { createCommentService } from '../services/content/commentsService.mjs'
 import { createEmailOTPRouter } from '../routes/auth/emailOTP.mjs'
 import { createGoogleAuthRouter } from '../routes/auth/googleAuth.mjs'
 import { createLoginRouter } from '../routes/auth/login.mjs'
@@ -36,9 +34,10 @@ import { createSignupRouter } from '../routes/auth/signup.mjs'
 import { createUserRouter } from '../routes/userRoutes.mjs'
 import { createThreadRouter } from '../routes/threadsRoutes.mjs'
 import { createCommentRouter } from '../routes/commentsRoutes.mjs'
-import { createUsernameService } from '../services/usernameGenerator.mjs'
+import { createUsernameService } from '../services/users/usernameGenerator.mjs'
+import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
 
-export function createApp(){
+export function createApp(db, redis, emailService){
     const app = express()
     app.use(cors(corsConfig))
     app.use(express.json())
@@ -46,28 +45,29 @@ export function createApp(){
     //launch up the store / repo
     const loginTokenStore = createLoginTokenStore(redis, redisKeysConfig.loginToken)
     const oidcStore = createOIDCStore(redis, redisKeysConfig.oidc)
-    const signupTokenStore = createSignupTokenStore(redis, redisKeysConfig.signupToken)
-    const otpStore = createOTPStore(redis, redisKeysConfig.otp)
+    const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
+    const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
 
-    const authRepo = createAuthRepo(connectionPool)
-    const commentRepo = createCommentRepo(connectionPool)
-    const threadRepo = createThreadRepo(connectionPool)
-    const userRepo = createUserRepo(connectionPool)
+    const authRepo = createAuthRepo(db)
+    const commentRepo = createCommentRepo(db)
+    const threadRepo = createThreadRepo(db)
+    const userRepo = createUserRepo(db)
 
 
     //launch up the service
-    const emailService = createEmailService()
+    const jwtTokenService = createJWTTokenService()
+
     const voprfService = createVOPRFService({voprfClient: voprfClient, evaluator: evaluator})
-    const otpService = createOTPService(otpStore,10)
-    const loginTokenService = createLoginTokenService(loginTokenStore)
-    const signupTokenService = createSignupTokenService(signupTokenStore)
+    const otpService = createOTPService({otpStore,jwtTokenService, round: 10})
+    const loginTokenService = createLoginTokenService({loginTokenStore, jwtTokenService})
+    const signupTokenService = createSignupTokenService({signupTokenStore, jwtTokenService})
     const usernameService = createUsernameService(userRepo)
     const passwordService = createPasswordService(12)
 
     const googleAuthService = createGoogleAuthService(createOIDCService(
-        {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google"}
+        {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
     ))
-    const loginService = createLoginTokenService(loginTokenService)
+    const loginService = createLoginTokenService({loginTokenStore, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo)

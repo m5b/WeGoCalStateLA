@@ -9,54 +9,68 @@ export function createThreadRepo(db){
     }
     async function findAll() {
         const [row] = await db.query(
-            'SELECT t.thread_id AS thread_id,\n' +
-                ' t.title AS title, \n' +
-                ' t.content AS content, \n' +
-                ' t.created_at AS created_at, \n' +
-                ' t.updated_at As updated_at, \n' +
-                ' t.deleted_at As deleted_at, \n' +
-                ' t.status As status,  \n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.user_id\n' +
-                '    else null\n' +
-                'end as user_id,\n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.username\n' +
-                '    else null\n' +
-                'end as username,\n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.display_name\n' +
-                '    else null\n' +
-                'end as display_name\n' +
-                'FROM threads t \n' +
-                'JOIN users u ON t.user_id = u.user_id \n'
+            `SELECT
+              t.thread_id AS thread_id,
+              t.title AS title,
+              t.content AS content,
+              t.created_at AS created_at,
+              t.updated_at AS updated_at,
+              t.deleted_at AS deleted_at,
+              t.status AS status,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.user_id
+                ELSE NULL
+              END AS user_id,
+              CASE
+                WHEN u.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
+                ELSE '[deleted]'
+              END AS user_uuid,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.username
+                ELSE '[deleted]'
+              END AS username,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.display_name
+                ELSE '[deleted]'
+              END AS display_name
+            FROM
+              threads t
+              JOIN users u ON t.user_id = u.user_id
+            `
         )
         return row
     }
     async function findByThreadId(threadId) {
         const [row] = await db.query(
-            'SELECT t.thread_id AS thread_id,\n' +
-                ' t.title AS title, \n' +
-                ' t.content AS content, \n' +
-                ' t.created_at AS created_at, \n' +
-                ' t.updated_at As updated_at, \n' +
-                ' t.deleted_at As deleted_at, \n' +
-                ' t.status As status,  \n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.user_id\n' +
-                '    else null\n' +
-                'end as user_id,\n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.username\n' +
-                '    else null\n' +
-                'end as username,\n' +
-                'Case\n' +
-                '\twhen t.deleted_at is NULL Then u.display_name\n' +
-                '    else null\n' +
-                'end as display_name\n' +
-                'FROM threads t \n' +
-                'JOIN users u ON t.user_id = u.user_id \n' +
-                'WHERE t.thread_id = ?',
+            `SELECT
+              t.thread_id AS thread_id,
+              t.title AS title,
+              t.content AS content,
+              t.created_at AS created_at,
+              t.updated_at AS updated_at,
+              t.deleted_at AS deleted_at,
+              t.status AS status,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.user_id
+                ELSE NULL
+              END AS user_id,
+              CASE
+                WHEN u.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
+                ELSE '[deleted]'
+              END AS user_uuid,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.username
+                ELSE '[deleted]'
+              END AS username,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.display_name
+                ELSE '[deleted]'
+              END AS display_name
+            FROM
+              threads t
+              JOIN users u ON t.user_id = u.user_id
+            WHERE
+              t.thread_id = ?`,
             [threadId]
         )
         return row[0] || null
@@ -64,30 +78,47 @@ export function createThreadRepo(db){
 
     async function findByUserId(userId) {
         const [row] = await db.query(
-            'SELECT t.thread_id  AS thread_id,\n' +
-                '       u.user_id    AS user_id,\n' +
-                '       u.username   AS username,\n' +
-                '       t.title      AS title,\n' +
-                '       t.content    AS content,\n' +
-                '       t.created_at AS created_at,\n' +
-                '       t.updated_at AS updated_at\n' +
-                'FROM   threads t\n' +
-                '       JOIN users u\n' +
-                '         ON t.user_id = u.user_id\n' +
-                'WHERE  u.user_id = ?\n' +
-                '       AND t.deleted_at IS NULL;  ',
+            `SELECT
+              t.thread_id AS thread_id,
+              t.title AS title,
+              t.content AS content,
+              t.created_at AS created_at,
+              t.updated_at AS updated_at,
+              t.deleted_at AS deleted_at,
+              t.status AS status,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.user_id
+                ELSE NULL
+              END AS user_id,
+              CASE
+                WHEN u.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
+                ELSE '[deleted]'
+              END AS user_uuid,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.username
+                ELSE '[deleted]'
+              END AS username,
+              CASE
+                WHEN u.deleted_at IS NULL THEN u.display_name
+                ELSE '[deleted]'
+              END AS display_name
+            FROM
+              threads t
+              JOIN users u ON t.user_id = u.user_id
+            WHERE
+              t.userId = ?`
             [userId]
         )
         return row
     }
 
-    async function insertThread({ userId, title, content }) {
+    async function insertThread({ userId, threadUuid, title, content }) {
         const [result] = await db.query(
-            'INSERT into threads (user_id, title, content) VALUES (?, ?, ?)',
-            [userId, title, content]
+            'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,?,  ?, ?)',
+            [userId, threadUuid, title, content]
         )
 
-        return result
+        return result.insertId
     }
 
     async function updateByThreadId(threadId, sqlQuery, dataList) {

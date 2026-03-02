@@ -2,7 +2,7 @@ import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
 import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 
-export function createSignupTokenStore(redis, signupTokenPrefix){
+export function createSignupTokenStore({redis, signupTokenPrefix}){
     return {
         save,
         consume,

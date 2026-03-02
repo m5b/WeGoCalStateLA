@@ -1,6 +1,6 @@
-import buildPatchQuery from '../util/buildPatchQuery.mjs'
-import dbMapper from '../util/dbMapper.mjs'
-import { NotFoundError } from '../errors/notFoundError.mjs'
+import buildPatchQuery from '../../util/buildPatchQuery.mjs'
+import dbMapper from '../../util/dbMapper.mjs'
+import { NotFoundError } from '../../errors/notFoundError.mjs'
 import { v4 as uuidv4 } from 'uuid';
 export function createUserService({userRepo, usernameService}) {
     return{

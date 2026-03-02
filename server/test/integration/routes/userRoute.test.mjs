@@ -1,10 +1,12 @@
 import { describe, it, expect,afterEach, beforeAll,afterAll, beforeEach} from 'vitest'
-import { createUserService } from '../../../src/services/userService.mjs'
-import { createUsernameService } from '../../../src/services/usernameGenerator.mjs'
+import { createUserService } from '../../../src/services/users/userService.mjs'
+import { createUsernameService } from '../../../src/services/users/usernameGenerator.mjs'
 import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
-import {setupSQL} from "../../containerSetup.mjs";
+import {setupSQL} from "../../utils/containerSetup.mjs";
 import {createRandomUser, seedUsers} from "../../seed.mjs";
 import {createApp} from "../../../src/app/app.mjs";
+import request from "supertest";
+import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
 
 describe("userRoute Integration", () => {
     let connectionPool
@@ -13,19 +15,19 @@ describe("userRoute Integration", () => {
     let users
     let userService
     let usernameService
+    let jwtTokenService
     let connection
     beforeAll(async () => {
         connectionPool = await setupSQL()
         userRepo = createUserRepo(connectionPool)
         users = await seedUsers(userRepo, 10)
-        app = createApp()
     }, 30000)
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
-        userRepo = createUserRepo(connection)
-        usernameService = createUsernameService(userRepo)
+        app = createApp(connection)
         userService = createUserService({userRepo, usernameService})
+        jwtTokenService = createJWTTokenService()
         await connection.beginTransaction()
     })
 
@@ -34,6 +36,11 @@ describe("userRoute Integration", () => {
         connection.release()
     })
 
+    describe("userRoute", () => {
+        it("GET /user/me get login user resource", async () => {
+
+        })
+    })
 
 
 })

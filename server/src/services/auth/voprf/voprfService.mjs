@@ -1,6 +1,6 @@
-import { hkdf} from '../util/hash.mjs'
-import { ServiceUnavailable } from '../errors/serviceUnavailable.mjs'
-import { uint8ArrayToBase64UrlString } from '../util/encoding.mjs'
+import { hkdf} from '../../../util/hash.mjs'
+import { ServiceUnavailable } from '../../../errors/serviceUnavailable.mjs'
+import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
 
 export function createVOPRFService({voprfClient, evaluator}){
     return{

@@ -8,10 +8,14 @@ export function requireCookie(cookieName, verifyFn, option = {}) {
         attachTo = cookieName,
         clearCookie = false,
     } = option
+
     return async function (req, res, next) {
         //retrieve the cookies
         const cookies = signed ? req.signedCookies : req.cookies
         const token = cookies[cookieName]
+        if(!token){
+            throw new UnauthorizedError({ [cookieName]: "cookie does not exist" }, "Cookie does not exist"  )
+        }
         const result = await verifyFn(token)
         if (clearCookie) {
             res.clearCookie(cookieName)
@@ -29,11 +33,11 @@ export const requireJWTAuth = requireCookie(
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
-            throw new UnauthorizedError({ auth: err.message })
+            throw new UnauthorizedError({["auth_token"]: "Invalid Cookie"}, "Session ended")
         }
         const { sub } = decoded
         if (!sub) {
-            throw new UnauthorizedError({ auth: 'Invalid JWT token' })
+            throw new UnauthorizedError({["auth_token"]: "Invalid Cookie"}, "Session ended")
         }
         return sub
     },
@@ -68,7 +72,7 @@ export const requireOIDCId = requireCookie(
 )
 
 export const requireOTPToken = requireCookie(
-    'opt_tx',
+    'otp_tx',
     async function (token) {
         //perform jwt check
         let decoded
@@ -76,20 +80,20 @@ export const requireOTPToken = requireCookie(
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt' },
+                { ["otp_tx"]: 'Invalid Cookie' },
                 'Sign up session expired. Please try again'
             )
         }
         const { sub } = decoded
         if (!sub) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt_format' },
+                { ["otp_tx"]: 'Invalid Cookie' },
                 'Sign up session expired. Please try again'
             )
         }
         return sub
     },
-    { signed: false, attachTo: 'otpToken', clearCookie: true }
+    { signed: false, attachTo: 'otpToken', clearCookie: false}
 )
 
 
@@ -102,14 +106,14 @@ export const requireSignupToken = requireCookie(
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt' },
+                { ["signup_tx"]: 'Invalid Cookie' },
                 'Sign up session expired. Please try again'
             )
         }
         const { sub } = decoded
         if (!sub) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt_format' },
+                { ["signup_tx"]: 'Invalid Cookie' },
                 'Sign up session expired. Please try again'
             )
         }

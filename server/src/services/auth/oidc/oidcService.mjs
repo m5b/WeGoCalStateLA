@@ -1,17 +1,12 @@
-import { signJWTToken } from '../util/generateJWTToken.mjs'
 import * as client from 'openid-client'
-import { uint8ArrayToBase64UrlString } from '../util/encoding.mjs'
+import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
 import crypto from 'crypto'
-import { BadRequestError } from '../errors/badRequestError.mjs'
+import { BadRequestError } from '../../../errors/badRequestError.mjs'
 
-export function createOIDCService({oidcStore, openIdClient, openIdConfig, provider}){
+export function createOIDCService({oidcStore, jwtTokenService, openIdClient, openIdConfig, provider}){
     return{
-        generateOIDCToken,
         startOIDCSignup,
         completeOIDCSignup,
-    }
-    function generateOIDCToken(key) {
-        return signJWTToken({ sub: key }, '5m')
     }
 
     async function startOIDCSignup() {
@@ -34,7 +29,7 @@ export function createOIDCService({oidcStore, openIdClient, openIdConfig, provid
             state: state,
         })
         //generate signed token contains key
-        const token = generateOIDCToken(key)
+        const token = jwtTokenService.issueOIDCToken(key)
         //generate redirect uri
         const redirectURL = client.buildAuthorizationUrl(
             openIdClient,

@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import dbMapper from '../util/dbMapper.mjs'
+import dbMapper from '../../../util/dbMapper.mjs'
 
 
 export function createSignupService(userRepo){

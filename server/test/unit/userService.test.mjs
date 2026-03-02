@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, } from 'vitest'
-import { createUserService } from '../../src/services/userService.mjs'
+import { createUserService } from '../../src/services/users/userService.mjs'
 import { NotFoundError } from '../../src/errors/notFoundError.mjs'
 
 describe("userService", () => {

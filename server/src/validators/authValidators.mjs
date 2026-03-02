@@ -18,7 +18,7 @@ export const emailPasswordSchema = z
 
 export const emailSchema = z.object({
     email: z.email({ message: 'Not a email' }),
-})
+}).strict()
 
 export const passwordSchema= z.object({
     password: z
@@ -39,8 +39,9 @@ export const emailHashSchema = z.object({
 }).strict()
 
 export const verifyOTPSchema = z.object({
-    otp: z.string()
-}).strict()
+    otp: z.string().regex(/^\d{6}$/, {
+    message: "Must be a string of exactly 6 digits"
+})}).strict()
 
 
 

@@ -7,7 +7,7 @@ export const cookieConfig = {
 
 export const oidcCookieConfig = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: "/",
     sameSite: 'lax',
@@ -15,7 +15,7 @@ export const oidcCookieConfig = {
 
 export const otpTokenCookieConfig = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: '/',
     sameSite: 'lax',
@@ -23,7 +23,7 @@ export const otpTokenCookieConfig = {
 
 export const signupTokenCookieConfig= {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: '/',
     sameSite: 'lax',
@@ -32,7 +32,7 @@ export const signupTokenCookieConfig= {
 
 export const loginTokenCookieConfig= {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: '/',
     sameSite: 'lax',
