@@ -7,6 +7,7 @@ import request, {cookies} from "supertest";
 import {faker} from "@faker-js/faker";
 import {createUserRepo} from "../../../src/repositories/userRepository.mjs";
 import dbMapper from "../../../src/util/dbMapper.mjs";
+import {createPool} from "mysql2/promise";
 
 describe("signupRoute", () => {
     let redis
@@ -18,18 +19,21 @@ describe("signupRoute", () => {
             lastOtp = otpCode;
         }),
     };
-    beforeAll(async () => {
-        redisConnectionUrl = await setupRedis()
-        sqlPool = await setupSQL()
-    }, 30000)
     let connection
     let app
     let agent
+    const dbIndex = Number(process.env.VITEST_POOL_ID)
+    const redisOption = {...redisConfig.option, db:dbIndex}
+
+    beforeAll(async () => {
+        sqlPool = createPool(process.env.DATABASE_URL)
+    }, )
+
     beforeEach(async () => {
+        redis = new Redis(redisConnectionUrl, redisOption)
         emailService.sendOTPEmail.mockClear()
         lastOtp = null
         connection = await sqlPool.getConnection()
-        redis = new Redis(redisConnectionUrl, redisConfig.option)
         app = createApp(connection, redis, emailService)
         agent = request.agent(app)
         await connection.beginTransaction()

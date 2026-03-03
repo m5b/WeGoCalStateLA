@@ -1,4 +1,4 @@
-import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
 import {setupRedis} from "../../utils/containerSetup.mjs";
 import Redis from "ioredis";
@@ -11,24 +11,17 @@ import {openIdConfig} from "../../../src/config/openIdConfig.mjs";
 import * as client from "openid-client";
 import {faker} from "@faker-js/faker";
 import {ServiceUnavailable} from "../../../src/errors/serviceUnavailable.mjs";
+import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
 
 describe("oidcTokenStore Integration", () => {
     let oidcStore
     let oidcService
     let jwtTokenService = createJWTTokenService()
     let redis
-    let count = 10
-    let connectionURL
-    let round = 10
-    let opt = {
-        ttl: 300
-    }
-    beforeAll(async () => {
-        connectionURL = await setupRedis()
-    }, 30000)
-
+    const dbIndex = Number(process.env.VITEST_POOL_ID)
+    const redisOption = {...redisConfig.option, db:dbIndex}
     beforeEach(() => {
-        redis = new Redis(connectionURL, redisConfig.option)
+        redis = new Redis(process.env.REDIS_URL, redisOption)
         oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
         oidcService = createOIDCService({
             oidcStore,
@@ -37,6 +30,14 @@ describe("oidcTokenStore Integration", () => {
             openIdConfig,
             provider: "google"
         })
+    })
+    afterAll(async ()=> {
+        if(redis.status === 'end') return
+        redis.quit()
+    })
+    afterEach(async () => {
+        if(redis.status === 'end') return
+        await redis.flushdb();
     })
     describe("oidcService.startOIDCSignup", () => {
         it("return the token and url without the error", async () => {
@@ -70,6 +71,10 @@ describe("oidcTokenStore Integration", () => {
             const {key, redirectURL} = await oidcService.startOIDCSignup()
             await redis.quit()
             await expect(oidcService.completeOIDCSignup(key, redirectURL)).rejects.toBeInstanceOf(ServiceUnavailable)
+        })
+        it("thrown the Unauthorized due to empty key", async () => {
+            const {key, redirectURL} = await oidcService.startOIDCSignup()
+            await expect(oidcService.completeOIDCSignup(null, redirectURL)).rejects.toBeInstanceOf(UnauthorizedError)
         })
     })
 })

@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.test" });
 export default defineConfig({
     test: {
-        setupFiles: ["./test/setup/env.mjs"],
+        globalSetup: ["./test/setup/globalSetup.mjs"],
+        hookTimeout: 60000,
+        maxWorkers:15,
     },
 });

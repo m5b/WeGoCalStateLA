@@ -5,11 +5,12 @@ import {
     afterEach,
     beforeAll,
     beforeEach,
+    afterAll
 } from 'vitest'
 import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
 import dbMapper from '../../../src/util/dbMapper.mjs'
 import { createRandomUser, seedUsers } from '../../seed.mjs'
-import {setupSQL} from "../../utils/containerSetup.mjs";
+import { createPool} from "mysql2/promise";
 
 
 
@@ -19,21 +20,23 @@ describe("userRepo Integration", () => {
     let connection
     let users
     beforeAll(async () => {
-        connectionPool = await setupSQL()
-        userRepo = createUserRepo(connectionPool)
-        users = await seedUsers(userRepo, 10)
-
-    }, 30000)
+        connectionPool = createPool(process.env.DATABASE_URL)
+    }, )
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
         userRepo = createUserRepo(connection)
         await connection.beginTransaction()
+        users = await seedUsers(userRepo, 10)
     })
 
     afterEach(async () => {
         connection.rollback()
         connection.release()
+    })
+
+    afterAll(async() => {
+        await connectionPool.end()
     })
 
 

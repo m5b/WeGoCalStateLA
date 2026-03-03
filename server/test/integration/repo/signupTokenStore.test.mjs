@@ -1,4 +1,4 @@
-import {afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
 import {setupRedis} from "../../utils/containerSetup.mjs";
 import {createRandomOtp} from "../../seed.mjs";
 import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
@@ -19,14 +19,23 @@ describe("signupTokenStore Integration", () => {
     let opt = {
         ttl: 300
     }
-    beforeAll(async () => {
-        connectionURL= await setupRedis()
-    }, 30000)
 
+    const dbIndex = Number(process.env.VITEST_POOL_ID)
+    const redisOption = {...redisConfig.option, db:dbIndex}
     beforeEach(() => {
-        redis = new Redis(connectionURL, redisConfig.option, opt)
+        redis = new Redis(process.env.REDIS_URL, redisOption)
         signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken, opt})
     })
+    afterAll(async ()=> {
+        if(redis.status === 'end') return
+        redis.quit()
+    })
+    afterEach(async () => {
+        if(redis.status === 'end') return
+        await redis.flushdb();
+    })
+
+
     describe("signupTokenStore .save", () => {
         it("save the signupToken", async () => {
             for(let i = 0; i < count; i++){

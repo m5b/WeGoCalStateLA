@@ -1,15 +1,12 @@
 import { describe, it, expect,afterEach, beforeAll,afterAll, beforeEach} from 'vitest'
 import { createUserService } from '../../../src/services/users/userService.mjs'
-import { createUsernameService } from '../../../src/services/users/usernameGenerator.mjs'
-import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
-import {setupSQL} from "../../utils/containerSetup.mjs";
-import {createRandomUser, seedUsers} from "../../seed.mjs";
 import {createApp} from "../../../src/app/app.mjs";
-import request from "supertest";
 import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
+import {createPool} from "mysql2/promise";
+import {seedUsers} from "../../seed.mjs";
 
 describe("userRoute Integration", () => {
-    let connectionPool
+    let sqlPool
     let app
     let userRepo
     let users
@@ -18,22 +15,24 @@ describe("userRoute Integration", () => {
     let jwtTokenService
     let connection
     beforeAll(async () => {
-        connectionPool = await setupSQL()
-        userRepo = createUserRepo(connectionPool)
-        users = await seedUsers(userRepo, 10)
-    }, 30000)
+        sqlPool = createPool(process.env.DATABASE_URL)
+    }, )
 
     beforeEach(async () => {
-        connection = await connectionPool.getConnection()
+        connection = await sqlPool.getConnection()
         app = createApp(connection)
         userService = createUserService({userRepo, usernameService})
         jwtTokenService = createJWTTokenService()
         await connection.beginTransaction()
+        users = seedUsers(connection, 10)
     })
 
     afterEach(async () => {
         connection.rollback()
         connection.release()
+    })
+    afterAll(async ()=> {
+        await sqlPool.end()
     })
 
     describe("userRoute", () => {

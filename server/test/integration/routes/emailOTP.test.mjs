@@ -1,10 +1,12 @@
-import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeAll, beforeEach, describe, expect, it, vi, afterAll} from "vitest";
 import {setupRedis, setupSQL} from "../../utils/containerSetup.mjs";
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createApp} from "../../../src/app/app.mjs";
 import request, {cookies} from "supertest";
 import {faker} from "@faker-js/faker";
+import {createPool} from "mysql2/promise";
+import connectionPool from "../../../src/lib/pool.mjs";
 
 describe("emailOTP route", () => {
     let redis
@@ -15,31 +17,35 @@ describe("emailOTP route", () => {
         sendOTPEmail: vi.fn(async (_email, otpCode) => {
             lastOtp = otpCode;
         }),
-    };
-    beforeAll(async () => {
-        redisConnectionUrl = await setupRedis()
-        sqlPool = await setupSQL()
-    }, 30000)
+    }
     let connection
     let app
     let agent
+    const dbIndex = Number(process.env.VITEST_POOL_ID)
+    const redisOption = {...redisConfig.option, db:dbIndex}
+    beforeAll(async () => {
+        sqlPool = createPool(process.env.DATABASE_URL)
+    }, )
+
     beforeEach(async () => {
+        redis = new Redis(redisConnectionUrl, redisOption)
         emailService.sendOTPEmail.mockClear()
         lastOtp = null
         connection = await sqlPool.getConnection()
-        redis = new Redis(redisConnectionUrl, redisConfig.option)
         app = createApp(connection, redis, emailService)
         agent = request.agent(app)
         await connection.beginTransaction()
     })
+    afterAll(async ()=> {
+        await sqlPool.end()
+        if(redis.status === 'end') return
+        await redis.quit()
+    })
     afterEach(async () => {
-
         connection.rollback()
         connection.release()
         if(redis.status === 'end') return
         await redis.flushdb();
-        await redis.quit()
-
     })
     describe("POST /api/auth/otp/send", async () => {
         it("returns 200 and sets otp_tx cookie", async () => {

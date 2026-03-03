@@ -22,29 +22,17 @@ describe("userRepo Integration", () => {
     let connectionPool
     let userRepo
     let threadRepo
-    let connectionURL
     let connection
     let users
     beforeAll(async () => {
-        sqlContainer = await new MySqlContainer('mysql:8.0.36')
-            .withDatabase('wegoapp')
-            .withUsername('tester')
-            .withUserPassword('123456')
-            .start()
-        connectionURL = sqlContainer.getConnectionUri()
-        connectionPool = await createPool({
-            uri: connectionURL,
-        })
-        await runMigrations(connectionURL, 'up')
-        userRepo = createUserRepo(connectionPool)
-        threadRepo = createThreadRepo(connectionPool)
-        users = await seedUsers(userRepo, 10)
+        connectionPool = await createPool(process.env.DATABASE_URL)
 
-    }, 30000)
+    }, )
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
         userRepo = createUserRepo(connection)
+        threadRepo = createThreadRepo(connection)
         await connection.beginTransaction()
     })
 
@@ -53,7 +41,9 @@ describe("userRepo Integration", () => {
         connection.release()
     })
 
-    afterAll(async () => {
-        await sqlContainer.stop()
+    afterAll(async() => {
+        await connectionPool.end()
     })
-}
+
+
+})

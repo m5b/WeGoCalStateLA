@@ -5,7 +5,8 @@ import {RedisContainer} from "@testcontainers/redis";
 import Redis from "ioredis";
 import {redisConfig} from "../../src/config/redisConfig.mjs";
 
-export async function setupSQL(){
+
+export async function setup(){
     let sqlContainer = await new MySqlContainer('mysql:8.0.36')
         .withDatabase("wegoapp")
         .withUsername("tester")
