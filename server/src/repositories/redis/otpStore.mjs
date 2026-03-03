@@ -38,6 +38,9 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
     }
 
     async function consume(key) {
+        if(!key){
+            throw new UnauthorizedError(null, "Invalid Key")
+        }
         const prefixedKey = buildRedisKey(otpPrefix, key)
         let otpValue
         try {

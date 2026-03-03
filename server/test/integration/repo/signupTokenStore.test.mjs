@@ -87,6 +87,11 @@ describe("signupTokenStore Integration", () => {
 
             }
         })
+        it("throw unauthorizedError due to key empty", async () => {
+            const verify = signupTokenStore.consume(null)
+            await expect(verify).rejects.toBeInstanceOf(UnauthorizedError)
+        })
+
         it("throws ServiceUnavailable when redis is down", async () => {
             const key = generateKey(32)
             const email = faker.internet.email()

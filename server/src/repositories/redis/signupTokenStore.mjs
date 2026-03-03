@@ -32,6 +32,9 @@ export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
     }
 
     async function consume(key) {
+        if(!key){
+            throw new UnauthorizedError(null , "Invalid Key")
+        }
         const prefixedKey = buildRedisKey(signupTokenPrefix, key)
         let replies
         try {

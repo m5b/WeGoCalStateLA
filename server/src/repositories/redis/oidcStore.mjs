@@ -13,6 +13,7 @@ export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
         { provider, codeVerifier, nonce, state },
         opt = {}
     ) {
+
         //defalut time to live as 5 minute
         const { ttl = 300 } = opt
         // append the prefix to make system consistent
@@ -39,6 +40,9 @@ export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
     }
 
     async function consume(key) {
+        if(!key){
+           throw new UnauthorizedError(null, "Invalid Key")
+        }
         const prefixedKey = buildRedisKey(oidcPrefix, key)
         let replies
         try {

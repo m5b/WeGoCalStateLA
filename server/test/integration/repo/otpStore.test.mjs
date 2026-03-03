@@ -72,6 +72,10 @@ describe("otpStore Integration", () => {
                 expect(verify.createdAt).not.toBeNull()
             }
         })
+        it("throw unauthorizedError due to key empty", async () => {
+            const verify = otpStore.consume(null)
+            await expect(verify).rejects.toBeInstanceOf(UnauthorizedError)
+        })
         it("throws ServiceUnavailable when redis is down", async () => {
             const {key, otpVal} = await createRandomOtp()
             await otpStore.save(key, otpVal)
