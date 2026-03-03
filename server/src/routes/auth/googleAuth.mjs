@@ -17,11 +17,11 @@ export function createGoogleAuthRouter({googleAuthService, signupTokenService}){
         )
         const email = await googleAuthService.completeGoogleSignup(req.oidc, currentURL)
         //assign user a verified token to user
-        const signupToken = await signupTokenService.saveSignupToken(
+        const {token} = await signupTokenService.saveSignupToken(
             email,
             'open id'
         )
-        res.cookie('signup_tx', signupToken, signupTokenCookieConfig)
+        res.cookie('signup_tx', token, signupTokenCookieConfig)
         res.json(jsend.success(null))
     })
     return router

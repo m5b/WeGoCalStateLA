@@ -5,8 +5,15 @@ import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createApp} from "../../../src/app/app.mjs";
 import request, {cookies} from "supertest";
 import {faker} from "@faker-js/faker";
-
-describe("emailOTP route", () => {
+import * as client from "openid-client";
+vi.mock('openid-client', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        authorizationCodeGrant: vi.fn(),
+    };
+});
+describe("googleAuthRoute Integration", () => {
     let redis
     let redisConnectionUrl
     let sqlPool
@@ -45,9 +52,73 @@ describe("emailOTP route", () => {
         describe("GET /api/auth/google", () => {
             it("redirect user and set the cookie", async () => {
                 const res = await agent
-                    .get("/api/aut/google")
+                    .get("/api/auth/google")
                     .expect(302)
-                    .expect(cookies.set({ name: "otp_tx", options: ["path", "httponly", "samesite"] }))
+                    .expect(cookies.set({ name: "oidc_tx", options: ["path", "httponly", "samesite"] }))
+            })
+            it("return 503 due to redis down", async () => {
+                await redis.quit()
+                const res = await agent
+                    .get("/api/auth/google")
+                    .expect(503)
+                    .expect(cookies.not("set", {name: "oidc_tx", options: ["path", "httponly", "samesite"]}))
+            })
+        })
+        describe("GET /api/auth/google/callback", () => {
+            it("success and set the cookie signup_tx", async () => {
+                const email = faker.internet.email()
+
+                client.authorizationCodeGrant.mockResolvedValue({
+                    claims: () => ({email: email})
+                })
+                const res = await agent
+                    .get("/api/auth/google")
+                    .expect(302)
+                    .expect(cookies.set({ name: "oidc_tx", options: ["path", "httponly", "samesite"] }))
+                const res2 = await agent
+                    .get("/api/auth/google/callback")
+                    .expect(200)
+                    .expect(cookies.set({ name: "signup_tx", options: ["path", "httponly", "samesite"] }))
+            })
+            it("return 401 due to no set cookie", async () => {
+
+                const res2 = await agent
+                    .get("/api/auth/google/callback")
+                    .expect(401)
+                    .expect(cookies.not("set", {name: "signup_tx", options: ["path", "httponly", "samesite"] }))
+            })
+            it("return 503 due to redis down", async () => {
+                const res = await agent
+                    .get("/api/auth/google")
+                    .expect(302)
+                    .expect(cookies.set({ name: "oidc_tx", options: ["path", "httponly", "samesite"] }))
+                await redis.quit()
+                const res2 = await agent
+                    .get("/api/auth/google/callback")
+                    .expect(503)
+                    .expect(cookies.not("set", {name: "signup_tx", options: ["path", "httponly", "samesite"] }))
+            })
+            it("return 401 due to oidcToken not found in redis", async () => {
+                const res = await agent
+                    .get("/api/auth/google")
+                    .expect(302)
+                    .expect(cookies.set({name: "oidc_tx", options: ["path", "httponly", "samesite"]}))
+                await redis.flushdb()
+                const res2 = await agent
+                    .get("/api/auth/google/callback")
+                    .expect(401)
+                    .expect(cookies.not("set", {name: "signup_tx", options: ["path", "httponly", "samesite"]}))
+            })
+            it("return 400 badRequest due to invalid googleAuth", async () => {
+                const res = await agent
+                    .get("/api/auth/google")
+                    .expect(302)
+                    .expect(cookies.set({ name: "oidc_tx", options: ["path", "httponly", "samesite"] }))
+                client.authorizationCodeGrant.mockRejectedValueOnce(new Error("invalid_grant"))
+                const res2 = await agent
+                    .get("/api/auth/google/callback")
+                    .expect(400)
+                    .expect(cookies.not("set", {name: "signup_tx", options: ["path", "httponly", "samesite"]}))
             })
         })
     })
