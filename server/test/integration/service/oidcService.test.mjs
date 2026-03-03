@@ -10,6 +10,7 @@ import {openIdClient} from "../../../src/lib/openIdClient.mjs";
 import {openIdConfig} from "../../../src/config/openIdConfig.mjs";
 import * as client from "openid-client";
 import {faker} from "@faker-js/faker";
+import {ServiceUnavailable} from "../../../src/errors/serviceUnavailable.mjs";
 
 describe("oidcTokenStore Integration", () => {
     let oidcStore
@@ -43,6 +44,10 @@ describe("oidcTokenStore Integration", () => {
             expect(token).not.toBeNull()
             expect(redirectURL).not.toBeNull()
         })
+        it("thrown the ServiceUnavaliable due to redis down", async () => {
+            await redis.quit()
+            await expect(oidcService.startOIDCSignup()).rejects.toBeInstanceOf(ServiceUnavailable)
+        })
     })
     describe("oidcService.completeOIDCSignup", () => {
         it("complete signup and return email", async () => {
@@ -60,6 +65,11 @@ describe("oidcTokenStore Integration", () => {
             const {key, redirectURL} = await oidcService.startOIDCSignup()
             const verify = await oidcService.completeOIDCSignup(key, redirectURL)
             expect(email).toBe(verify)
+        })
+        it("thrown the ServiceUnavaliable due to redis down", async () => {
+            const {key, redirectURL} = await oidcService.startOIDCSignup()
+            await redis.quit()
+            await expect(oidcService.completeOIDCSignup(key, redirectURL)).rejects.toBeInstanceOf(ServiceUnavailable)
         })
     })
 })
