@@ -1,6 +1,7 @@
 import { hkdf} from '../../../util/hash.mjs'
 import { ServiceUnavailable } from '../../../errors/serviceUnavailable.mjs'
-import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
+import {base64UrlStringToUint8Array, uint8ArrayToBase64UrlString} from '../../../util/encoding.mjs'
+import {Evaluation, EvaluationRequest} from "@cloudflare/voprf-ts";
 
 export function createVOPRFService({voprfClient, evaluator}){
     return{
@@ -11,16 +12,19 @@ export function createVOPRFService({voprfClient, evaluator}){
     }
     async function handleServerVOPRF(email) {
         const { finData, evalReq } = await bindVOPRF(email)
-        const evaluation = await evaluateVOPRF(finData, evalReq)
+        const evaluation = await evaluateVOPRF(evalReq)
         const [output] = await unbindVOPRF(evaluation)
         const emailHash = uint8ArrayToBase64UrlString(hkdf(output))
         return emailHash
     }
     //used for signup and login
-    async function evaluateVOPRF(evalReq) {
+    async function evaluateVOPRF(evalReqB64U) {
         try {
+            const evalReqUint8 = base64UrlStringToUint8Array(evalReqB64U)
+            const evalReq =  EvaluationRequest.deserialize(evaluator.suite, evalReqUint8)
             const evaluation = await evaluator.blindEvaluate(evalReq)
-            return evaluation
+
+            return uint8ArrayToBase64UrlString(evaluation.serialize())
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
@@ -33,7 +37,10 @@ export function createVOPRFService({voprfClient, evaluator}){
         try {
             const input = new TextEncoder().encode(email)
             const [finData, evalReq] = await voprfClient.blind([input])
-            return { finData, evalReq }
+            const evalReqBytes = evalReq.serialize()
+            const evalReqB64U= uint8ArrayToBase64UrlString(evalReqBytes)
+
+            return {finData, evalReqB64U}
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
@@ -42,10 +49,11 @@ export function createVOPRFService({voprfClient, evaluator}){
         }
     }
     //used only on sign up
-    async function unbindVOPRF(finData, evaluation) {
+    async function unbindVOPRF(finData, evaluationB64U) {
         try {
+            const evaluation = Evaluation.deserialize(evaluator.suite, base64UrlStringToUint8Array(evaluationB64U))
             const [output] = await voprfClient.finalize(finData, evaluation)
-            const emailHash = hkdf(output)
+            const emailHash = uint8ArrayToBase64UrlString(hkdf(output))
             return emailHash
         } catch (err) {
             throw new ServiceUnavailable(
