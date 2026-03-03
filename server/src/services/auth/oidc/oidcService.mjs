@@ -1,7 +1,6 @@
 import * as client from 'openid-client'
-import { uint8ArrayToBase64UrlString } from '../../../util/encoding.mjs'
-import crypto from 'crypto'
 import { BadRequestError } from '../../../errors/badRequestError.mjs'
+import {generateKey} from "../otp/keyGenerator.mjs";
 
 export function createOIDCService({oidcStore, jwtTokenService, openIdClient, openIdConfig, provider}){
     return{
@@ -19,7 +18,7 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
         //perform nonce generation
         const nonce = client.randomNonce()
         //generate a key for tracking odic required data
-        const key = uint8ArrayToBase64UrlString(crypto.randomBytes(32))
+        const key = generateKey(32)
         //save the codeVerifier in memory for callback use
         await oidcStore.save(key, {
             provider: provider,
@@ -42,7 +41,7 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
                 code_challenge_method: 'S256',
             }
         )
-        return { token, redirectURL }
+        return { token, redirectURL, key }
     }
 
     async function completeOIDCSignup(key, currentURL) {

@@ -32,7 +32,7 @@ export const passwordSchema= z.object({
                     'password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
             }
         ),
-})
+}).strict()
 
 export const emailHashSchema = z.object({
     emailHash: z.string()

@@ -22,11 +22,11 @@ export function createEmailOTPRouter({emailService, otpService, signupTokenServi
     router.post('/otp/verify', requireOTPToken, async (req, res) => {
         const { otp } = verifyOTPSchema.parse(req.body)
         const email = await otpService.verifyOTP(req.otpToken, otp)
-        const signupToken = await signupTokenService.saveSignupToken(
+        const {key, token}= await signupTokenService.saveSignupToken(
             email,
             'otp'
         )
-        res.cookie('signup_tx', signupToken, signupTokenCookieConfig)
+        res.cookie('signup_tx', token, signupTokenCookieConfig)
         res.json(jsend.success(null))
     })
     return router

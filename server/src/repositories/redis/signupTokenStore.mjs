@@ -2,14 +2,14 @@ import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
 import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 
-export function createSignupTokenStore({redis, signupTokenPrefix}){
+export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
+    const { ttl = 300 } = opt
     return {
         save,
         consume,
     }
-    async function save(key, { email, verifiedMethod }, opt = {}) {
+    async function save(key, { email, verifiedMethod }) {
         //defalut time to live as 5 minute
-        const { ttl = 300 } = opt
         // append the prefix to make system consistent
         const prefixedKey = buildRedisKey(signupTokenPrefix, key)
         // set the key value pair in redis using hset for better effiency

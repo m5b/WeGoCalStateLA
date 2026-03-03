@@ -44,7 +44,7 @@ export function createApp(db, redis, emailService){
     app.use(cookieParser())
     //launch up the store / repo
     const loginTokenStore = createLoginTokenStore(redis, redisKeysConfig.loginToken)
-    const oidcStore = createOIDCStore(redis, redisKeysConfig.oidc)
+    const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
 

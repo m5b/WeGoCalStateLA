@@ -49,7 +49,7 @@ describe("emailOTP route", () => {
                 .send({ email})
                 .expect('Content-Type', /json/)
                 .expect(200)
-                .expect(cookies.set({ name: "otp_tx", options: ["path", "httponly", "samesite"] }));
+                .expect(cookies.set({ name: "otp_tx", options: ["path", "httponly", "samesite"] }))
             expect(res.body.status).toBe("success"  )
             expect(emailService.sendOTPEmail).toHaveBeenCalledTimes(1)
             expect(lastOtp).toBeTruthy()

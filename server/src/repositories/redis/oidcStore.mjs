@@ -2,14 +2,15 @@ import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
 import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 
-export function createOIDCStore(redis, oidcPrefix) {
+export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
+    const {ttl = 300} = opt
     return{
         save,
         consume
     }
     async function save(
         key,
-        { provider, codeVerifier, nonce, createAt, state },
+        { provider, codeVerifier, nonce, state },
         opt = {}
     ) {
         //defalut time to live as 5 minute
@@ -24,7 +25,7 @@ export function createOIDCStore(redis, oidcPrefix) {
                     provider,
                     codeVerifier,
                     nonce,
-                    createAt,
+                    createdAt: Date.now(),
                     state,
                 })
                 .expire(prefixedKey, ttl)
@@ -32,7 +33,7 @@ export function createOIDCStore(redis, oidcPrefix) {
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Signup service is temporarily unavailable. Please try again later.'
             )
         }
     }
@@ -49,7 +50,7 @@ export function createOIDCStore(redis, oidcPrefix) {
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Signup service is temporarily unavailable. Please try again later.'
             )
         }
         //destructure the reply
@@ -58,12 +59,12 @@ export function createOIDCStore(redis, oidcPrefix) {
         if (errGet || errDel) {
             throw new ServiceUnavailable(
                 null,
-                'Signup is temporarily unavailable. Please try again.'
+                'Signup service is temporarily unavailable. Please try again.'
             )
         }
         if (!oidcValue || Object.keys(oidcValue).length === 0) {
             throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
+                null,
                 'Sign up session expired. Please try again'
             )
         }

@@ -11,9 +11,10 @@ export function createVOPRFService({voprfClient, evaluator}){
         unbindVOPRF
     }
     async function handleServerVOPRF(email) {
-        const { finData, evalReq } = await bindVOPRF(email)
-        const evaluation = await evaluateVOPRF(evalReq)
-        const [output] = await unbindVOPRF(evaluation)
+        const input = new TextEncoder().encode(email)
+        const [finData, evalReq] = await voprfClient.blind([input])
+        const evaluation = await evaluator.blindEvaluate(evalReq)
+        const [output] = await voprfClient.finalize(finData, evaluation)
         const emailHash = uint8ArrayToBase64UrlString(hkdf(output))
         return emailHash
     }
@@ -39,7 +40,6 @@ export function createVOPRFService({voprfClient, evaluator}){
             const [finData, evalReq] = await voprfClient.blind([input])
             const evalReqBytes = evalReq.serialize()
             const evalReqB64U= uint8ArrayToBase64UrlString(evalReqBytes)
-
             return {finData, evalReqB64U}
         } catch (err) {
             throw new ServiceUnavailable(
