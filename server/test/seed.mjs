@@ -75,7 +75,7 @@ export async function seedUsers(db, count){
 }
 
 export async function cleanSeed(db){
-
+    await db.execute()
 }
 
 export async function seedThreads(users, db, perUser){

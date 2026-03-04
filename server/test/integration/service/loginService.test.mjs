@@ -25,6 +25,7 @@ describe("Login Service Integration", () => {
     const redisOption = {...redisConfig.option, db:dbIndex}
     beforeAll(async () => {
         connectionPool = createPool(process.env.DATABASE_URL)
+        users = global.users
     }, )
     beforeEach(async () => {
         const redisUrl = process.env.REDIS_URL
@@ -33,7 +34,6 @@ describe("Login Service Integration", () => {
         connection = await connectionPool.getConnection()
         await connection.beginTransaction()
         userRepo = createUserRepo(connection)
-        users = await seedUsers(userRepo, 10)
         authRepo = createAuthRepo(connection)
         loginService = createLoginService({authRepo, jwtTokenService, passwordService})
     })

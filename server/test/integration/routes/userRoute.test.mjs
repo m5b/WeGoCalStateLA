@@ -16,6 +16,7 @@ describe("userRoute Integration", () => {
     let connection
     beforeAll(async () => {
         sqlPool = createPool(process.env.DATABASE_URL)
+        users = global.users
     }, )
 
     beforeEach(async () => {
@@ -24,7 +25,6 @@ describe("userRoute Integration", () => {
         userService = createUserService({userRepo, usernameService})
         jwtTokenService = createJWTTokenService()
         await connection.beginTransaction()
-        users = seedUsers(connection, 10)
     })
 
     afterEach(async () => {

@@ -21,13 +21,13 @@ describe("userRepo Integration", () => {
     let users
     beforeAll(async () => {
         connectionPool = createPool(process.env.DATABASE_URL)
+        users = global.users
     }, )
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
         userRepo = createUserRepo(connection)
         await connection.beginTransaction()
-        users = await seedUsers(userRepo, 10)
     })
 
     afterEach(async () => {

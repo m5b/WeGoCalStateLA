@@ -25,11 +25,12 @@ describe("loginRoute Integration", () => {
             lastOtp = otpCode;
         }),
     }
+    let users
     beforeAll(async () => {
         sqlPool = createPool(process.env.DATABASE_URL)
+        users = global.users
     }, )
     let userRepo
-    let users
     let voprfService
     beforeEach(async () => {
         connection = await sqlPool.getConnection()
@@ -41,7 +42,6 @@ describe("loginRoute Integration", () => {
         app = createApp(connection, redis, emailService)
         agent = request.agent(app)
         userRepo = createUserRepo(connection)
-        users = await seedUsers(userRepo, 10)
         voprfService = createVOPRFService({
             voprfClient,
             evaluator
@@ -236,9 +236,10 @@ describe("loginRoute Integration", () => {
             expect(res.body.status).toBe("success")
             expect(res.body.data).toHaveProperty("evaluationB64U")
             const emailHashB64U = await voprfService.unbindVOPRF(finData, res.body.data.evaluationB64U)
+            const password = user.password + "1"
             const res2 = await agent
                 .post("/api/auth/login/complete")
-                .send({emailHashB64U, password: user.password + "1"})
+                .send({emailHashB64U, password})
                 .expect(401)
                 .expect(cookies.not("set",{
                     name: "auth-token",

@@ -12,6 +12,7 @@ describe("authRepo Integration", () => {
     let users
     beforeAll(async () => {
         connectionPool = createPool(process.env.DATABASE_URL)
+        users = global.users
     }, )
 
     beforeEach(async () => {
@@ -19,7 +20,6 @@ describe("authRepo Integration", () => {
         authRepo = createAuthRepo(connection)
         let userRepo = createUserRepo(connection)
         await connection.beginTransaction()
-        users = await seedUsers(userRepo, 10)
     })
 
     afterEach(async () => {
