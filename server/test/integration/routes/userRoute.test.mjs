@@ -28,7 +28,7 @@ describe("userRoute Integration", () => {
     })
 
     afterEach(async () => {
-        connection.rollback()
+        await connection.rollback()
         connection.release()
     })
     afterAll(async ()=> {
