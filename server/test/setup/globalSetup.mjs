@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import {MySqlContainer} from "@testcontainers/mysql";
 import {runMigrations} from "../utils/migrateContainer.mjs";
 import {RedisContainer} from "@testcontainers/redis";
+import {generatePublicKey, Oprf, randomPrivateKey} from "@cloudflare/voprf-ts";
+import {Base64} from "js-base64";
 
 dotenv.config({ path: ".env.test" });
 

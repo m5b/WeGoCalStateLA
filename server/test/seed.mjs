@@ -6,17 +6,26 @@ import crypto from "crypto";
 import {openIdClient} from "../src/lib/openIdClient.mjs";
 import * as client from "openid-client";
 import {randomPKCECodeVerifier} from "openid-client";
+import {createVOPRFService} from "../src/services/auth/voprf/voprfService.mjs";
+import {evaluator, voprfClient} from "../src/lib/voprf.mjs";
 
+const voprfService = createVOPRFService({
+    voprfClient, evaluator
+})
 export async function createRandomUser() {
     const username = faker.internet.username()
-    const password = faker.internet.password()
+    const password = faker.internet.password({
+        length: 15,
+        prefix: "Ab1!",
+        pattern: /[A-Za-z0-9@$!%*?&]/,
+    });
     const email = faker.internet.email()
     const user = {
         userUuid: faker.string.uuid(),
         username,
         displayName: username,
         email,
-        emailHash: hkdf(email),
+        emailHash: await voprfService.handleServerVOPRF(email),
         password,
         passwordHash: await bcrypt.hash(password, 12),
     }
