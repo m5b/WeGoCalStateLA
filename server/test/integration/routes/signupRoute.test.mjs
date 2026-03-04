@@ -1,5 +1,4 @@
-import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
-import {setupRedis, setupSQL} from "../../utils/containerSetup.mjs";
+import {afterEach, beforeAll, beforeEach, describe, expect, it, vi, afterAll} from "vitest";
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createApp} from "../../../src/app/app.mjs";
@@ -11,7 +10,6 @@ import {createPool} from "mysql2/promise";
 
 describe("signupRoute", () => {
     let redis
-    let redisConnectionUrl
     let sqlPool
     let lastOtp = null;
     const emailService = {
@@ -30,7 +28,9 @@ describe("signupRoute", () => {
     }, )
 
     beforeEach(async () => {
-        redis = new Redis(redisConnectionUrl, redisOption)
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
+        redis = new Redis(redisUrl, redisOption)
         emailService.sendOTPEmail.mockClear()
         lastOtp = null
         connection = await sqlPool.getConnection()
@@ -39,13 +39,14 @@ describe("signupRoute", () => {
         await connection.beginTransaction()
     })
     afterEach(async () => {
-
-        connection.rollback()
+        await connection.rollback()
         connection.release()
         if(redis.status === 'end') return
         await redis.flushdb();
         await redis.quit()
-
+    })
+    afterAll(async () => {
+        await sqlPool.end()
     })
     describe("/api/auth/signup", () => {
         it("returns 200 and created the user", async () => {

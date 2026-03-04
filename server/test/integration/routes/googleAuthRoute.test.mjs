@@ -15,7 +15,6 @@ vi.mock('openid-client', async (importOriginal) => {
 });
 describe("googleAuthRoute Integration", () => {
     let redis
-    let redisConnectionUrl
     let sqlPool
     let lastOtp = null;
     const emailService = {
@@ -32,6 +31,8 @@ describe("googleAuthRoute Integration", () => {
         sqlPool = createPool(process.env.DATABASE_URL)
     }, )
     beforeEach(async () => {
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
         redis = new Redis(process.env.REDIS_URL, redisOption)
         emailService.sendOTPEmail.mockClear()
         connection = await sqlPool.getConnection()
@@ -46,7 +47,7 @@ describe("googleAuthRoute Integration", () => {
         await redis.quit()
     })
     afterEach(async () => {
-        connection.rollback()
+        await connection.rollback()
         connection.release()
         if(redis.status === 'end') return
         await redis.flushdb();
