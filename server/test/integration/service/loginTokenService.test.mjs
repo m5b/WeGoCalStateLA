@@ -5,6 +5,7 @@ import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createLoginTokenService} from "../../../src/services/auth/login/loginTokenService.mjs";
 import Redis from "ioredis";
 import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
+import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
 
 describe("loginToken Integration", () => {
     let loginTokenStore
@@ -40,7 +41,7 @@ describe("loginToken Integration", () => {
                 const {key, token} = await loginTokenService.saveLoginToken()
                 const val = await loginTokenStore.consume(key)
                 expect(val).not.toBeNull()
-                expect(val.createdAt).not.toBeNull()
+                expect(val).toHaveProperty("createdAt")
             }
         })
     })
