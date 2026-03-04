@@ -22,6 +22,6 @@ export function createLoginService({authRepo, passwordService, jwtTokenService})
             })
         }
         const token = jwtTokenService.issueAccessToken(user.userUuid)
-        return {token, user}
+        return token
     }
 }
