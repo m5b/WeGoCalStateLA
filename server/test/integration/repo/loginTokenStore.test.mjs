@@ -19,12 +19,14 @@ describe("LoginStore Integration", () => {
     const dbIndex = Number(process.env.VITEST_POOL_ID)
     const redisOption = {...redisConfig.option, db:dbIndex}
     beforeEach(() => {
-        redis = new Redis(process.env.REDIS_URL, redisOption)
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
+        redis = new Redis(redisUrl, redisOption)
         loginStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken, opt})
     })
     afterAll(async ()=> {
         if(redis.status === 'end') return
-        redis.quit()
+        await redis.quit()
     })
     afterEach(async () => {
         if(redis.status === 'end') return

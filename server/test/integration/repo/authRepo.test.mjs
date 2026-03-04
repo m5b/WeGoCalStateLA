@@ -23,7 +23,7 @@ describe("authRepo Integration", () => {
     })
 
     afterEach(async () => {
-        connection.rollback()
+        await connection.rollback()
         connection.release()
     })
 
