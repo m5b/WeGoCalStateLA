@@ -73,8 +73,7 @@ describe("oidcTokenStore Integration", () => {
             await expect(oidcService.completeOIDCSignup(key, redirectURL)).rejects.toBeInstanceOf(ServiceUnavailable)
         })
         it("thrown the Unauthorized due to empty key", async () => {
-            const {key, redirectURL} = await oidcService.startOIDCSignup()
-            await expect(oidcService.completeOIDCSignup(null, redirectURL)).rejects.toBeInstanceOf(UnauthorizedError)
+            await expect(oidcService.completeOIDCSignup("something", "something")).rejects.toBeInstanceOf(UnauthorizedError)
         })
     })
 })

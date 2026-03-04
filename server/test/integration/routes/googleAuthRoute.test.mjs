@@ -1,5 +1,4 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
-import {setupRedis, setupSQL} from "../../utils/containerSetup.mjs";
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createApp} from "../../../src/app/app.mjs";
@@ -7,7 +6,6 @@ import request, {cookies} from "supertest";
 import {faker} from "@faker-js/faker";
 import * as client from "openid-client";
 import {createPool} from "mysql2/promise";
-import connectionPool from "../../../src/lib/pool.mjs";
 vi.mock('openid-client', async (importOriginal) => {
     const actual = await importOriginal();
     return {

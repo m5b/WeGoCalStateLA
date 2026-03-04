@@ -72,10 +72,6 @@ describe("otpStore Integration", () => {
                 expect(verify.createdAt).not.toBeNull()
             }
         })
-        it("throw unauthorizedError due to key empty", async () => {
-            const verify = otpStore.consume(null)
-            await expect(verify).rejects.toBeInstanceOf(UnauthorizedError)
-        })
         it("throws ServiceUnavailable when redis is down", async () => {
             const {key, otpVal} = await createRandomOtp()
             await otpStore.save(key, otpVal)
@@ -84,15 +80,25 @@ describe("otpStore Integration", () => {
             await expect(otpStore.consume(key))
                 .rejects.toThrow("Signup service is temporarily unavailable. Please try again later.");
         })
-        it("throw UnauthorizedError when key can not found", async () => {
-            const {key, otpVal} = await createRandomOtp()
-            await expect(otpStore.consume(key)).rejects.toBeInstanceOf(UnauthorizedError)
-            await expect(otpStore.consume(key))
-                .rejects.toThrow("OTP expired. Please try again");
-        })
 
     })
-
+    describe("otpStore.incrementAttempts", () => {
+        it("increment the attempts of the key", async () => {
+            const {key, otpVal} = await createRandomOtp()
+            await otpStore.save(key, otpVal)
+            for(let i = 0; i < 10; i++){
+                const{attempts} = await otpStore.consume(key)
+                expect(attempts).toBe(i.toString())
+                await otpStore.incrementAttempts(key)
+            }
+        })
+        it("throws ServiceUnavailable when redis is down", async () => {
+            const {key, otpVal} = await createRandomOtp()
+            await otpStore.save(key, otpVal)
+            await redis.quit()
+            await expect(otpStore.incrementAttempts(key)).rejects.toBeInstanceOf(ServiceUnavailable)
+        })
+    })
     describe("otpStore.deleteOTP", () => {
         it("delete the key", async () => {
             for(let i = 0; i < count; i++){
@@ -104,31 +110,9 @@ describe("otpStore Integration", () => {
                 expect(verify.attempts).toBe("0")
                 expect(verify.createdAt).not.toBeNull()
                 await otpStore.deleteOTP(key)
-                await expect(otpStore.consume(key)).rejects.toBeInstanceOf(UnauthorizedError)
-                await expect(otpStore.consume(key))
-                    .rejects.toThrow("OTP expired. Please try again");
+                const verify2 = await otpStore.consume(key)
+                expect(verify2).toEqual({})
             }
         })
     })
-    describe("otpStore.verifyOTPAttempts", () => {
-        it("increment the otpAttempt", async () => {
-            const {key, otpVal} = await createRandomOtp()
-            await otpStore.save(key, otpVal)
-            for(let i = 0; i < 5; i++){
-                const otpVal = await otpStore.consume(key)
-                expect(otpVal.attempts).toBe(String(i))
-                await otpStore.verifyOTPAttempts(key, otpVal.attempts)
-            }
-            const otpVal2 = await otpStore.consume(key)
-            expect(otpVal2.attempts).toBe(String(5))
-            await expect(otpStore.verifyOTPAttempts(key, otpVal2.attempts)).rejects.toBeInstanceOf(UnauthorizedError)
-
-        })
-    })
-
-
-
-
-
-
 })

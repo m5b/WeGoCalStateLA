@@ -1,14 +1,14 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
-import {setupRedis} from "../../utils/containerSetup.mjs";
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createOTPStore} from "../../../src/repositories/redis/otpStore.mjs";
 import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
-import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
 import {createOTPService} from "../../../src/services/auth/otp/otpService.mjs";
 import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
 import {faker} from "@faker-js/faker";
 import bcrypt from "bcrypt";
+import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
+
 
 describe("otpService Integration", () => {
     let otpStore
@@ -16,7 +16,6 @@ describe("otpService Integration", () => {
     let jwtTokenService= createJWTTokenService()
     let redis
     let count = 10
-    let connectionURL
     let round = 10
     let opt = {
         ttl: 300
@@ -52,15 +51,29 @@ describe("otpService Integration", () => {
                 expect(otpVal.attempts).toBe("0")
                 expect(otpVal.createdAt).not.toBeNull()
             }
-
         })
     })
     describe("otpService.verifyOTP", () => {
-        it("verify the otp", async () => {
+        it("verify the otp successfully", async () => {
             const email = faker.internet.email()
             const {key, token, otpCode} = await otpService.saveOTP(email)
             await otpService.verifyOTP(key, otpCode)
-            await expect(otpService.verifyOTP(key, otpCode)).rejects.toBeInstanceOf(UnauthorizedError)
+        })
+        it("throw unauthorized error due to unexisted key", async () => {
+            await  expect(otpService.verifyOTP("no key",  "123456")).rejects.toBeInstanceOf(UnauthorizedError)
+        })
+        it("throw unauthorized error due to code unmatched", async () => {
+            const email = faker.internet.email()
+            const {key, token, otpCode} = await otpService.saveOTP(email)
+            await expect(otpService.verifyOTP(key, "123456")).rejects.toBeInstanceOf(UnauthorizedError)
+        })
+        it("throw unauthorize error due to attmept too much", async () => {
+            const email = faker.internet.email()
+            const {key, token, otpCode} = await otpService.saveOTP(email)
+            for(let i = 0; i < 5; i++){
+                await expect(otpService.verifyOTP(key, "123456")).rejects.toBeInstanceOf(UnauthorizedError)
+            }
+            await expect(otpService.verifyOTP(key, otpCode)).rejects.toThrow("Please request a new code, you have exceed the limit of this code")
 
         })
     })

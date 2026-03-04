@@ -7,6 +7,7 @@ import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
 import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
 import {faker} from "@faker-js/faker";
 import {createSignupTokenService} from "../../../src/services/auth/signup/signupTokenService.mjs";
+import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
 
 describe("signupTokenService Integration", () => {
     let signupTokenStore
@@ -62,5 +63,10 @@ describe("signupTokenService Integration", () => {
             expect(email).toBe(email2)
 
         })
+
+        it("throw unauthorized error due not found", async () => {
+            await expect(signupTokenService.verifySignupToken("coolkey")).rejects.toBeInstanceOf(UnauthorizedError)
+        })
+
     })
 })

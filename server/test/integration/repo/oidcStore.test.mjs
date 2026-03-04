@@ -70,15 +70,11 @@ describe("oidcStore Integration", () => {
                 expect(verify.nonce).toBe(nonce)
                 expect(verify.state).toBe(state)
                 expect(verify.createdAt).not.toBeNull()
-                const deleteFun = oidcStore.consume(key)
-                await expect(deleteFun).rejects.toBeInstanceOf(UnauthorizedError)
-                await expect(deleteFun).rejects.toThrow('Sign up session expired. Please try again')
-
+                const deleteFun = await oidcStore.consume(key)
+                expect(deleteFun).toEqual({})
             }
         })
-        it("throw Unauthorized due to consume invalid key", async () => {
-            await expect(oidcStore.consume(null)).rejects.toBeInstanceOf(UnauthorizedError)
-        })
+
         it("throws ServiceUnavailable when redis is down", async () => {
             await redis.quit()
             const {provider, codeVerifier, codeChallenge, nonce, state} = await createRandomOidc("google")

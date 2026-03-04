@@ -80,16 +80,9 @@ describe("signupTokenStore Integration", () => {
                 expect(verify.email).toBe(email)
                 expect(verify.verifiedMethod).toBe(verifiedMethod)
                 expect(verify.createdAt).not.toBeNull()
-                //deleted
-                await expect(signupTokenStore.consume(key)).rejects.toBeInstanceOf(UnauthorizedError)
-                await expect(signupTokenStore.consume(key))
-                    .rejects.toThrow("Sign up session expired. Please try again");
+                expect(await signupTokenStore.consume(key)).toEqual({})
 
             }
-        })
-        it("throw unauthorizedError due to key empty", async () => {
-            const verify = signupTokenStore.consume(null)
-            await expect(verify).rejects.toBeInstanceOf(UnauthorizedError)
         })
 
         it("throws ServiceUnavailable when redis is down", async () => {
@@ -104,12 +97,7 @@ describe("signupTokenStore Integration", () => {
             await expect(signupTokenStore.consume(key))
                 .rejects.toThrow("Signup service is temporarily unavailable. Please try again later.");
         })
-        it("throw UnauthorizedError when key can not found", async () => {
-            const {key, otpVal} = await createRandomOtp()
-            await expect(signupTokenStore.consume(key)).rejects.toBeInstanceOf(UnauthorizedError)
-            await expect(signupTokenStore.consume(key))
-                .rejects.toThrow("Sign up session expired. Please try again");
-        })
+
 
     })
 
