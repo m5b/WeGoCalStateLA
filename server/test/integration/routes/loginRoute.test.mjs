@@ -5,7 +5,7 @@ import Redis from "ioredis";
 import {createApp} from "../../../src/app/app.mjs";
 import request, {cookies} from "supertest";
 import {createUserRepo} from "../../../src/repositories/userRepository.mjs";
-import {seedUsers} from "../../seed.mjs";
+import {createRandomUser, seedUsers} from "../../seed.mjs";
 import {createVOPRFService} from "../../../src/services/auth/voprf/voprfService.mjs";
 import {faker} from "@faker-js/faker";
 import {evaluator, voprfClient} from "../../../src/lib/voprf.mjs";
@@ -130,6 +130,121 @@ describe("loginRoute Integration", () => {
                 expect(res2.body.status).toBe("success")
 
             }
+        })
+        it("return 503 due to redis down", async () => {
+            const user = users[0]
+            const {finData, evalReqB64U}= await voprfService.bindVOPRF(user.email)
+            const res = await agent
+                .post("/api/auth/login/voprf")
+                .send({evalReqB64U})
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .expect(cookies.set({
+                    name: "login_tx",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res.body.status).toBe("success")
+            expect(res.body.data).toHaveProperty("evaluationB64U")
+            const emailHashB64U = await voprfService.unbindVOPRF(finData, res.body.data.evaluationB64U)
+            await redis.quit()
+            const res2 = await agent
+                .post("/api/auth/login/complete")
+                .send({emailHashB64U, password: user.password })
+                .expect(503)
+                .expect(cookies.not("set",{
+                    name: "auth-token",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res2.body.status).toBe("fail")
+        })
+        it("return 401 due cookie not exist", async () => {
+            const user = users[1]
+            const res2 = await agent
+                .post("/api/auth/login/complete")
+                .send({emailHashB64U: user.emailHash, password: user.password })
+                .expect(401)
+                .expect(cookies.not("set",{
+                    name: "auth-token",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res2.body.status).toBe("fail")
+        })
+        it("return 401 due to key not found", async () => {
+            const user = users[0]
+            const {finData, evalReqB64U}= await voprfService.bindVOPRF(user.email)
+            const res = await agent
+                .post("/api/auth/login/voprf")
+                .send({evalReqB64U})
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .expect(cookies.set({
+                    name: "login_tx",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res.body.status).toBe("success")
+            expect(res.body.data).toHaveProperty("evaluationB64U")
+            await redis.flushdb()
+            const emailHashB64U = await voprfService.unbindVOPRF(finData, res.body.data.evaluationB64U)
+            const res2 = await agent
+                .post("/api/auth/login/complete")
+                .send({emailHashB64U, password: user.password })
+                .expect(401)
+                .expect(cookies.not("set",{
+                    name: "auth-token",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res2.body.status).toBe("fail")
+        })
+
+        it("return 404 due to not found user", async () => {
+            const user = await createRandomUser()
+            const {finData, evalReqB64U}= await voprfService.bindVOPRF(user.email)
+            const res = await agent
+                .post("/api/auth/login/voprf")
+                .send({evalReqB64U})
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .expect(cookies.set({
+                    name: "login_tx",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res.body.status).toBe("success")
+            expect(res.body.data).toHaveProperty("evaluationB64U")
+            const emailHashB64U = await voprfService.unbindVOPRF(finData, res.body.data.evaluationB64U)
+            const res2 = await agent
+                .post("/api/auth/login/complete")
+                .send({emailHashB64U, password: user.password })
+                .expect(404)
+                .expect(cookies.not("set",{
+                    name: "auth-token",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res2.body.status).toBe("fail")
+        })
+        it("return 401 due to password not found", async () => {
+            const user = users[0]
+            const {finData, evalReqB64U}= await voprfService.bindVOPRF(user.email)
+            const res = await agent
+                .post("/api/auth/login/voprf")
+                .send({evalReqB64U})
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .expect(cookies.set({
+                    name: "login_tx",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res.body.status).toBe("success")
+            expect(res.body.data).toHaveProperty("evaluationB64U")
+            const emailHashB64U = await voprfService.unbindVOPRF(finData, res.body.data.evaluationB64U)
+            const res2 = await agent
+                .post("/api/auth/login/complete")
+                .send({emailHashB64U, password: user.password + "1"})
+                .expect(401)
+                .expect(cookies.not("set",{
+                    name: "auth-token",
+                    options: ["path", "httponly", "samesite"],
+                }))
+            expect(res2.body.status).toBe("fail")
         })
     })
 })

@@ -18,7 +18,7 @@ export const emailHashPasswordSchema= z.object({
                     'password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
             }
         ),
-})
+}).strict()
 
 export const evalReqB64UhSchema = z.object({
     evalReqB64U: z
