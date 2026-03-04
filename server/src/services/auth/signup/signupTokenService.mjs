@@ -1,7 +1,6 @@
-import crypto from 'crypto'
 import {generateKey} from "../otp/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
-export function createSignupTokenService({signupTokenStore, jwtTokenService}){
+export function createSignupTokenService({signupTokenStore, jwtTokenService, opt ={}}){
     return {
         saveSignupToken,
         verifySignupToken,
@@ -9,6 +8,7 @@ export function createSignupTokenService({signupTokenStore, jwtTokenService}){
 
 
     async function saveSignupToken(email, verifiedMethod) {
+        const {ttl = 300} = opt
         const key = generateKey(32)
         await signupTokenStore.save(key, { email, verifiedMethod })
         //generate token for client side

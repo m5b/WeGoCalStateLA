@@ -1,21 +1,16 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
-import {setupRedis} from "../../utils/containerSetup.mjs";
-import Redis from "ioredis";
-import {redisConfig} from "../../../src/config/redisConfig.mjs";
-import {createSignupTokenStore} from "../../../src/repositories/redis/signupTokenStore.mjs";
-import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
 import {createJWTTokenService} from "../../../src/services/auth/jwt/jwtTokenService.mjs";
-import {faker} from "@faker-js/faker";
-import {createSignupTokenService} from "../../../src/services/auth/signup/signupTokenService.mjs";
-import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
+import {createLoginTokenStore} from "../../../src/repositories/redis/loginTokenStore.mjs";
+import {createSignupTokenService} from "./loginTokenService.test.mjs";
+import {redisConfig} from "../../../src/config/redisConfig.mjs";
+import {createLoginTokenService} from "../../../src/services/auth/login/loginTokenService.mjs";
 
-describe("signupTokenService Integration", () => {
-    let signupTokenStore
-    let signupTokenService
+describe("loginToken Integration", () => {
+    let loginTokenStore
+    let loginTokenService
     let jwtTokenService= createJWTTokenService()
     let redis
     let count = 10
-    let connectionURL
     let round = 10
     let opt = {
         ttl: 300
@@ -24,9 +19,9 @@ describe("signupTokenService Integration", () => {
     const redisOption = {...redisConfig.option, db:dbIndex}
     beforeEach(() => {
         redis = new Redis(process.env.REDIS_URL, redisOption)
-        signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
-        signupTokenService = createSignupTokenService({
-            signupTokenStore,
+        loginTokenStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken})
+        loginTokenService= createLoginTokenService({
+            loginTokenStore,
             jwtTokenService,
         })
     })
@@ -44,7 +39,7 @@ describe("signupTokenService Integration", () => {
                 const email = faker.internet.email()
                 const verifiedMethod = "otp"
                 const {key, token} = await signupTokenService.saveSignupToken(email, verifiedMethod)
-                const val = await signupTokenStore.consume(key)
+                const val = await loginTokenStore.consume(key)
 
                 expect(val).not.toBeNull()
                 expect(val.email).toBe(email)

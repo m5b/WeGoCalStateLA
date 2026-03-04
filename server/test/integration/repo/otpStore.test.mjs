@@ -69,7 +69,7 @@ describe("otpStore Integration", () => {
                 expect(verify.email).toBe(otpVal.email)
                 expect(verify.otpCodeHash).toBe(otpVal.otpCodeHash)
                 expect(verify.attempts).toBe("0")
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
             }
         })
         it("throws ServiceUnavailable when redis is down", async () => {
@@ -108,7 +108,7 @@ describe("otpStore Integration", () => {
                 expect(verify.email).toBe(otpVal.email)
                 expect(verify.otpCodeHash).toBe(otpVal.otpCodeHash)
                 expect(verify.attempts).toBe("0")
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
                 await otpStore.deleteOTP(key)
                 const verify2 = await otpStore.consume(key)
                 expect(verify2).toEqual({})

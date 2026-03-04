@@ -1,13 +1,12 @@
 import { buildRedisKey } from '../../util/redisKeyBuilder.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
-import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 
-export function createLoginTokenStore(redis, loginTokenPrefix) {
+export function createLoginTokenStore({redis, loginTokenPrefix, opt = {}}) {
     return {
         save,
         consume,
     }
-    async function save(key, {}, opt = {}) {
+    async function save(key) {
         //defalut time to live as 5 minute
         const { ttl = 300 } = opt
         // append the prefix to make system consistent
@@ -17,7 +16,7 @@ export function createLoginTokenStore(redis, loginTokenPrefix) {
             await redis
                 .multi()
                 .hset(prefixedKey, {
-                    createAt: Date.now(),
+                    createdAt: Date.now(),
                 })
                 .expire(prefixedKey, ttl)
                 .exec()
@@ -50,15 +49,10 @@ export function createLoginTokenStore(redis, loginTokenPrefix) {
         if (errGet || errDel) {
             throw new ServiceUnavailable(
                 null,
-                'Signup is temporarily unavailable. Please try again.'
+                'Service is temporarily unavailable. Please try again.'
             )
         }
-        if (!loginValue || Object.keys(loginValue).length === 0) {
-            throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
-                'Login session expired. Please try again'
-            )
-        }
+
         return loginValue
     }
 

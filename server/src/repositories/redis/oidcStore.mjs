@@ -3,7 +3,6 @@ import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 
 export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
-    const {ttl = 300} = opt
     return{
         save,
         consume
@@ -11,7 +10,6 @@ export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
     async function save(
         key,
         { provider, codeVerifier, nonce, state },
-        opt = {}
     ) {
 
         //defalut time to live as 5 minute

@@ -45,7 +45,7 @@ describe("oidcStore Integration", () => {
                 expect(verify.codeVerifier).toBe(codeVerifier)
                 expect(verify.nonce).toBe(nonce)
                 expect(verify.state).toBe(state)
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
                 expect(seconds).toBeLessThanOrEqual(opt.ttl)
             }
 
@@ -69,7 +69,7 @@ describe("oidcStore Integration", () => {
                 expect(verify.codeVerifier).toBe(codeVerifier)
                 expect(verify.nonce).toBe(nonce)
                 expect(verify.state).toBe(state)
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
                 const deleteFun = await oidcStore.consume(key)
                 expect(deleteFun).toEqual({})
             }

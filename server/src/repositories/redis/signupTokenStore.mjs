@@ -3,12 +3,12 @@ import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
 import { ServiceUnavailable } from '../../errors/serviceUnavailable.mjs'
 
 export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
-    const { ttl = 300 } = opt
     return {
         save,
         consume,
     }
     async function save(key, { email, verifiedMethod }) {
+        const { ttl = 300 } = opt
         //defalut time to live as 5 minute
         // append the prefix to make system consistent
         const prefixedKey = buildRedisKey(signupTokenPrefix, key)
@@ -19,7 +19,7 @@ export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
                 .hset(prefixedKey, {
                     email: email,
                     verifiedMethod: verifiedMethod,
-                    createAt: Date.now(),
+                    createdAt: Date.now(),
                 })
                 .expire(prefixedKey, ttl)
                 .exec()

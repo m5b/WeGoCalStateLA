@@ -48,7 +48,7 @@ describe("signupTokenStore Integration", () => {
                 const seconds = await redis.ttl(prefixKey);
                 expect(verify.email).toBe(email)
                 expect(verify.verifiedMethod).toBe(verifiedMethod)
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
                 expect(seconds).toBeLessThanOrEqual(opt.ttl)
             }
 
@@ -79,7 +79,7 @@ describe("signupTokenStore Integration", () => {
                 const verify = await signupTokenStore.consume(key)
                 expect(verify.email).toBe(email)
                 expect(verify.verifiedMethod).toBe(verifiedMethod)
-                expect(verify.createdAt).not.toBeNull()
+                expect(verify).toHaveProperty("createdAt")
                 expect(await signupTokenStore.consume(key)).toEqual({})
 
             }
