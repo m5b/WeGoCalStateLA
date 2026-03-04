@@ -74,6 +74,10 @@ export async function seedUsers(db, count){
     return users
 }
 
+export async function cleanSeed(db){
+
+}
+
 export async function seedThreads(users, db, perUser){
     const threads = []
     for(const user of users){
