@@ -1,4 +1,5 @@
 import usernameGenerator from "../util/usernameGenerator.mjs";
+import { getAvailableAnonymousName,assignAnonymousNameToUser } from "../repositories/anonymousRepository.mjs";
 
 const LOW_STOCK = 200;
 const REFILL_STOCK = 1000;
@@ -42,26 +43,16 @@ export async function refillLow(db) {
 }
 
 export async function assignAnonymous(userId) {
-    const connection = await connectionPool.getConnection();
-
     try {
-        await connection.beginTransaction();
-
-        const nameRow = await anonymousRepo.getAvailableAnonymousName(connection);
+        const nameRow = await getAvailableAnonymousName(); 
 
         if (!nameRow) {
             throw new Error("No anonymous names available");
         }
 
-        await anonymousRepo.assignAnonymousNameToUser(connection, nameRow.id, userId);
+        await assignAnonymousNameToUser(nameRow.id, userId);  
 
-        await connection.commit();
-
-        return nameRow.anonymous_name;
     } catch (err) {
-        await connection.rollback();
         throw err;
-    } finally {
-        connection.release();
     }
 }
