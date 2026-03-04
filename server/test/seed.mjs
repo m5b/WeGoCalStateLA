@@ -9,12 +9,16 @@ import {randomPKCECodeVerifier} from "openid-client";
 
 export async function createRandomUser() {
     const username = faker.internet.username()
+    const password = faker.internet.password()
+    const email = faker.internet.email()
     const user = {
         userUuid: faker.string.uuid(),
         username,
         displayName: username,
-        emailHash: hkdf(faker.internet.email()),
-        passwordHash: await bcrypt.hash(faker.internet.password(), 12),
+        email,
+        emailHash: hkdf(email),
+        password,
+        passwordHash: await bcrypt.hash(password, 12),
     }
     return user
 }
