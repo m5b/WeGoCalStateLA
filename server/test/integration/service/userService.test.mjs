@@ -16,7 +16,10 @@ describe("userService Integration", () => {
     let connection
     beforeAll(async () => {
         connectionPool = createPool(process.env.DATABASE_URL)
-    }, )
+        connection = await connectionPool.getConnection()
+        userRepo = createUserRepo(connection)
+        users = await seedUsers(userRepo, 10)
+    } )
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
@@ -24,7 +27,7 @@ describe("userService Integration", () => {
         usernameService = createUsernameService(userRepo)
         userService = createUserService({userRepo, usernameService})
         await connection.beginTransaction()
-        users = await seedUsers(userRepo, 10)
+
     })
 
     afterEach(async () => {
