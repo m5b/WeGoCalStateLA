@@ -1,5 +1,4 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from "vitest";
-import {setupRedis} from "../../utils/containerSetup.mjs";
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {createSignupTokenStore} from "../../../src/repositories/redis/signupTokenStore.mjs";
@@ -15,7 +14,6 @@ describe("signupTokenService Integration", () => {
     let jwtTokenService= createJWTTokenService()
     let redis
     let count = 10
-    let connectionURL
     let round = 10
     let opt = {
         ttl: 300
@@ -23,7 +21,9 @@ describe("signupTokenService Integration", () => {
     const dbIndex = Number(process.env.VITEST_POOL_ID)
     const redisOption = {...redisConfig.option, db:dbIndex}
     beforeEach(() => {
-        redis = new Redis(process.env.REDIS_URL, redisOption)
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
+        redis = new Redis(redisUrl, redisOption)
         signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
         signupTokenService = createSignupTokenService({
             signupTokenStore,
@@ -32,7 +32,7 @@ describe("signupTokenService Integration", () => {
     })
     afterAll(async ()=> {
         if(redis.status === 'end') return
-        redis.quit()
+        await redis.quit()
     })
     afterEach(async () => {
         if(redis.status === 'end') return

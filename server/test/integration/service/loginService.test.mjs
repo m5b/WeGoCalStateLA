@@ -27,7 +27,9 @@ describe("Login Service Integration", () => {
         connectionPool = createPool(process.env.DATABASE_URL)
     }, )
     beforeEach(async () => {
-        redis = new Redis(process.env.REDIS_URL, redisOption)
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
+        redis = new Redis(redisUrl, redisOption)
         connection = await connectionPool.getConnection()
         await connection.beginTransaction()
         userRepo = createUserRepo(connection)
@@ -37,10 +39,10 @@ describe("Login Service Integration", () => {
     })
     afterAll(async ()=> {
         if(redis.status === 'end') return
-        redis.quit()
+        await redis.quit()
     })
     afterEach(async () => {
-        connection.rollback()
+        await connection.rollback()
         connection.release()
         if(redis.status === 'end') return
         await redis.flushdb();
