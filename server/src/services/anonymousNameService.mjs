@@ -41,4 +41,27 @@ export async function refillLow(db) {
     }
 }
 
-//TO DO: Assigning a available anonymous name to a user function goes below
+export async function assignAnonymous(userId) {
+    const connection = await connectionPool.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        const nameRow = await anonymousRepo.getAvailableAnonymousName(connection);
+
+        if (!nameRow) {
+            throw new Error("No anonymous names available");
+        }
+
+        await anonymousRepo.assignAnonymousNameToUser(connection, nameRow.id, userId);
+
+        await connection.commit();
+
+        return nameRow.anonymous_name;
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
+}

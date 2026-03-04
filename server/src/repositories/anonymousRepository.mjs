@@ -1,16 +1,22 @@
 import connectionPool from "../lib/pool.mjs";
+  
 
-export async function totalFreeProfiles(params) {
-    
-    let total = 0;
-
-    return total ;// total numbers not taken
+export async function getAvailableAnonymousName() {
+    const [rows] = await connectionPool.query(
+        `SELECT id, anonymous_name
+         FROM anonymous_name
+         WHERE user_id IS NULL
+         LIMIT 1
+         FOR UPDATE`
+    );
+    return rows[0] || null;
 }
 
-export async function findByUserID(userId) {
-    const [row] = await connectionPool.query(
-        'select user_id from anonymous_name where user_id = ? ',
-        [userId]
-    )
-    return row[0] || null
+export async function assignAnonymousNameToUser(anonymousId, userId) {
+    await connectionPool.query(
+        `UPDATE anonymous_name
+         SET user_id = ?
+         WHERE id = ?`,
+        [userId, anonymousId]
+    );
 }
