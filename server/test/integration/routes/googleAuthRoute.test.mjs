@@ -32,10 +32,9 @@ describe("googleAuthRoute Integration", () => {
         sqlPool = createPool(process.env.DATABASE_URL)
     }, )
     beforeEach(async () => {
-        redis = new Redis(redisConnectionUrl, redisOption)
+        redis = new Redis(process.env.REDIS_URL, redisOption)
         emailService.sendOTPEmail.mockClear()
         connection = await sqlPool.getConnection()
-        redis = new Redis(redisConnectionUrl, redisConfig.option)
         app = createApp(connection, redis, emailService)
         agent = request.agent(app)
         await connection.beginTransaction()
