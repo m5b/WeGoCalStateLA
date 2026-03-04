@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import {generateKey} from "../otp/keyGenerator.mjs";
+import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 export function createSignupTokenService({signupTokenStore, jwtTokenService}){
     return {
         saveSignupToken,
@@ -16,7 +17,13 @@ export function createSignupTokenService({signupTokenStore, jwtTokenService}){
     }
 
     async function verifySignupToken(key) {
-        const {email} = await signupTokenStore.consume(key)
-        return email
+        const signupValue = await signupTokenStore.consume(key)
+        if (!signupValue || Object.keys(signupValue).length === 0) {
+            throw new UnauthorizedError(
+                { error: 'invalid_auth_response' },
+                'Sign up session expired. Please try again'
+            )
+        }
+        return signupValue.email
     }
 }

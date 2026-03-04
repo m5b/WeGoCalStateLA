@@ -6,8 +6,8 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
     return{
         save,
         consume,
-        verifyOTPAttempts,
-        deleteOTP
+        deleteOTP,
+        incrementAttempts
     }
     async function save(
         key,
@@ -38,9 +38,6 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
     }
 
     async function consume(key) {
-        if(!key){
-            throw new UnauthorizedError(null, "Invalid Key")
-        }
         const prefixedKey = buildRedisKey(otpPrefix, key)
         let otpValue
         try {
@@ -52,34 +49,9 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
                 'Signup service is temporarily unavailable. Please try again later.'
             )
         }
-        if (!otpValue|| Object.keys(otpValue).length === 0) {
-            throw new UnauthorizedError(
-                { otp : "Record don't exist" },
-                'OTP expired. Please try again'
-            )
-        }
         return otpValue
     }
 
-    //increment the otp attempt by one
-    async function verifyOTPAttempts(key , attempts) {
-        const prefixedKey = buildRedisKey(otpPrefix, key)
-        if (attempts >= 5) {
-            await deleteOTP(key)
-            throw new UnauthorizedError(
-                {otp: "Record don't exist"},
-                'Please request a new code, you have exceed the limit of this code'
-            )
-        }
-        try {
-           await redis.hincrby(prefixedKey, 'attempts', 1)
-        } catch (err) {
-            throw new ServiceUnavailable(
-                null,
-                'Signup is temporarily unavailable. Please try again.'
-            )
-        }
-    }
 
     async function deleteOTP(key) {
         const prefixedKey = buildRedisKey(otpPrefix, key)
@@ -89,6 +61,18 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
             throw new ServiceUnavailable(
                 null,
                 'OTP session is expired. please try again later.'
+            )
+        }
+    }
+
+    async function incrementAttempts(key){
+        const prefixedKey = buildRedisKey(otpPrefix, key)
+        try {
+            await redis.hincrby(prefixedKey, 'attempts', 1)
+        } catch (err) {
+            throw new ServiceUnavailable(
+                null,
+                'Signup is temporarily unavailable. Please try again.'
             )
         }
     }

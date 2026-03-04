@@ -1,6 +1,7 @@
 import * as client from 'openid-client'
 import { BadRequestError } from '../../../errors/badRequestError.mjs'
 import {generateKey} from "../otp/keyGenerator.mjs";
+import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 
 export function createOIDCService({oidcStore, jwtTokenService, openIdClient, openIdConfig, provider}){
     return{
@@ -45,7 +46,14 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
     }
 
     async function completeOIDCSignup(key, currentURL) {
-        const { codeVerifier, state, nonce } = await oidcStore.consume(key)
+        const oidcValue = await oidcStore.consume(key)
+        if (!oidcValue || Object.keys(oidcValue).length === 0) {
+            throw new UnauthorizedError(
+                null,
+                'Sign up session expired. Please try again'
+            )
+        }
+        const { codeVerifier, state, nonce } = oidcValue
         let token
         try {
             token = await client.authorizationCodeGrant(

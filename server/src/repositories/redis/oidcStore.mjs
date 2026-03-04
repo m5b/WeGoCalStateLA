@@ -40,9 +40,6 @@ export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
     }
 
     async function consume(key) {
-        if(!key){
-           throw new UnauthorizedError(null, "Invalid Key")
-        }
         const prefixedKey = buildRedisKey(oidcPrefix, key)
         let replies
         try {
@@ -66,12 +63,7 @@ export function createOIDCStore({redis, oidcPrefix, opt = {}}) {
                 'Signup service is temporarily unavailable. Please try again.'
             )
         }
-        if (!oidcValue || Object.keys(oidcValue).length === 0) {
-            throw new UnauthorizedError(
-                null,
-                'Sign up session expired. Please try again'
-            )
-        }
+
         return oidcValue
     }
 }

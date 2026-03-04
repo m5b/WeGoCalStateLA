@@ -32,9 +32,6 @@ export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
     }
 
     async function consume(key) {
-        if(!key){
-            throw new UnauthorizedError(null , "Invalid Key")
-        }
         const prefixedKey = buildRedisKey(signupTokenPrefix, key)
         let replies
         try {
@@ -58,12 +55,7 @@ export function createSignupTokenStore({redis, signupTokenPrefix, opt = {}}){
                 'Signup service is temporarily unavailable. Please try again.'
             )
         }
-        if (!signupValue || Object.keys(signupValue).length === 0) {
-            throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
-                'Sign up session expired. Please try again'
-            )
-        }
+
         return signupValue
     }
 }

@@ -27,10 +27,25 @@ export function createOTPService({otpStore, jwtTokenService, round = 10}){
 
     async function verifyOTP(key, otpCode) {
         //retreive th target value from redis
-        const { email, otpCodeHash, attempts, createAt } = await otpStore.consume(key)
-        //verify if user submit too many attemps
-        await otpStore.verifyOTPAttempts(key, attempts)
+        const otpValue = await otpStore.consume(key)
+        //check if exist
+        if (!otpValue|| Object.keys(otpValue).length === 0) {
+            throw new UnauthorizedError(
+                { otp : "Record don't exist" },
+                'OTP expired. Please try again'
+            )
+        }
+        //increment the key because it exist
+        await otpStore.incrementAttempts(key)
+        const {email, otpCodeHash, attempts} = otpValue
 
+        if(attempts >= 5) {
+            await otpStore.deleteOTP(key)
+            throw new UnauthorizedError(
+                {otp: "Record don't exist"},
+                'Please request a new code, you have exceed the limit of this code'
+            )
+        }
         if (!(await bcrypt.compare(otpCode, otpCodeHash))) {
             throw new UnauthorizedError(
                 {otp: "Not matched"},
