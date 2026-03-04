@@ -15,7 +15,7 @@ export function createLoginService({authRepo, passwordService, jwtTokenService})
                 email: 'Can not found the user of the given email',
             })
         }
-        const matched = passwordService.comparePassword(password, user.passwordHash)
+        const matched = await passwordService.comparePassword(password, user.passwordHash)
         if (!matched) {
             throw new UnauthorizedError({
                 password: 'Unmatch password',

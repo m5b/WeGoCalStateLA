@@ -20,6 +20,20 @@ export const emailHashPasswordSchema= z.object({
         ),
 }).strict()
 
+export const passwordSchema = z.object({
+    password: z
+        .string()
+        .min(8, { message: 'password must be at least 5 characters long' })
+        .max(21, { message: 'password must be at most 21 characters long' })
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+            {
+                message:
+                    'password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+            }
+        ),
+}).strict()
+
 export const evalReqB64UhSchema = z.object({
     evalReqB64U: z
         .string()
