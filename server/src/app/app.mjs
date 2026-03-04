@@ -43,7 +43,7 @@ export function createApp(db, redis, emailService){
     app.use(express.json())
     app.use(cookieParser())
     //launch up the store / repo
-    const loginTokenStore = createLoginTokenStore(redis, redisKeysConfig.loginToken)
+    const loginTokenStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken})
     const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
@@ -76,7 +76,7 @@ export function createApp(db, redis, emailService){
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
-    const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService })
+    const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({signupTokenService: signupTokenService, voprfService: voprfService, userService: userService, passwordService : passwordService})
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({threadService: threadService, commentService: commentService})
