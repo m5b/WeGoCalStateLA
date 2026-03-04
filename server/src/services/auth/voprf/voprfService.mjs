@@ -2,6 +2,7 @@ import { hkdf} from '../../../util/hash.mjs'
 import { ServiceUnavailable } from '../../../errors/serviceUnavailable.mjs'
 import {base64UrlStringToUint8Array, uint8ArrayToBase64UrlString} from '../../../util/encoding.mjs'
 import {Evaluation, EvaluationRequest} from "@cloudflare/voprf-ts";
+import {BadRequestError} from "../../../errors/badRequestError.mjs";
 
 export function createVOPRFService({voprfClient, evaluator}){
     return{
@@ -20,11 +21,16 @@ export function createVOPRFService({voprfClient, evaluator}){
     }
     //used for signup and login
     async function evaluateVOPRF(evalReqB64U) {
+        let evalReq
+        try{
+           const evalReqUint8 = base64UrlStringToUint8Array(evalReqB64U)
+           evalReq =  EvaluationRequest.deserialize(evaluator.suite, evalReqUint8)
+        }
+        catch (err){
+            throw new BadRequestError(null, "Invalid evalReq")
+        }
         try {
-            const evalReqUint8 = base64UrlStringToUint8Array(evalReqB64U)
-            const evalReq =  EvaluationRequest.deserialize(evaluator.suite, evalReqUint8)
             const evaluation = await evaluator.blindEvaluate(evalReq)
-
             return uint8ArrayToBase64UrlString(evaluation.serialize())
         } catch (err) {
             throw new ServiceUnavailable(
