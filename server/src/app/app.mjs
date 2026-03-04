@@ -36,6 +36,7 @@ import { createThreadRouter } from '../routes/threadsRoutes.mjs'
 import { createCommentRouter } from '../routes/commentsRoutes.mjs'
 import { createUsernameService } from '../services/users/usernameGenerator.mjs'
 import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
+import {createLoginService} from "../services/auth/login/loginService.mjs";
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -67,7 +68,7 @@ export function createApp(db, redis, emailService){
     const googleAuthService = createGoogleAuthService(createOIDCService(
         {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
     ))
-    const loginService = createLoginTokenService({loginTokenStore, jwtTokenService})
+    const loginService= createLoginService({authRepo, passwordService, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo)
