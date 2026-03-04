@@ -10,7 +10,6 @@ import connectionPool from "../../../src/lib/pool.mjs";
 
 describe("emailOTP route", () => {
     let redis
-    let redisConnectionUrl
     let sqlPool
     let lastOtp = null;
     const emailService = {
@@ -28,7 +27,9 @@ describe("emailOTP route", () => {
     }, )
 
     beforeEach(async () => {
-        redis = new Redis(redisConnectionUrl, redisOption)
+        const redisUrl = process.env.REDIS_URL
+        if (!redisUrl) throw new Error("REDIS_URL missing (ioredis would fallback to 127.0.0.1:6379)")
+        redis = new Redis(redisUrl, redisOption)
         emailService.sendOTPEmail.mockClear()
         lastOtp = null
         connection = await sqlPool.getConnection()
@@ -42,7 +43,7 @@ describe("emailOTP route", () => {
         await redis.quit()
     })
     afterEach(async () => {
-        connection.rollback()
+        await connection.rollback()
         connection.release()
         if(redis.status === 'end') return
         await redis.flushdb();
