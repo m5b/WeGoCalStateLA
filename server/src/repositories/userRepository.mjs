@@ -5,8 +5,10 @@ export function createUserRepo(db){
         findByUsername,
         findByUuid,
         updateByUserId,
+        updateByUserUuid,
         deleteByUserId,
         deleteByEmailHash,
+        deleteByUserUuid,
         insertUser,
         getCount,
     }
@@ -62,6 +64,17 @@ export function createUserRepo(db){
 
     }
 
+    async function updateByUserUuid(userUuid, sqlQuery, dataList){
+        dataList.push(userUuid)
+        const [result] = await db.query(
+            sqlQuery + 'where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            dataList
+        )
+        const existed = result.affectedRows > 0
+        const changed = result.changedRows > 0
+        return {existed, changed}
+    }
+
     //soft delete
     async function deleteByUserId(userId) {
         const [result] = await db.query(
@@ -75,6 +88,14 @@ export function createUserRepo(db){
         const [result] = await db.query(
             'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where email_hash= ? ',
             [emailHash]
+        )
+        return result.affectedRows > 0
+    }
+
+    async function deleteByUserUuid(userUuid) {
+        const [result] = await db.query(
+            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where user_uuid = UUID_TO_BIN(?) ',
+            [userUuid]
         )
         return result.affectedRows > 0
     }

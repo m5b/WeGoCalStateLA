@@ -11,6 +11,7 @@ import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
 import dbMapper from '../../../src/util/dbMapper.mjs'
 import { createRandomUser, seedUsers } from '../../seed.mjs'
 import { createPool} from "mysql2/promise";
+import {faker} from "@faker-js/faker";
 
 
 
@@ -138,6 +139,39 @@ describe("userRepo Integration", () => {
             }
         })
     })
+
+    describe("userRepo.updateByUserUuid", () => {
+        it("update the user", async () =>{
+            const sqlQuery = 'Update users set display_name = ?'
+            for(let i = 0; i < users.length; i++){
+                const {existed, changed} = await userRepo.updateByUserUuid(users[i].userUuid, sqlQuery, ["new name"])
+                expect(existed).toBeTruthy()
+                expect(changed).toBeTruthy()
+                const user = dbMapper.fromDb(await userRepo.findByUserId(users[i].userId))
+                expect(user).not.toBeNull()
+                expect(user.displayName).toBe("new name")
+                expect(user.userId).toBe(users[i].userId)
+                expect(user.userUuid).toBe(users[i].userUuid)
+                expect(user.username).toBe(users[i].username)
+                expect(user.emailHash).toEqual(users[i].emailHash)
+            }
+        })
+        it("did not update user due to non existence" ,async () => {
+            const sqlQuery = 'Update users set display_name = ?'
+            for(let i = 0; i < users.length; i++){
+                const uuid = faker.string.uuid()
+                const {existed, changed} = await userRepo.updateByUserUuid(uuid , sqlQuery, ["new name"])
+                expect(existed).toBeFalsy()
+                expect(changed).toBeFalsy()
+            }
+            expect(await userRepo.getCount()).toBe(users.length)
+            for(let i = 0; i< users.length; i++){
+                const user = await userRepo.findByUserId(users[i].userId)
+                expect(user.displayName).not.toBeNull()
+                expect(user.displayName).not.toBe(users[i].displayName)
+            }
+        })
+    })
     describe("userRepo.DeleteUser", () => {
         it.each([
             {
@@ -149,6 +183,13 @@ describe("userRepo Integration", () => {
                 call: async (user) =>
                     await userRepo.deleteByEmailHash(user.emailHash),
             },
+            {
+                name: "deleteByUserUuid",
+                call: async (user) =>
+                    await userRepo.deleteByUserUuid(user.userUuid)
+
+            }
+
         ])('$name: delete the user', async ({ call }) => {
             for (let i = 0; i < users.length; i++) {
                 expect(await userRepo.getCount()).toBe(users.length - i)
@@ -184,6 +225,12 @@ describe("userRepo Integration", () => {
                 call: async (user) =>
                     await userRepo.deleteByEmailHash(user.emailHash),
             },
+            {
+                name: "deleteByUserUuid",
+                call: async (user) =>
+                    await userRepo.deleteByUserUuid(user.userUuid)
+
+            }
         ])('$name: delete the user', async ({ call }) => {
             for (let i = 0; i < users.length; i++) {
                 const user = await createRandomUser()
