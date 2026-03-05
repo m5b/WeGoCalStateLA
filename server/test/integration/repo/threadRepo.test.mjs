@@ -219,8 +219,8 @@ describe("threadRepo Integration", () => {
                expect(deleted).toBeTruthy()
                const verify = dbMapper.fromDb(await threadRepo.findByThreadId(thread.threadId))
                console.log(verify)
-               expect(verify.title).toBe("[Deleted]")
-               expect(verify.content).toBe("[Deleted]")
+               expect(verify.title).toBe("[deleted]")
+               expect(verify.content).toBe("[deleted]")
                expect(verify.deletedAt).not.toBeNull()
                expect(verify.status).toBe("delete")
            }
