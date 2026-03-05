@@ -200,10 +200,11 @@ export function createThreadRepo(db){
         return result.insertId
     }
 
-    async function updateByThreadId(threadId, sqlQuery, dataList) {
+    async function updateByThreadId({threadId, userId, sqlQuery, dataList}) {
         dataList.push(threadId)
+        dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + 'where thread_id = ? and deleted_at is NULL',
+            sqlQuery + 'where thread_id = ? and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -211,10 +212,11 @@ export function createThreadRepo(db){
         return {existed, changed}
     }
 
-    async function updateByThreadUuid(threadUuid, sqlQuery, dataList) {
+    async function updateByThreadUuid({threadUuid, userId, sqlQuery, dataList}) {
         dataList.push(threadUuid)
+        dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + 'where thread_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            sqlQuery + 'where thread_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0

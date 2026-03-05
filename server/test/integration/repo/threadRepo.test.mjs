@@ -14,7 +14,6 @@ import dbMapper from "../../../src/util/dbMapper.mjs";
 import {createRandomThread} from "../../seed.mjs";
 import {faker} from "@faker-js/faker";
 import buildPatchQuery from "../../../src/util/buildPatchQuery.mjs";
-import {buildAuthorizationUrlWithJAR} from "openid-client";
 
 
 describe("threadRepo Integration", () => {
@@ -157,12 +156,12 @@ describe("threadRepo Integration", () => {
         it.each([
             {
                 name: "updateByThreadId",
-                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadId(thread.threadId, sqlQuery, dataList)
+                call: async (thread, userId, sqlQuery, dataList) => await threadRepo.updateByThreadId({threadId: thread.threadId, userId, sqlQuery, dataList})
 
             },
             {
                 name: "updateByThreadUuid",
-                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadUuid(thread.threadUuid, sqlQuery, dataList)
+                call: async (thread, userId, sqlQuery, dataList) => await threadRepo.updateByThreadUuid({threadUuid: thread.threadUuid, userId, sqlQuery, dataList})
             }
         ])("$name update the thread", async ({call}) => {
             for(const thread of threads){
@@ -172,7 +171,7 @@ describe("threadRepo Integration", () => {
                     title,
                     content
                 })
-                const {existed, changed} = await call(thread, sqlQuery, dataList)
+                const {existed, changed} = await call(thread, thread.userId, sqlQuery, dataList)
                 expect(existed).toBeTruthy()
                 const verify = dbMapper.fromDb(await threadRepo.findByThreadId(thread.threadId))
                 expect(verify.title).toBe(title)
@@ -182,17 +181,17 @@ describe("threadRepo Integration", () => {
         it.each([
             {
                 name: "updateByThreadId",
-                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadId(thread.threadId, sqlQuery, dataList)
+                call: async (thread, userId, sqlQuery, dataList) => await threadRepo.updateByThreadId({threadId: thread.threadId, userId, sqlQuery, dataList})
 
             },
             {
                 name: "updateByThreadUuid",
-                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadUuid(thread.threadUuid, sqlQuery, dataList)
+                call: async (thread, userId, sqlQuery, dataList) => await threadRepo.updateByThreadUuid({threadUuid: thread.threadUuid, userId, sqlQuery, dataList})
             }
-        ])("$name update the thread", async ({call}) => {
+        ])("$name did not found the thread", async ({call}) => {
             const thread = {
                 threadId: 10000,
-                threadUuid: faker.string.uuid()
+                threadUuid: faker.string.uuid(),
             }
             const title = faker.lorem.sentence()
             const content = faker.lorem.paragraph()
@@ -200,7 +199,7 @@ describe("threadRepo Integration", () => {
                 title,
                 content
             })
-            const {existed, changed} = await call(thread, sqlQuery, dataList)
+            const {existed, changed} = await call(thread, users[0].userId, sqlQuery, dataList)
             expect(existed).toBeFalsy()
         })
     })
