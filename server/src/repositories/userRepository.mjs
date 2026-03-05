@@ -78,7 +78,7 @@ export function createUserRepo(db){
     //soft delete
     async function deleteByUserId(userId) {
         const [result] = await db.query(
-            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL  where user_id = ? ',
+            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL  where user_id = ? AND deleted_at IS NULL',
             [userId]
         )
         return result.affectedRows > 0
@@ -86,7 +86,7 @@ export function createUserRepo(db){
 
     async function deleteByEmailHash(emailHash) {
         const [result] = await db.query(
-            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where email_hash= ? ',
+            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where email_hash= ? AND deleted_at IS NULL',
             [emailHash]
         )
         return result.affectedRows > 0
@@ -94,7 +94,7 @@ export function createUserRepo(db){
 
     async function deleteByUserUuid(userUuid) {
         const [result] = await db.query(
-            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where user_uuid = UUID_TO_BIN(?) ',
+            'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where user_uuid = UUID_TO_BIN(?) AND deleted_at IS NULL',
             [userUuid]
         )
         return result.affectedRows > 0
