@@ -13,29 +13,27 @@ export function createUserRouter(userService){
     const router = Router()
 
     router.get('/me', requireJWTAuth, async (req, res) => {
-        const user = await userService.getByUserId(req.userId)
+        const user = await userService.getByUuid(req.userUuid)
         const userDisplay = new UserDto(user, { scope: 'private' })
         res.status(200).json(jsend.success({ user: userDisplay }))
     })
 
     router.patch('/me', requireJWTAuth, async (req, res) => {
-        const user = userService.getByUserId(req.userId)
         const payload = userSchema.parse(req.body)
-        const result = await userService.patchByUserId(user.userId, payload)
+        const user = await userService.patchByUserUuid(req.userUuid, payload)
         const userDisplay = new UserDto(user, { scope: 'private' })
         res.status(200).send(jsend.success({ user: userDisplay }))
     })
 
     router.delete('/me', requireJWTAuth, async (req, res) => {
-        const result = await userService.deleteByUserId(req.userId)
-        res.status(200).send(jsend.success())
+        const result = await userService.deleteByUserUuid(req.userUuid)
+        res.status(200).send(jsend.success(null))
     })
 
     router.get('/profile/:username', async (req, res) => {
         const { username } = usernameSchema.parse({ username: req.params.username })
         const user = await userService.getByUsername(username)
         const userDisplay = new UserDto(user, { scope: 'public' })
-
         res.status(200).json(jsend.success({ user: userDisplay }))
     })
 
