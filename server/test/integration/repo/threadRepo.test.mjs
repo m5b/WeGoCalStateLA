@@ -7,27 +7,28 @@ import {
     afterAll,
     beforeEach,
 } from 'vitest'
-import { MySqlContainer } from '@testcontainers/mysql'
 import { createPool } from 'mysql2/promise'
-import { runMigrations } from '../../utils/migrateContainer.mjs'
 import { createUserRepo } from '../../../src/repositories/userRepository.mjs'
-import dbMapper from '../../../src/util/dbMapper.mjs'
-import { createRandomUser, seedUsers } from '../../seed.mjs'
 import { createThreadRepo } from '../../../src/repositories/threadsRepository.mjs'
-
+import dbMapper from "../../../src/util/dbMapper.mjs";
+import {createRandomThread} from "../../seed.mjs";
+import {faker} from "@faker-js/faker";
+import buildPatchQuery from "../../../src/util/buildPatchQuery.mjs";
+import {call} from "express";
 
 
 describe("userRepo Integration", () => {
-    let sqlContainer
     let connectionPool
     let userRepo
     let threadRepo
     let connection
     let users
+    let threads
     beforeAll(async () => {
-        connectionPool = await createPool(process.env.DATABASE_URL)
-
-    }, )
+        connectionPool = createPool(process.env.DATABASE_URL)
+        users = global.users
+        threads = global.threads
+    },)
 
     beforeEach(async () => {
         connection = await connectionPool.getConnection()
@@ -41,9 +42,184 @@ describe("userRepo Integration", () => {
         connection.release()
     })
 
-    afterAll(async() => {
+    afterAll(async () => {
         await connectionPool.end()
     })
 
+    describe("threadRepo findThread", () => {
+        it.each([
+            {
+                name: "findByThreadId",
+                call: async (thread) => await threadRepo.findByThreadId(thread.threadId)
+            },
+            {
+                name: "findByThreadUuid",
+                call: async (thread) => await threadRepo.findByThreadUuid(thread.threadUuid)
+            },
+        ])("$name: successfully find the thread", async ({call}) => {
+            for(let i = 0; i < threads.length; i++){
+                const thread = threads[i]
+                const verify = dbMapper.fromDb(await call(thread))
+                console.log(verify)
+                expect(verify.threadId).toBe(thread.threadId)
+                expect(verify.threadUuid).toBe(thread.threadUuid)
+                expect(verify.title).toBe(thread.title)
+                expect(verify.content).toBe(thread.content)
+                expect(verify.status).toBe("active")
+                expect(verify).toHaveProperty("createdAt")
+                expect(verify).toHaveProperty("updatedAt")
+                expect(verify.deletedAt).toBeNull()
+                expect(verify.userId).toBe(thread.userId)
+                expect(verify.userUuid).toBe(thread.userUuid)
+                expect(verify.username).toBe(thread.username)
+                expect(verify.displayName).toBe(verify.displayName)
+            }
+        })
+        it.each([
+            {
+                name: "findByThreadId",
+                call: async (thread) => await threadRepo.findByThreadId(thread.threadId)
+            },
+            {
+                name: "findByThreadUuid",
+                call: async (thread) => await threadRepo.findByThreadUuid(thread.threadUuid)
+            },
+        ])("$name: does not find the thread", async ({call}) => {
+            const thread = createRandomThread(users[0].userId)
+            const verify = dbMapper.fromDb(await call(thread))
+            expect(verify).toBeNull()
+        })
+    })
+    describe("threadRepo findThreads", () => {
+        it.each([
+            {
+                name: "findByUserId",
+                call: async (user) => await threadRepo.findByUserId(user.userId)
+            },
+            {
+                name: "findByUserUuid",
+                call: async (user) => await threadRepo.findByUserUuid(user.userUuid)
+            }
+        ])("$name: find the threads", async ({call}) => {
+            for(const user of users){
+                const threads2= dbMapper.fromDb(await call(user))
+                console.log(threads)
+                for(const thread of threads2){
+                    expect(thread.userId).toBe(user.userId)
+                    expect(thread.userUuid).toBe(user.userUuid)
+                    expect(thread).toHaveProperty("threadId")
+                    expect(thread).toHaveProperty("threadUuid")
+                    expect(thread).toHaveProperty("title")
+                    expect(thread).toHaveProperty("content")
+                    expect(thread).toHaveProperty("createdAt")
+                    expect(thread).toHaveProperty("updatedAt")
+                    expect(thread).toHaveProperty("deletedAt")
+                    expect(thread.status).toBe("active")
+                    expect(thread.username).toBe(user.username)
+                    expect(thread.displayName).toBe(user.displayName)
+                }
+            }
+        })
+        it.each([
+            {
+                name: "findByUserId",
+                call: async (user) => await threadRepo.findByUserId(user.userId)
+            },
+            {
+                name: "findByUserUuid",
+                call: async (user) => await threadRepo.findByUserUuid(user.userUuid)
+            }
+        ])("$name: find the threads", async ({call}) => {
+            const verify  = await call({userId: 10000, userUuid: faker.string.uuid()})
+            expect(verify.length).toBe(0)
+        })
 
+    })
+    describe("threadRepo insertThread", () => {
+        it("create the thread", async () => {
+            const thread = createRandomThread(users[0].userId)
+            const threadId = await threadRepo.insertThread(thread)
+            const verify = dbMapper.fromDb(await threadRepo.findByThreadId(threadId))
+            console.log(thread)
+            console.log(verify)
+            expect(verify.title).toBe(thread.title)
+            expect(verify.content).toBe(thread.content)
+            expect(verify.threadUuid).toBe(thread.threadUuid)
+            expect(verify.userId).toBe(thread.userId)
+        })
+    })
+    describe("threadRepo updateThread", () => {
+        it.each([
+            {
+                name: "updateByThreadId",
+                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadId(thread.threadId, sqlQuery, dataList)
+
+            },
+            {
+                name: "updateByThreadUuid",
+                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadUuid(thread.threadUuid, sqlQuery, dataList)
+            }
+        ])("$name update the thread", async ({call}) => {
+            for(const thread of threads){
+                const title = faker.lorem.sentence()
+                const content = faker.lorem.paragraph()
+                const {sqlQuery, dataList} = buildPatchQuery("threads", {
+                    title,
+                    content
+                })
+                const {existed, changed} = await call(thread, sqlQuery, dataList)
+                expect(existed).toBeTruthy()
+                const verify = dbMapper.fromDb(await threadRepo.findByThreadId(thread.threadId))
+                expect(verify.title).toBe(title)
+                expect(verify.content).toBe(content)
+            }
+        })
+        it.each([
+            {
+                name: "updateByThreadId",
+                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadId(thread.threadId, sqlQuery, dataList)
+
+            },
+            {
+                name: "updateByThreadUuid",
+                call: async (thread, sqlQuery, dataList) => await threadRepo.updateByThreadUuid(thread.threadUuid, sqlQuery, dataList)
+            }
+        ])("$name update the thread", async ({call}) => {
+            const thread = {
+                threadId: 10000,
+                threadUuid: faker.string.uuid()
+            }
+            const title = faker.lorem.sentence()
+            const content = faker.lorem.paragraph()
+            const {sqlQuery, dataList} = buildPatchQuery("threads", {
+                title,
+                content
+            })
+            const {existed, changed} = await call(thread, sqlQuery, dataList)
+            expect(existed).toBeFalsy()
+        })
+    })
+    describe("threadRepo deleteThread", () => {
+        it.each([
+            {
+                name: "deleteByThreadId",
+                call: async (thread) => await threadRepo.deleteByThreadId(thread.threadId)
+            },
+            {
+                name: "deleteByThreadUuid",
+                call: async (thread) => await threadRepo.deleteByThreadUuid(thread.threadUuid)
+            }
+        ])("$name delete the thread", async ({call}) => {
+           for(const thread of threads){
+               const deleted = await call(thread)
+               expect(deleted).toBeTruthy()
+               const verify = dbMapper.fromDb(await threadRepo.findByThreadId(thread.threadId))
+               console.log(verify)
+               expect(verify.title).toBe("[Deleted]")
+               expect(verify.content).toBe("[Deleted]")
+               expect(verify.deletedAt).not.toBeNull()
+               expect(verify.status).toBe("delete")
+           }
+        })
+    })
 })

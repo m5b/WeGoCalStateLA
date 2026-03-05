@@ -83,9 +83,10 @@ export async function seedThreads(users, db, perUser){
     for(const user of users){
         for(let i = 0; i < perUser; i++){
             const thread = createRandomThread(user.userId)
-            await db.insertThread(thread)
-
+            const threadId = await db.insertThread(thread)
+            threads.push({...user, ...thread, threadId})
         }
     }
+    return threads
 
 }
