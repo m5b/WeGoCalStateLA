@@ -6,8 +6,10 @@ export function createUserService({userRepo, usernameService}) {
     return{
         getByUserId,
         patchByUserId,
+        patchByUserUuid,
         getByUsername,
         deleteByUserId,
+        deleteByUserUuid,
         createUser,
         getByEmailHash,
         getUserCount,
@@ -64,6 +66,23 @@ export function createUserService({userRepo, usernameService}) {
         return user
     }
 
+    async function patchByUserUuid(userUuid, payload) {
+
+        const { sqlQuery, dataList } = buildPatchQuery(
+            'users',
+            dbMapper.toDb(payload)
+        )
+        const {existed, changed} = await userRepo.updateByUserUuid(userUuid, sqlQuery, dataList)
+        if(!existed){
+            throw new NotFoundError(
+                null,
+                'Can not found current user'
+            )
+        }
+        const user = await getByUuid(userUuid)
+        return user
+    }
+
     async function getByUsername(username) {
         const user = dbMapper.fromDb(await userRepo.findByUsername(username))
         if (!user) {
@@ -94,6 +113,14 @@ export function createUserService({userRepo, usernameService}) {
 
     async function deleteByUserId(userId) {
         const removed = await userRepo.deleteByUserId(userId)
+        //this mean not found user
+        if(!removed){
+            throw new NotFoundError(null ,"Can not found the user")
+        }
+    }
+
+    async function deleteByUserUuid(userUuid) {
+        const removed = await userRepo.deleteByUserUuid(userUuid)
         //this mean not found user
         if(!removed){
             throw new NotFoundError(null ,"Can not found the user")

@@ -79,10 +79,13 @@ describe("userService Integration", () => {
         })
 
         describe("userService.deleteByUserId", () => {
-            it("delete the existing user", async () => {
+            it.each([
+                {name: "deleteByUserId", call: async (user) => await userService.deleteByUserId(user.userId)},
+                {name: "deleteByUserUuid", call: async (user) => await userService.deleteByUserUuid(user.userUuid)},
+            ])("delete the existing user", async ({call}) => {
                 for (let i = 0; i < users.length; i++) {
                     expect(await userService.getUserCount()).toBe(users.length - i)
-                    const deleted = await userService.deleteByUserId(users[i].userId)
+                    const deleted = await call(users[i])
                     const user = await userRepo.findByUserId(users[i].userId)
                     expect(user).toBeNull()
                     //check soft delete or not
@@ -102,10 +105,13 @@ describe("userService Integration", () => {
                     expect(deleteUser.deleteAt).not.toBeNull()
                 }
             })
-            it("throw an NotFound Error", async () => {
+            it.each([
+                {name: "deleteByUserId", call: async (user) => await userService.deleteByUserId(user.userId)},
+                {name: "deleteByUserUuid", call: async (user) => await userService.deleteByUserUuid(user.userUuid)},
+            ])("throw an NotFound Error", async ({call}) => {
                 for (let i = 0; i < users.length; i++) {
                     const user = await createRandomUser()
-                    const errFun = userService.deleteByUserId(user.userId)
+                    const errFun = call(user)
                     await expect(errFun).rejects.toBeInstanceOf(NotFoundError)
                     await expect(errFun).rejects.toThrow("Can not found the user")
 
@@ -139,22 +145,28 @@ describe("userService Integration", () => {
                 }
             })
         })
-        describe("userService.patchByUserId", () => {
-            it("patched user's field", async () => {
+        describe("userService.patch", () => {
+            it.each([
+                {name: "patchByUserId", call: async (user, data) => await userService.patchByUserId(user.userId, data)},
+                {name: "patchByUserUuid", call: async (user, data) => await userService.patchByUserUuid(user.userUuid, data)},
+            ])("$name patched user's field", async ({call}) => {
                 for(let i = 0; i < users.length; i++){
                     const {username} = await createRandomUser()
-                    const user = await userService.patchByUserId(users[i].userId, {
+                    const user = await call(users[i], {
                         displayName: username
                     })
                     expect(user.displayName).toBe(username)
                     expect(await userService.getUserCount()).toBe(users.length)
                 }
             })
-            it("throw NotFoundError because user not found", async () => {
+            it.each([
+                {name: "patchByUserId", call: async (user, data) => await userService.patchByUserId(user.userId, data)},
+                {name: "patchByUserUuid", call: async (user, data) => await userService.patchByUserUuid(user.userUuid, data)},
+            ])("$name throw NotFoundError because user not found", async ({call}) => {
                 for(let i = 0; i < users.length; i++){
-                    const {username} = await createRandomUser()
-                    const errFun = userService.patchByUserId(users[i].userId + 1000, {
-                        displayName: username
+                    const user = await createRandomUser()
+                    const errFun = call(user, {
+                        displayName: user.username
                     })
                     await expect(errFun).rejects.toBeInstanceOf(NotFoundError)
                     await expect(errFun).rejects.toThrow("Can not found current user")
