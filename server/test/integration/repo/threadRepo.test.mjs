@@ -14,10 +14,10 @@ import dbMapper from "../../../src/util/dbMapper.mjs";
 import {createRandomThread} from "../../seed.mjs";
 import {faker} from "@faker-js/faker";
 import buildPatchQuery from "../../../src/util/buildPatchQuery.mjs";
-import {call} from "express";
+import {buildAuthorizationUrlWithJAR} from "openid-client";
 
 
-describe("userRepo Integration", () => {
+describe("threadRepo Integration", () => {
     let connectionPool
     let userRepo
     let threadRepo
@@ -45,7 +45,12 @@ describe("userRepo Integration", () => {
     afterAll(async () => {
         await connectionPool.end()
     })
-
+    describe("threadRepo findAllThread", () => {
+        it('find all Thread', async () => {
+            const thread = dbMapper.fromDb(await threadRepo.findAll())
+            expect(thread.length).toBe(threads.length)
+        })
+    })
     describe("threadRepo findThread", () => {
         it.each([
             {
