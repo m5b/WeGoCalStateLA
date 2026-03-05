@@ -26,22 +26,22 @@ export function requireCookie(cookieName, verifyFn, option = {}) {
 }
 
 export const requireJWTAuth = requireCookie(
-    'auth_token',
+    'auth_tx',
     async function (token) {
         //perform jwt check
         let decoded
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
-            throw new UnauthorizedError({["auth_token"]: "Invalid Cookie"}, "Session ended")
+            throw new UnauthorizedError({["auth_tx"]: "Invalid Cookie"}, "Session ended")
         }
         const { sub } = decoded
         if (!sub) {
-            throw new UnauthorizedError({["auth_token"]: "Invalid Cookie"}, "Session ended")
+            throw new UnauthorizedError({["auth_tx"]: "Invalid Cookie"}, "Session ended")
         }
         return sub
     },
-    { signed: false, attachTo: 'userId' }
+    { signed: false, attachTo: 'userUuid' }
 )
 
 
