@@ -1,6 +1,8 @@
 export const cookieConfig = {
     httpOnly: true,
     maxAge: 60000 * 60,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
     sameSite: 'lax',
 }
 

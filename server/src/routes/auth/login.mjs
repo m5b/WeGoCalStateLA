@@ -26,7 +26,7 @@ export function createLoginRouter({voprfService, loginTokenService, loginService
         const  token = await loginService.loginUser(emailHash, password)
         // Generate JWT
         // Store token in HTTP-only cookie
-        res.cookie('auth-token', token, cookieConfig)
+        res.cookie('auth_tx', token, cookieConfig)
         return res.json(jsend.success({ auth: 'authentication acquired' }))
     })
     return router

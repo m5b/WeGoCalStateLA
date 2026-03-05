@@ -152,7 +152,7 @@ describe("loginRoute Integration", () => {
                 .send({emailHashB64U, password: user.password })
                 .expect(503)
                 .expect(cookies.not("set",{
-                    name: "auth-token",
+                    name: "auth_tx",
                     options: ["path", "httponly", "samesite"],
                 }))
             expect(res2.body.status).toBe("fail")
@@ -164,7 +164,7 @@ describe("loginRoute Integration", () => {
                 .send({emailHashB64U: user.emailHash, password: user.password })
                 .expect(401)
                 .expect(cookies.not("set",{
-                    name: "auth-token",
+                    name: "auth_tx",
                     options: ["path", "httponly", "samesite"],
                 }))
             expect(res2.body.status).toBe("fail")
@@ -190,7 +190,7 @@ describe("loginRoute Integration", () => {
                 .send({emailHashB64U, password: user.password })
                 .expect(401)
                 .expect(cookies.not("set",{
-                    name: "auth-token",
+                    name: "auth_tx",
                     options: ["path", "httponly", "samesite"],
                 }))
             expect(res2.body.status).toBe("fail")
@@ -216,7 +216,7 @@ describe("loginRoute Integration", () => {
                 .send({emailHashB64U, password: user.password })
                 .expect(404)
                 .expect(cookies.not("set",{
-                    name: "auth-token",
+                    name: "auth_tx",
                     options: ["path", "httponly", "samesite"],
                 }))
             expect(res2.body.status).toBe("fail")
@@ -242,7 +242,7 @@ describe("loginRoute Integration", () => {
                 .send({emailHashB64U, password})
                 .expect(401)
                 .expect(cookies.not("set",{
-                    name: "auth-token",
+                    name: "auth_tx",
                     options: ["path", "httponly", "samesite"],
                 }))
             expect(res2.body.status).toBe("fail")
