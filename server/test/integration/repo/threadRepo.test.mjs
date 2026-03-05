@@ -207,11 +207,11 @@ describe("threadRepo Integration", () => {
         it.each([
             {
                 name: "deleteByThreadId",
-                call: async (thread) => await threadRepo.deleteByThreadId(thread.threadId)
+                call: async (thread) => await threadRepo.deleteByThreadId({threadId: thread.threadId, userId: thread.userId})
             },
             {
                 name: "deleteByThreadUuid",
-                call: async (thread) => await threadRepo.deleteByThreadUuid(thread.threadUuid)
+                call: async (thread) => await threadRepo.deleteByThreadUuid({threadUuid: thread.threadUuid, userId: thread.userId})
             }
         ])("$name delete the thread", async ({call}) => {
            for(const thread of threads){

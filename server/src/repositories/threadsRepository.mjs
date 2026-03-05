@@ -226,18 +226,18 @@ export function createThreadRepo(db){
     }
 
 
-    async function deleteByThreadId(threadId) {
+    async function deleteByThreadId({threadId, userId}) {
         const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = '[Deleted]', content = '[Deleted]', status = 'delete' where thread_id = ? ",
-            [threadId]
+            "Update threads set deleted_at = NOW() , title = '[Deleted]', content = '[Deleted]', status = 'delete' where thread_id = ? AND user_id = ?",
+            [threadId, userId]
         )
         return result.affectedRows > 0
     }
 
-    async function deleteByThreadUuid(threadUuid) {
+    async function deleteByThreadUuid({threadUuid, userId}) {
         const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = '[Deleted]', content = '[Deleted]', status = 'delete' where thread_uuid = UUID_TO_BIN(?) ",
-            [threadUuid]
+            "Update threads set deleted_at = NOW() , title = '[Deleted]', content = '[Deleted]', status = 'delete' where thread_uuid = UUID_TO_BIN(?) AND user_id = ?",
+            [threadUuid, userId]
         )
         return result.affectedRows > 0
     }
