@@ -7,7 +7,7 @@ const GEN_MULTIPLIER = 1.3;
 
 export async function refillLow(db) {
     const [[countRow]] = await db.query(
-        "SELECT COUNT(*) AS available FROM anonymous_name WHERE taken = 0"
+        "SELECT COUNT(*) AS available FROM anonymous_name WHERE user_id IS NULL"
     );
 
     if (countRow.available >= LOW_STOCK) return;
@@ -22,16 +22,17 @@ export async function refillLow(db) {
 
         while (insertedTotal < REFILL_STOCK) {
             const remaining = REFILL_STOCK - insertedTotal;
-            const toGenerate = Math.ceil(remainin * GEN_MULTIPLIER);
+            const toGenerate = Math.ceil(remaining * GEN_MULTIPLIER);
 
             const names = [];
             for (let i = 0; i < toGenerate; i++) {
                 names.push(usernameGenerator());
             }
 
-            const values = names.map((n) => [null, n, 0]);
+            // no 'taken' column in schema; just insert user_id and name
+            const values = names.map((n) => [null, n]);
             const [result] = await db.query(
-                "INSERT IGNORE INTO anonymous_name (user_id, anonymous_name, taken) VALUES ?",
+                "INSERT IGNORE INTO anonymous_name (user_id, anonymous_name) VALUES ?",
                 [values]
             );
 
