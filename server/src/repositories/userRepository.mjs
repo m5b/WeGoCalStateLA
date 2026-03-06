@@ -55,7 +55,7 @@ export function createUserRepo(db){
     async function updateByUserId(userId, sqlQuery, dataList) {
         dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + 'where user_id = ? and deleted_at is NULL',
+            sqlQuery + ' where user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -67,7 +67,7 @@ export function createUserRepo(db){
     async function updateByUserUuid(userUuid, sqlQuery, dataList){
         dataList.push(userUuid)
         const [result] = await db.query(
-            sqlQuery + 'where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            sqlQuery + ' where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0

@@ -116,7 +116,7 @@ export function createThreadRepo(db){
         dataList.push(threadId)
         dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + 'where thread_id = ? and user_id = ? and deleted_at is NULL',
+            sqlQuery + ' where thread_id = ? and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -128,7 +128,7 @@ export function createThreadRepo(db){
         dataList.push(threadUuid)
         dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + 'where thread_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
+            sqlQuery + ' where thread_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
