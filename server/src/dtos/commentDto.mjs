@@ -1,5 +1,5 @@
-const DEFINE_PUBLIC_FIELDS = ['commentId', 'body', 'author', 'parentId', "userId", "threadId", "createdAt", "updatedAt", "status"]
-const PUBLIC_FIELDS = ['commentId', 'content', 'username', 'parentId', "userId", "threadId", "createdAt", "updatedAt", "status"]
+const DEFINE_PUBLIC_FIELDS = ['commentUuid', 'parentCommentUuid', 'content', 'username', "userUuid", "threadUuid", "createdAt", "updatedAt", "status", ]
+const PUBLIC_FIELDS = ['commentUuid', 'parentCommentUuid', 'content', 'username', "userUuid", "threadUuid", "createdAt", "updatedAt", "status", ]
 export default class CommentDto {
     constructor(comment){
             for (let i = 0; i < DEFINE_PUBLIC_FIELDS.length; i++) {

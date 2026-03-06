@@ -47,5 +47,6 @@ export const verifyOTPSchema = z.object({
 })}).strict()
 
 
+export const uuidSchema = z.uuidv4()
 
 
