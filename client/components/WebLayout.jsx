@@ -34,10 +34,13 @@ export default function WebLayout({ children }) {
     setUserMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
-    setUserMenuOpen(false);
-    router.push('/authentication/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      setUserMenuOpen(false);
+      router.replace('/authentication/login');
+    }
   };
 
   return (
