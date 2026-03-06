@@ -124,7 +124,7 @@ describe("loginRoute Integration", () => {
                     .send({emailHashB64U, password: user.password })
                     .expect(200)
                     .expect(cookies.set({
-                        name: "auth-token",
+                        name: "auth_tx",
                         options: ["path", "httponly", "samesite"],
                     }))
                 expect(res2.body.status).toBe("success")

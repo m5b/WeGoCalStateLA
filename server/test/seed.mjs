@@ -42,6 +42,32 @@ export function createRandomThread(userId){
     return thread
 }
 
+
+export function createRandomComment(userId, threadId){
+    const comment = {
+        userId,
+        threadId,
+        commentUuid: faker.string.uuid(),
+        parentCommentId: null,
+        content: faker.lorem.paragraph(20)
+    }
+    return comment
+}
+
+export function createRandomChildComment(userId, threadId, comment){
+    const child = {
+        userId,
+        threadId,
+        parentCommentId: comment.commentId,
+        parentCommentUuid: comment.commentUuid,
+        commentUuid: faker.string.uuid(),
+        content: faker.lorem.paragraph(20)
+    }
+    return child
+}
+
+
+
 export async function createRandomOtp() {
     const key = uint8ArrayToBase64UrlString(crypto.randomBytes(32))
     const code = faker.string.numeric({length: 6, allowLeadingZeros: true})
@@ -84,9 +110,38 @@ export async function seedThreads(users, db, perUser){
         for(let i = 0; i < perUser; i++){
             const thread = createRandomThread(user.userId)
             const threadId = await db.insertThread(thread)
-            threads.push({...user, ...thread, threadId})
+            threads.push({...thread, threadId, userId: user.userId, userUuid: user.userUuid})
         }
     }
     return threads
+}
+
+export async function seedComments(db, users, threads, threadPerComment, commentPerComment) {
+
+    const parents = [];
+    const children = [];
+
+    for (const user of users) {
+        const thread = threads[0]
+        for (let i = 0; i < threadPerComment; i++) {
+            const comment = createRandomComment(user.userId, thread.threadId);
+            const {inserted, insertId} = await db.insertComment(comment);
+            if (!inserted) continue;
+            parents.push({...comment, commentId: insertId, userUuid: user.userUuid, threadUuid: thread.threadUuid});
+        }
+    }
+
+    for(const user of users) {
+        const parent = parents[0]
+        for(let i = 0; i < commentPerComment; i++){
+            const child = createRandomChildComment(user.userId, parent.threadId, parent, );
+
+            const { inserted, insertId } = await db.insertCommentWithParent(child);
+            if (!inserted) continue;
+            children.push({ ...child, commentId: insertId, userUuid: user.userUuid, threadUuid: parent.threadUuid});
+        }
+    }
+    return {parents, children}
+
 
 }

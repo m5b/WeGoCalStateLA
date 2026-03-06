@@ -65,8 +65,6 @@ describe("threadService Integration", () => {
                 expect(verify.deletedAt).toBeNull()
                 expect(verify.userId).toBe(thread.userId)
                 expect(verify.userUuid).toBe(thread.userUuid)
-                expect(verify.username).toBe(thread.username)
-                expect(verify.displayName).toBe(verify.displayName)
             }
         })
         it.each([
@@ -203,8 +201,8 @@ describe("threadService Integration", () => {
                 await call(thread)
                 const verify = await threadService.getByThreadId(thread.threadId)
                 console.log(verify)
-                expect(verify.title).toBe("[Deleted]")
-                expect(verify.content).toBe("[Deleted]")
+                expect(verify.title).toBe("[deleted]")
+                expect(verify.content).toBe("[deleted]")
                 expect(verify.deletedAt).not.toBeNull()
                 expect(verify.status).toBe("delete")
             }

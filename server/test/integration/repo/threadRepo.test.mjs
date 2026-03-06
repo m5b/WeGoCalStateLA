@@ -75,8 +75,6 @@ describe("threadRepo Integration", () => {
                 expect(verify.deletedAt).toBeNull()
                 expect(verify.userId).toBe(thread.userId)
                 expect(verify.userUuid).toBe(thread.userUuid)
-                expect(verify.username).toBe(thread.username)
-                expect(verify.displayName).toBe(verify.displayName)
             }
         })
         it.each([

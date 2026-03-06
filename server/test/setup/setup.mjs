@@ -1,8 +1,9 @@
 import {runMigrations} from "../utils/migrateContainer.mjs";
 import mysql, {createConnection} from "mysql2/promise";
 import {createUserRepo} from "../../src/repositories/userRepository.mjs";
-import {seedThreads, seedUsers} from "../seed.mjs";
+import {seedComments, seedThreads, seedUsers} from "../seed.mjs";
 import {createThreadRepo} from "../../src/repositories/threadsRepository.mjs";
+import {createCommentRepo} from "../../src/repositories/commentsRepository.mjs";
 
 const DB_PREFIX=  "wegoapp"
 const workerDBName = `${DB_PREFIX}_${process.env.VITEST_POOL_ID}`
@@ -26,6 +27,9 @@ let connection2 = await createConnection(sqlUrl)
 let userRepo = createUserRepo(connection2)
 let users= await seedUsers(userRepo, 10)
 let threads = await seedThreads(users, createThreadRepo(connection2), 3)
+let {parents, children} = await seedComments(createCommentRepo(connection2) ,users, threads, 1, 1)
 global.users = users
 global.threads = threads
+global.parents = parents
+global.children = children
 connection2.end()

@@ -171,11 +171,10 @@ describe("userRoute Integration", () => {
                             options: ["path", "httponly", "samesite"],
                         }))
                     expect(res2.body.status).toBe("success")
-                    const fancyName = faker.internet.username()
                     const res3 = await agent
                         .patch("/api/user/me")
                         .send({
-                            displayName: fancyName
+                            displayName: "HEllo"
                         })
                         .expect(200)
                         .expect(cookies.not("set",{
@@ -186,7 +185,7 @@ describe("userRoute Integration", () => {
                     const verify = res3.body.data.user
                     expect(verify.userUuid).toBe(user.userUuid)
                     expect(verify.username).toBe(user.username)
-                    expect(verify.displayName).toBe(fancyName)
+                    expect(verify.displayName).toBe("HEllo")
                     expect(verify).toHaveProperty("createdAt")
                     expect(verify).toHaveProperty("updatedAt")
                 }
