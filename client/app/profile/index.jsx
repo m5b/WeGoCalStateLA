@@ -17,8 +17,12 @@ import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, Chevron
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const { logout } = useAuth();
+  const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   // Removed unused darkModeEnabled state
   const [dataSharing, setDataSharing] = useState(true);
@@ -37,6 +41,14 @@ export default function ProfileScreen() {
   const handleSaveProfile = () => {
     setIsEditing(false);
     Alert.alert('Success', 'Profile information updated successfully!');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      router.replace('/authentication/login');
+    }
   };
 
 
@@ -250,7 +262,7 @@ export default function ProfileScreen() {
 
           {/* Actions */}
           <View style={styles.webActionsSection}>
-            <TouchableOpacity style={styles.webLogoutButton}>
+            <TouchableOpacity style={styles.webLogoutButton} onPress={handleLogout}>
               <LinearGradient
                 colors={[Colors.ERROR, '#b91c1c']}
                 style={styles.webLogoutGradient}
@@ -440,7 +452,7 @@ export default function ProfileScreen() {
 
         {/* Actions */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.logoutButton}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <LogOut size={20} color={Colors.ERROR} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>

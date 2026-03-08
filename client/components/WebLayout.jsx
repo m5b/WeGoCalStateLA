@@ -10,8 +10,10 @@ import { router, usePathname } from 'expo-router';
 import { Chrome as Home, Calendar, Brain, BookOpen, User, MessagesSquare, MessageCircle, Heart, Menu, X, Sparkles, Bell, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
+import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -30,6 +32,15 @@ export default function WebLayout({ children }) {
     router.push(route);
     setSidebarOpen(false);
     setUserMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      setUserMenuOpen(false);
+      router.replace('/authentication/login');
+    }
   };
 
   return (
@@ -89,7 +100,7 @@ export default function WebLayout({ children }) {
               <View style={styles.avatar}>
                 <User size={16} color={Colors.WHITE} />
               </View>
-              <Text style={styles.userName}>Alex J.</Text>
+              <Text style={styles.userName}>{user?.username || user?.email || 'Guest'}</Text>
               <ChevronDown size={16} color="#64748b" />
             </TouchableOpacity>
 
@@ -108,7 +119,11 @@ export default function WebLayout({ children }) {
                   <Text style={styles.dropdownText}>Settings</Text>
                 </TouchableOpacity>
                 <View style={styles.dropdownDivider} />
-                <TouchableOpacity style={styles.dropdownItem}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={handleLogout}
+                  activeOpacity={0.7}
+                >
                   <LogOut size={16} color="#ef4444" />
                   <Text style={[styles.dropdownText, { color: '#ef4444' }]}>Sign Out</Text>
                 </TouchableOpacity>

@@ -1,6 +1,5 @@
 import { Router } from 'express'
-import { jsend } from '../util/jSend.mjs'
-
+import {jsend} from "../util/jSend.mjs";
 
 export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, signupRouter, userRouter, threadRouter, commentRouter }){
     const router = new Router()
@@ -11,7 +10,6 @@ export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, 
     router.use('/user', userRouter)
     router.use('/threads', threadRouter)
     router.use('/comments', commentRouter)
-
     //route for testing jwt
 
     router.get('/health', (req, res) => {

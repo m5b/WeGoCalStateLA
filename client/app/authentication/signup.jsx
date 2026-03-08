@@ -1,27 +1,101 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Dimensions, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Dimensions, SafeAreaView, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Sparkles, ArrowLeft, GraduationCap, Shield, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
+import { useAuth } from '../../context/AuthContext';
+import { initiateGoogleLogin, checkAuth, signupWithEmail, loginWithEmail } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function SignupScreen() {
-  // Do not implement mocked signup flows; Google OAuth delegates to backend.
-  // Email inputs are present for future expansion but are not wired.
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleGoogleSignup = () => {
-    // Backend partner: ensure server exposes `/api/auth/google` to start OAuth.
-    // On successful callback, set JWT cookie and redirect back to client app.
-    if (isWeb) {
-      window.location.href = '/api/auth/google';
-    } else {
-      Alert.alert('Google Sign Up', 'Google sign-up is available on web in this dev build.');
+  const handleSignup = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      await signupWithEmail(email.trim(), password);
+      await loginWithEmail(email.trim(), password);
+
+      const userData = await checkAuth();
+
+      if (userData && userData.userId) {
+        login(userData);
+        router.push('/home_screen/home');
+      } else {
+        setErrorMessage('Account created but failed to load user data.');
+      }
+    } catch (err) {
+      if (err.status === 400 && err.data) {
+        const messages = Object.values(err.data).join('\n');
+        if (isWeb) {
+          setErrorMessage(messages);
+        } else {
+          Alert.alert('Validation Error', messages);
+        }
+      } else if (err.status === 409) {
+        const msg = 'An account with this email already exists.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Signup Failed', msg);
+        }
+      } else {
+        const msg = 'An unexpected error occurred. Please try again.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Error', msg);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setOauthLoading(true);
+
+      if (isWeb) {
+        await initiateGoogleLogin();
+      } else {
+        const result = await initiateGoogleLogin();
+
+        if (result.type === 'success') {
+          const userData = await checkAuth();
+          if (userData && userData.userId) {
+            login(userData);
+            router.push('/home_screen/home');
+          } else {
+            Alert.alert('Error', 'Failed to authenticate. Please try again.');
+          }
+        } else if (result.type === 'cancel') {
+          console.log('User cancelled OAuth');
+        } else {
+          Alert.alert('Error', 'Google sign-up failed. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('OAuth error:', error);
+      Alert.alert('Error', 'An error occurred during sign-up. Please try again.');
+    } finally {
+      setOauthLoading(false);
     }
   };
 
@@ -93,11 +167,21 @@ export default function SignupScreen() {
                 {/* Google Sign Up */}
                 <View style={styles.socialContainer}>
                   <TouchableOpacity
-                    style={styles.googleAltButton}
+                    style={[styles.googleAltButton, oauthLoading && styles.buttonDisabled]}
                     onPress={handleGoogleSignup}
                     activeOpacity={0.85}
+                    disabled={oauthLoading}
                   >
-                    <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                    {oauthLoading ? (
+                      <ActivityIndicator color={Colors.PRIMARY} />
+                    ) : (
+                      <View style={styles.googleButtonContent}>
+                        <View style={styles.googleIconWrapper}>
+                          <Text style={styles.googleIconText}>G</Text>
+                        </View>
+                        <Text style={styles.googleAltButtonText}>Sign up with Google</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </View>
 
@@ -149,7 +233,24 @@ export default function SignupScreen() {
                       )}
                     </TouchableOpacity>
                   </View>
-                  {/* Backend partner: add submit handler to create account via email when ready. */}
+                  {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+                  <TouchableOpacity
+                    style={[styles.signupButton, isLoading && styles.buttonDisabled]}
+                    onPress={handleSignup}
+                    disabled={isLoading}
+                  >
+                    <LinearGradient
+                      colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+                      style={styles.buttonGradient}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.signupButtonText}>Create Account</Text>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
 
                 {/* Link to login */}
@@ -199,11 +300,21 @@ export default function SignupScreen() {
               {/* Social Signup */}
               <View style={styles.socialContainer}>
                 <TouchableOpacity
-                  style={styles.googleButton}
+                  style={[styles.googleButton, oauthLoading && styles.buttonDisabled]}
                   onPress={handleGoogleSignup}
                   activeOpacity={0.85}
+                  disabled={oauthLoading}
                 >
-                  <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                  {oauthLoading ? (
+                    <ActivityIndicator color={Colors.PRIMARY} />
+                  ) : (
+                    <View style={styles.googleButtonContent}>
+                      <View style={styles.googleIconWrapper}>
+                        <Text style={styles.googleIconText}>G</Text>
+                      </View>
+                      <Text style={styles.googleButtonText}>Sign up with Google</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               </View>
 
@@ -256,6 +367,25 @@ export default function SignupScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+
+              {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+              <TouchableOpacity
+                style={[styles.signupButton, isLoading && styles.buttonDisabled]}
+                onPress={handleSignup}
+                disabled={isLoading}
+              >
+                <LinearGradient
+                  colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+                  style={styles.buttonGradient}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.signupButtonText}>Create Account</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
 
               {/* Link to login */}
               <View style={styles.forgotLinksContainer}>
@@ -576,5 +706,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     lineHeight: 20,
+  },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  googleIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4285F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleIconText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  signupButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  buttonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signupButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
