@@ -1,5 +1,5 @@
-import { Strategy as googleStrategy } from 'passport-google-oauth20'
-import { handleGoogleLogin } from '../services/googleAuthServices.mjs'
+/*import { Strategy as googleStrategy } from 'passport-google-oauth20'
+import { handleGoogleLogin, handleGoogleSignup} from '../services/googleAuthServices.mjs'
 
 const strategy = new googleStrategy(
     {
@@ -8,7 +8,7 @@ const strategy = new googleStrategy(
         //tempoary place holder for now
         callbackURL: `${process.env.SERVER_URL_DEV}${process.env.GOOGLE_CALLBACK_URL}`,
     },
-    async (acccessToken, refreshToken, profile, cb) => {
+    async (accessToken, refreshToken, profile, cb) => {
         //console.log(profile);
         try {
             const { sub, email } = profile._json
@@ -22,4 +22,6 @@ const strategy = new googleStrategy(
         }
     }
 )
+
 export default strategy
+*/

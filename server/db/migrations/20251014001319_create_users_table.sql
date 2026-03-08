@@ -1,13 +1,13 @@
 -- migrate:up
 CREATE TABLE users (
     user_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    user_uuid BINARY(16) NOT NULL UNIQUE,
     password_hash varchar(255),
-    email varchar(100) UNIQUE,
+    email_hash BINARY(32),
     username varchar(100) UNIQUE,
     display_name varchar(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    google_id varchar(64) UNIQUE,
     deleted_at TIMESTAMP
 );
 

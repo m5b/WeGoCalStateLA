@@ -1,12 +1,24 @@
 import { Router } from 'express'
-import { emailPasswordSchema } from '../../validators/authValidators.mjs'
-import { handleUserSignup } from '../../services/signupService.mjs'
+import {
+    passwordSchema,
+} from '../../validators/authValidators.mjs'
 import { jsend } from '../../util/jSend.mjs'
-const router = Router()
+import { requireSignupToken } from '../../middlewares/requireCookie.mjs'
 
-router.post('/signup', async (req, res) => {
-    const validatedPayload = emailPasswordSchema.parse(req.body)
-    await handleUserSignup(validatedPayload)
-    res.json(jsend.success({ auth: 'User created' }))
-})
-export default router
+export function createSignupRouter({signupTokenService, voprfService, userService, passwordService}){
+    const router = Router()
+    router.post('/signup', requireSignupToken, async (req, res) => {
+        const email = await signupTokenService.verifySignupToken(req.signupToken)
+        //validate and get the password using zod
+        const { password } = passwordSchema.parse(req.body)
+        //perform serverside voprf and create user
+        const emailHash = await voprfService.handleServerVOPRF(email)
+        const passwordHash = await passwordService.hashPassword(password)
+        //sign up the user
+        const user = await userService.createUser(emailHash, passwordHash)
+        res.json(jsend.success({
+            userUuid: user.userUuid
+        }))
+    })
+    return router
+}

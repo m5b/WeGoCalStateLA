@@ -1,22 +1,12 @@
-import express from 'express'
-import 'dotenv/config'
-import router from './routes/index.mjs'
-import passport from 'passport'
-import googleStrategy from './strategies/googleStrategy.mjs'
-import jwtStrategy from './strategies/jwtStrategy.mjs'
-import cookieParser from 'cookie-parser'
-import errorHandler from './middlewares/errorHandler.mjs'
-import cors from 'cors'
-import { corsConfig } from './config/corsConfig.mjs'
-passport.use(googleStrategy)
-passport.use(jwtStrategy)
+import "./config/loadEnv.mjs"
+import { createApp } from './app/app.mjs'
+import connectionPool from "./lib/pool.mjs";
+import {redis} from "./lib/redis.mjs";
+import {createEmailService} from "./services/auth/email/emailService.mjs";
 
-const app = express()
-//using this middleware allow express to parase the incoming request with json req.body
-app.use(cors(corsConfig))
-app.use(express.json())
-app.use(cookieParser())
-app.use(passport.initialize())
-app.use('/api', router)
-app.use(errorHandler)
-app.listen(process.env.PORT || 3000)
+const emailService = createEmailService()
+const app = createApp(connectionPool, redis, emailService)
+const port = process.env.PORT || 3000
+app.listen(port, () => {
+    console.log(`Express server running at http://localhost:${port}/`);
+});

@@ -1,27 +1,28 @@
 import { Router } from 'express'
-import passport from 'passport'
-import { issueJwTForUser } from '../../services/googleAuthServices.mjs'
-import { cookieConfig } from '../../config/cookieConfig.mjs'
-const router = Router()
+import {oidcCookieConfig, signupTokenCookieConfig } from "../../config/cookieConfig.mjs";
+import { requireOIDCId } from '../../middlewares/requireCookie.mjs'
+import { jsend } from '../../util/jSend.mjs'
 
-router.get(
-    '/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-)
+export function createGoogleAuthRouter({googleAuthService, signupTokenService}){
+    const router = new Router()
+    router.get('/google', async (req, res) => {
+        const { token, redirectURL } = await googleAuthService.startGoogleSignup()
+        res.cookie('oidc_tx', token, oidcCookieConfig)
+        res.redirect(redirectURL.toString())
+    })
 
-router.get(
-    '/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: process.env.CLIENT_URL_DEV + '/authentication/login',
-        session: false,
-    }),
-    (req, res) => {
-        const token = issueJwTForUser(req.user.userId)
-        //store the jwt token in the cookie
-        res.cookie('auth-token', token, cookieConfig)
-        //temp holder as for now
-        res.redirect(process.env.CLIENT_URL_DEV || process.env.SERVER_URL_DEV)
-    }
-)
-
-export default router
+    router.get('/google/callback', requireOIDCId, async (req, res) => {
+        const currentURL = new URL(
+            `${req.protocol}://${req.get('host')}${req.originalUrl}`
+        )
+        const email = await googleAuthService.completeGoogleSignup(req.oidc, currentURL)
+        //assign user a verified token to user
+        const {token} = await signupTokenService.saveSignupToken(
+            email,
+            'open id'
+        )
+        res.cookie('signup_tx', token, signupTokenCookieConfig)
+        res.json(jsend.success(null))
+    })
+    return router
+}
