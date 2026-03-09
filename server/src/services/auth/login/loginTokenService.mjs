@@ -20,7 +20,7 @@ export function createLoginTokenService({loginTokenStore, jwtTokenService}) {
             await loginTokenStore.consume(key)
         if (!loginValue || Object.keys(loginValue).length === 0) {
             throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
+                { "login_tx": 'Session not found' },
                 'Login session expired. Please try again'
             )
         }

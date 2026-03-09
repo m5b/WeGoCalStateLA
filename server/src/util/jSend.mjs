@@ -9,7 +9,7 @@ export const jsend = {
     fail(data, message) {
         const result = {
             status: 'fail',
-            data: data,
+            error: data,
             message: message,
         }
 

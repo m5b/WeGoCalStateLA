@@ -12,14 +12,14 @@ export function createLoginService({authRepo, passwordService, jwtTokenService})
         const user = dbMapper.fromDb(await authRepo.findByEmailHash(emailHash))
         if (!user) {
             throw new NotFoundError({
-                email: 'Can not found the user of the given email',
-            })
+                emailHash: 'Not Found',
+            },"Given EmailHash can not be found in our database.")
         }
         const matched = await passwordService.comparePassword(password, user.passwordHash)
         if (!matched) {
             throw new UnauthorizedError({
-                password: 'Unmatch password',
-            })
+                password: 'Incorrect password',
+            }, "Incorrect password. Please try again.")
         }
         const token = jwtTokenService.issueAccessToken(user.userUuid)
         return token
