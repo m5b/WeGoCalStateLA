@@ -45,7 +45,7 @@ export function createOTPStore({redis, otpPrefix, opt = {}}){
                 .hgetall(prefixedKey)
         } catch (err) {
             throw new ServiceUnavailable(
-                {error: "Service down"},
+                null,
                 'Signup service is temporarily unavailable. Please try again later.'
             )
         }

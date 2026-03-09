@@ -31,8 +31,8 @@ export function createOTPService({otpStore, jwtTokenService, round = 10}){
         //check if exist
         if (!otpValue|| Object.keys(otpValue).length === 0) {
             throw new UnauthorizedError(
-                { otp : "Record don't exist" },
-                'OTP expired. Please try again'
+                { otp : "Record not found" },
+                'OTP expired. Please request a new code.'
             )
         }
         //increment the key because it exist
@@ -42,14 +42,14 @@ export function createOTPService({otpStore, jwtTokenService, round = 10}){
         if(attempts >= 5) {
             await otpStore.deleteOTP(key)
             throw new UnauthorizedError(
-                {otp: "Record don't exist"},
-                'Please request a new code, you have exceed the limit of this code'
+                { otp : "Too many failed attempts" },
+                'Too many failed attempts. Please request a new code.'
             )
         }
         if (!(await bcrypt.compare(otpCode, otpCodeHash))) {
             throw new UnauthorizedError(
-                {otp: "Not matched"},
-                'The code does not match our record'
+                {otp: "Incorrect OTP"},
+                'Incorrect OTP. Please try again.'
             )
         }
         //delete the key object pair if otp is correct

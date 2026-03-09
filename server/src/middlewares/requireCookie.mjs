@@ -33,11 +33,11 @@ export const requireJWTAuth = requireCookie(
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
-            throw new UnauthorizedError({["auth_tx"]: "Invalid Cookie"}, "Session ended")
+            throw new UnauthorizedError({"auth_tx": "Invalid Cookie"}, "Session ended")
         }
         const { sub } = decoded
         if (!sub) {
-            throw new UnauthorizedError({["auth_tx"]: "Invalid Cookie"}, "Session ended")
+            throw new UnauthorizedError({"auth_tx": "Invalid Cookie"}, "Session ended")
         }
         return sub
     },
@@ -80,15 +80,15 @@ export const requireOTPToken = requireCookie(
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
             throw new UnauthorizedError(
-                { ["otp_tx"]: 'Invalid Cookie' },
-                'Sign up session expired. Please try again'
+                { "otp_tx": 'Invalid Cookie' },
+                'Authentication required'
             )
         }
         const { sub } = decoded
         if (!sub) {
             throw new UnauthorizedError(
-                { ["otp_tx"]: 'Invalid Cookie' },
-                'Sign up session expired. Please try again'
+                { "otp_tx": 'Invalid Cookie' },
+                'Authentication required'
             )
         }
         return sub
@@ -106,15 +106,15 @@ export const requireSignupToken = requireCookie(
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
             throw new UnauthorizedError(
-                { ["signup_tx"]: 'Invalid Cookie' },
-                'Sign up session expired. Please try again'
+                { "signup_tx": 'Invalid Cookie' },
+                'Sign up session expired. Please try again.'
             )
         }
         const { sub } = decoded
         if (!sub) {
             throw new UnauthorizedError(
-                { ["signup_tx"]: 'Invalid Cookie' },
-                'Sign up session expired. Please try again'
+                { "signup_tx": 'Invalid Cookie' },
+                'Sign up session expired. Please try again.'
             )
         }
         return sub
@@ -131,15 +131,15 @@ export const requireLoginToken= requireCookie(
             decoded = jwt.verify(token, process.env.JWT_SECRET)
         } catch (err) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt' },
-                'Login session expired. Please try again'
+                { "login_tx": 'Invalid Cookie' },
+                'Login session expired. Please try again.'
             )
         }
         const { sub } = decoded
         if (!sub) {
             throw new UnauthorizedError(
-                { error: 'invalid_jwt_format' },
-                'Login session expired. Please try again'
+                { "login_tx": 'Invalid Cookie' },
+                'Login session expired. Please try again.'
             )
         }
         return sub

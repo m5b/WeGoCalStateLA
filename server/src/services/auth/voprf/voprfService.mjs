@@ -27,7 +27,7 @@ export function createVOPRFService({voprfClient, evaluator}){
            evalReq =  EvaluationRequest.deserialize(evaluator.suite, evalReqUint8)
         }
         catch (err){
-            throw new BadRequestError(null, "Invalid evalReq")
+            throw new BadRequestError({evalReqB64U: "Invalid evaluation request"}, "Invalid request payload.")
         }
         try {
             const evaluation = await evaluator.blindEvaluate(evalReq)
@@ -35,7 +35,7 @@ export function createVOPRFService({voprfClient, evaluator}){
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Login service is temporarily unavailable. Please try again later.'
             )
         }
     }
