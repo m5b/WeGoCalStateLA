@@ -1,0 +1,16 @@
+services:
+  backend:
+    build:
+      context: server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./server/certs:/server/certs
+      - ./server/src:/server/src
+      - ./server/test:/server/test
+
+
+
+

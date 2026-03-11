@@ -1,103 +1,156 @@
-import connectionPool from '../db/pool.mjs'
+export function createThreadRepo(db){
+    return {
+        findAll,
+        findByThreadId,
+        findByThreadUuid,
+        findByUserId,
+        findByUserUuid,
+        insertThread,
+        updateByThreadId,
+        updateByThreadUuid,
+        deleteByThreadId,
+        deleteByThreadUuid
+    }
+    function getPublicSelect(){
+        return`
+            SELECT
+                t.thread_id AS thread_id,
+                BIN_TO_UUID(t.thread_uuid) AS thread_uuid,
+                t.created_at AS created_at,
+                t.updated_at AS updated_at,
+                t.deleted_at AS deleted_at,
+                t.status AS status,
+                CASE
+                    WHEN u.deleted_at IS NULL
+                        AND t.deleted_at IS NULL THEN u.user_id
+                    ELSE NULL
+                    END AS user_id,
+                CASE
+                    WHEN t.deleted_at IS NULL THEN t.title
+                    ELSE '[deleted]'
+                    END AS title,
+                CASE
+                    WHEN t.deleted_at IS NULL THEN t.content
+                    ELSE '[deleted]'
+                    END AS content,
+                CASE
+                    WHEN u.deleted_at IS NULL
+                        AND t.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
+                    ELSE '[deleted]'
+                    END AS user_uuid,
+                CASE
+                    WHEN u.deleted_at IS NULL
+                        AND t.deleted_at IS NULL THEN u.username
+                    ELSE '[deleted]'
+                    END AS username,
+                CASE
+                    WHEN u.deleted_at IS NULL
+                        AND t.deleted_at IS NULL THEN u.display_name
+                    ELSE '[deleted]'
+                    END AS display_name
+            FROM
+                threads t
+                    JOIN users u ON t.user_id = u.user_id
+        `
+    }
+    async function findAll() {
+        const [row] = await db.query(
+            getPublicSelect()
+        )
+        return row
+    }
+    async function findByThreadId(threadId) {
+        const [row] = await db.query(
+            getPublicSelect() +
+            `
+            WHERE
+              t.thread_id = ?
+            `,
+            [threadId]
+        )
+        return row[0] || null
+    }
+
+    async function findByThreadUuid(threadUuid){
+        const [row] = await db.query(
+            getPublicSelect() +
+            `
+            WHERE
+              t.thread_uuid = UUID_TO_BIN(?)`,
+            [threadUuid]
+        )
+        return row[0] || null
+    }
+
+    async function findByUserId(userId) {
+        const [row] = await db.query(
+            getPublicSelect() +
+            `
+            WHERE
+                t.user_id = ?`,
+            [userId]
+        )
+        return row
+    }
+    async function findByUserUuid(userUuid) {
+        const [row] = await db.query(
+            getPublicSelect() +
+            `
+            WHERE 
+                u.user_uuid = UUID_TO_BIN(?)`,
+                [userUuid]
+        )
+        return row
+    }
+
+    async function insertThread({ userId, threadUuid, title, content }) {
+        const [result] = await db.query(
+            'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,UUID_TO_BIN(?), ?, ?)',
+            [userId, threadUuid, title, content]
+        )
+
+        return result.insertId
+    }
+
+    async function updateByThreadId({threadId, userId, sqlQuery, dataList}) {
+        dataList.push(threadId)
+        dataList.push(userId)
+        const [result] = await db.query(
+            sqlQuery + ' where thread_id = ? and user_id = ? and deleted_at is NULL',
+            dataList
+        )
+        const existed = result.affectedRows > 0
+        const changed = result.changedRows > 0
+        return {existed, changed}
+    }
+
+    async function updateByThreadUuid({threadUuid, userId, sqlQuery, dataList}) {
+        dataList.push(threadUuid)
+        dataList.push(userId)
+        const [result] = await db.query(
+            sqlQuery + ' where thread_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
+            dataList
+        )
+        const existed = result.affectedRows > 0
+        const changed = result.changedRows > 0
+        return {existed, changed}
+
+    }
 
 
-export async  function findAllThread(){
-    const [row] = await connectionPool.query(
-        'SELECT t.thread_id AS thread_id,\n' +
-        ' t.title AS title, \n' +
-        ' t.content AS content, \n' +
-        ' t.created_at AS created_at, \n' +
-        ' t.updated_at As updated_at, \n' +
-        ' t.deleted_at As deleted_at, \n' +
-        ' t.status As status,  \n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.user_id\n' +
-        '    else null\n' +
-        'end as user_id,\n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.username\n' +
-        '    else null\n' +
-        'end as username,\n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.display_name\n' +
-        '    else null\n' +
-        'end as display_name\n' +
-        'FROM threads t \n' +
-        'JOIN users u ON t.user_id = u.user_id \n'
-    )
-    return row
-}
-export async function findByThreadId(threadId) {
-    const [row] = await connectionPool.query(
-        'SELECT t.thread_id AS thread_id,\n' +
-        ' t.title AS title, \n' +
-        ' t.content AS content, \n' +
-        ' t.created_at AS created_at, \n' +
-        ' t.updated_at As updated_at, \n' +
-        ' t.deleted_at As deleted_at, \n' +
-        ' t.status As status,  \n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.user_id\n' +
-        '    else null\n' +
-        'end as user_id,\n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.username\n' +
-        '    else null\n' +
-        'end as username,\n' +
-        'Case\n' +
-        '\twhen t.deleted_at is NULL Then u.display_name\n' +
-        '    else null\n' +
-        'end as display_name\n' +
-        'FROM threads t \n' +
-        'JOIN users u ON t.user_id = u.user_id \n' +
-        'WHERE t.thread_id = ?',
-        [threadId]
-    )
-    return row[0] || null
-}
+    async function deleteByThreadId({threadId, userId}) {
+        const [result] = await db.query(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_id = ? AND user_id = ? AND deleted_at IS NULL",
+            [threadId, userId]
+        )
+        return result.affectedRows > 0
+    }
 
-export async function findByUserId(userId) {
-    const [row] = await connectionPool.query(
-        'SELECT t.thread_id  AS thread_id,\n' +
-        '       u.user_id    AS user_id,\n' +
-        '       u.username   AS username,\n' +
-        '       t.title      AS title,\n' +
-        '       t.content    AS content,\n' +
-        '       t.created_at AS created_at,\n' +
-        '       t.updated_at AS updated_at\n' +
-
-        'FROM   threads t\n' +
-        '       JOIN users u\n' +
-        '         ON t.user_id = u.user_id\n' +
-        'WHERE  u.user_id = ?\n' +
-        '       AND t.deleted_at IS NULL;  ',
-        [userId]
-    )
-    return row
-}
-
-export async function insertThread({userId, title, content}) {
-    const [result] = await connectionPool.query(
-        'INSERT into threads (user_id, title, content) VALUES (?, ?, ?)', [userId , title, content]
-    )
-
-    return result.insertId
-}
-
-export async function updateByThreadId(threadId, sqlQuery, dataList) {
-    dataList.push(threadId)
-    const [result] = await connectionPool.query(
-        sqlQuery + 'where thread_id = ? and deleted_at is NULL',
-        dataList
-    )
-    return result.insertId
-}
-
-
-export async function deleteByThreadId(threadId) {
-    const [result] = await connectionPool.query(
-        "Update threads set deleted_at = NOW() , title = '[Deleted]', content = '[Deleted]', status = 'delete' where thread_id = ? ",
-        [threadId]
-    )
-    return;
+    async function deleteByThreadUuid({threadUuid, userId}) {
+        const [result] = await db.query(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
+            [threadUuid, userId]
+        )
+        return result.affectedRows > 0
+    }
 }

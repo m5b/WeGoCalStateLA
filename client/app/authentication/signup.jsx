@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Sparkles, ArrowLeft, GraduationCap, Shield, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { useAuth } from '../../context/AuthContext';
-import { initiateGoogleLogin, checkAuth } from '../../services/authService';
+import { initiateGoogleLogin, checkAuth, signupWithEmail, loginWithEmail } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -16,6 +16,57 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSignup = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      await signupWithEmail(email.trim(), password);
+      await loginWithEmail(email.trim(), password);
+
+      const userData = await checkAuth();
+
+      if (userData && userData.userId) {
+        login(userData);
+        router.push('/home_screen/home');
+      } else {
+        setErrorMessage('Account created but failed to load user data.');
+      }
+    } catch (err) {
+      if (err.status === 400 && err.data) {
+        const messages = Object.values(err.data).join('\n');
+        if (isWeb) {
+          setErrorMessage(messages);
+        } else {
+          Alert.alert('Validation Error', messages);
+        }
+      } else if (err.status === 409) {
+        const msg = 'An account with this email already exists.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Signup Failed', msg);
+        }
+      } else {
+        const msg = 'An unexpected error occurred. Please try again.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Error', msg);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleSignup = async () => {
     try {
@@ -182,7 +233,24 @@ export default function SignupScreen() {
                       )}
                     </TouchableOpacity>
                   </View>
-                  {/* Backend partner: add submit handler to create account via email when ready. */}
+                  {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+                  <TouchableOpacity
+                    style={[styles.signupButton, isLoading && styles.buttonDisabled]}
+                    onPress={handleSignup}
+                    disabled={isLoading}
+                  >
+                    <LinearGradient
+                      colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+                      style={styles.buttonGradient}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.signupButtonText}>Create Account</Text>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
 
                 {/* Link to login */}
@@ -299,6 +367,25 @@ export default function SignupScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+
+              {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+              <TouchableOpacity
+                style={[styles.signupButton, isLoading && styles.buttonDisabled]}
+                onPress={handleSignup}
+                disabled={isLoading}
+              >
+                <LinearGradient
+                  colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+                  style={styles.buttonGradient}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.signupButtonText}>Create Account</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
 
               {/* Link to login */}
               <View style={styles.forgotLinksContainer}>
@@ -641,5 +728,26 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  signupButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  buttonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signupButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

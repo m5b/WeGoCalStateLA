@@ -1,26 +1,19 @@
 import { Router } from 'express'
-import googleAuthRouter from './auth/googleAuth.mjs'
-import localAuthRouter from './auth/login.mjs'
-import signupRouter from './auth/signup.mjs'
-import sessionRouter from './auth/session.mjs'
-import userRouter from './userRoutes.mjs'
-import threadsRouter from './threadsRoutes.mjs'
-import commentsRouter from './commentsRoutes.mjs'
-import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
+import {jsend} from "../util/jSend.mjs";
 
-const router = Router()
+export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, signupRouter, userRouter, threadRouter, commentRouter }){
+    const router = new Router()
+    router.use('/auth', emailOTPRouter)
+    router.use('/auth', googleAuthRouter)
+    router.use('/auth', loginRouter)
+    router.use('/auth', signupRouter)
+    router.use('/user', userRouter)
+    router.use('/threads', threadRouter)
+    router.use('/comments', commentRouter)
+    //route for testing jwt
 
-router.use('/auth', googleAuthRouter)
-router.use('/auth', localAuthRouter)
-router.use('/auth', signupRouter)
-router.use('/auth', sessionRouter)
-router.use('/user', userRouter)
-router.use('/threads', threadsRouter)
-router.use('/comments', commentsRouter)
-
-//route for testing jwt
-router.get('/test', requireJwtAuth, (req, res) => {
-    res.send('HI')
-})
-
-export default router
+    router.get('/health', (req, res) => {
+        res.json(jsend.success(null))
+    })
+    return router
+}
