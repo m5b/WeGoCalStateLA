@@ -17,6 +17,10 @@ import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, Chevron
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
+
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -32,7 +36,18 @@ export default function ProfileScreen() {
     major: 'Computer Science',
     year: 'Junior',
     joinedDate: 'September 2023',
+    alias: null, // Always initially null when page loads, needs storing
   });
+
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params?.alias && userData.alias === null) {
+      setUserData(prev => ({...prev, alias: String(params.alias) }));
+    }
+  }, [params.alias]);
+
+  
 
   const handleSaveProfile = () => {
     setIsEditing(false);
@@ -138,6 +153,27 @@ export default function ProfileScreen() {
         <View style={styles.webInfoCard}>
           <Text style={styles.webInfoLabel}>Joined</Text>
           <Text style={styles.webInfoValue}>{userData.joinedDate}</Text>
+        </View>
+
+        {/* Anonymous*/}
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Alias</Text>
+          {userData.alias ? (
+            <Text style={styles.webInfoValue}>{userData.alias}</Text>) : 
+            (<TouchableOpacity
+            style={styles.webEditButton}
+            onPress={() => router.push('/profile/claim_alias')}
+            >
+              <LinearGradient
+                colors={[Colors.DARK_BLUE, '#0696d9']}
+                style={styles.webClaimButtonGradient}
+              >
+                <Text style={styles.webClaimButtonText}>Claim Anonymous Identity</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+          )}
+          
         </View>
         
         <View style={styles.webEditButtonContainer}>
@@ -733,6 +769,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  webClaimButtonContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  webClaimButton:{
+    borderRadius: 10,
+    overflow: 'hidden',
+    width: 220,
+  },
+  webClaimButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  webClaimButtonText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: '600',
   },
   
   // Web Layout Styles
