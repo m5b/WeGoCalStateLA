@@ -1,0 +1,23 @@
+{
+  "name": "wegoapp",
+  "version": "1.0.0",
+  "description": "WeGoToCalStateLA is a comprehensive mental health and wellness platform designed specifically for California State University, Los Angeles students. The application provides tools for mental health assessment, daily wellness tracking, resources, and community support.",
+  "homepage": "https://github.com/Spinjala1/WeGoApp#readme",
+  "bugs": {
+    "url": "https://github.com/Spinjala1/WeGoApp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spinjala1/WeGoApp.git"
+  },
+  "license": "ISC",
+  "author": "wego team",
+  "type": "module",
+  "scripts": {
+    "dev-docker": "docker compose -f composeCore.yml -f composeDev.yml up",
+    "test-docker": "docker compose -f composeCore.yml -f composeTest.yml up"
+  },
+  "dependencies": {
+    "unique-username-generator": "^1.5.1"
+  }
+}

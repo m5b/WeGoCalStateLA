@@ -6,6 +6,7 @@ import sessionRouter from './auth/session.mjs'
 import userRouter from './userRoutes.mjs'
 import threadsRouter from './threadsRoutes.mjs'
 import commentsRouter from './commentsRoutes.mjs'
+import anonymousRouter from './anonymous.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 
 const router = Router()
@@ -17,6 +18,7 @@ router.use('/auth', sessionRouter)
 router.use('/user', userRouter)
 router.use('/threads', threadsRouter)
 router.use('/comments', commentsRouter)
+router.use('/anonymous', anonymousRouter)
 
 //route for testing jwt
 router.get('/test', requireJwtAuth, (req, res) => {
