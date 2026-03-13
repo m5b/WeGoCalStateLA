@@ -1,9 +1,9 @@
-import connectionPool from '../db/pool.mjs'
+import connectionPool from '../lib/pool.mjs'
 
-export async function findAuthUserByEmail(email){
+export async function findAuthUserByEmail(emailHash){
     const[row] = await connectionPool.query(
-        'select user_id, password_hash from users where email = ? and deleted_at is NULL',
-        [email]
+        'select user_id, password_hash from users where email_hash = ? and deleted_at is NULL',
+        [emailHash]
     )
     return row[0] || null;
 }
@@ -16,36 +16,26 @@ export async function findAuthUserByUsername(username){
     return row[0] || null;
 }
 
-export async function insertUser({ email, username, passwordHash }) {
+export async function insertUser({emailHash, username, passwordHash }) {
     const [result] = await connectionPool.query(
-        'INSERT INTO users (email, username, display_name, password_hash) VALUES (?, ?, ?, ?)',
-        [email, username, username, passwordHash]
+        'INSERT INTO users (email_hash, username, display_name, password_hash) VALUES (?, ?, ?, ?)',
+        [emailHash, username, username, passwordHash]
     )
     return result.insertId
 }
 
 //soft delete
-export async function deleteUser(userId) {
+export async function deleteUserByUserId(userId) {
     const [result] = await connectionPool.query(
-        'Update users set deleted_at = NOW() , email = NULL, password_hash = NULL, username = NULL,  display_name = NULL, google_id = NULL where user_id = ? ',
+        'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL  where user_id = ? ',
         [userId]
     )
 }
 
-//google
-export async function updateUserGoogleId({ userId, googleId }) {
+export async function deleteUserByEmailHash(emailHash) {
     const [result] = await connectionPool.query(
-        'update users set google_id = ? where user_id = ? and deleted_at is NULL',
-        [googleId, userId]
+        'Update users set deleted_at = NOW() , email_hash = NULL, password_hash = NULL, username = NULL,  display_name = NULL where email_hash= ? ',
+        [emailHash]
     )
-    return result
-}
-
-export async function insertGoogleUser({ username, email, googleId }) {
-    const [result] = await connectionPool.query(
-        'INSERT INTO users (username, email, display_name, google_id) VALUES (?,?, ?, ?)',
-        [username, email, username, googleId]
-    )
-    return result.insertId
 }
 

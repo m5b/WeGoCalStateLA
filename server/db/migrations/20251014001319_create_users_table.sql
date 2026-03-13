@@ -1,8 +1,8 @@
 -- migrate:up
 CREATE TABLE users (
     user_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-    password_hash varchar(255),
-    email varchar(100) UNIQUE,
+    password_hash varchar(255) NOT NULL,
+    email_hash CHAR(43) NOT NULL ,
     username varchar(100) UNIQUE,
     display_name varchar(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

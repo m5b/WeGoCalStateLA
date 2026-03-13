@@ -1,26 +1,17 @@
-import connectionPool from '../db/pool.mjs'
+import connectionPool from '../lib/pool.mjs'
 
 export async function findByUserID(userId) {
     const [row] = await connectionPool.query(
-        'select user_id, email, username, display_name, created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
+        'select user_id, email_hash, username, display_name, created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
         [userId]
     )
     return row[0] || null
 }
 
-export async function findByEmail(email) {
+export async function findByEmailHash(emailHash) {
     const [row] = await connectionPool.query(
-        'select user_id, email, username, display_name, created_at, updated_at from users where email = ? and deleted_at is NULL',
-        [email]
-    )
-
-    return row[0] || null
-}
-
-export async function findByGoogleId(googleId) {
-    const [row] = await connectionPool.query(
-        'select user_id, email, username, display_name, created_at, updated_at from users where google_id = ? and deleted_at is NULL',
-        [googleId]
+        'select user_id, email_hash, username, display_name, created_at, updated_at from users where email_hash = ? and deleted_at is NULL',
+        [emailHash]
     )
 
     return row[0] || null
@@ -28,7 +19,7 @@ export async function findByGoogleId(googleId) {
 
 export async function findByUsername(username) {
     const [row] = await connectionPool.query(
-        'select user_id, email, username, display_name, created_at, updated_at from users where username = ? and deleted_at is NULL',
+        'select user_id, email_hash, username, display_name, created_at, updated_at from users where username = ? and deleted_at is NULL',
         [username]
     )
 

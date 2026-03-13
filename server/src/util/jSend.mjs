@@ -20,5 +20,6 @@ export const jsend = {
             status: 'error',
             message: message,
         }
+        return result
     },
 }

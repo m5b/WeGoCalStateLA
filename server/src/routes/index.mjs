@@ -6,6 +6,8 @@ import sessionRouter from './auth/session.mjs'
 import userRouter from './userRoutes.mjs'
 import threadsRouter from './threadsRoutes.mjs'
 import commentsRouter from './commentsRoutes.mjs'
+import { jsend } from '../util/jSend.mjs'
+import { VOPRFPublicKey } from '../lib/voprf.mjs'
 import anonymousRouter from './anonymous.mjs'
 import requireJwtAuth from '../middlewares/requireJwtAuth.mjs'
 
@@ -21,8 +23,14 @@ router.use('/comments', commentsRouter)
 router.use('/anonymous', anonymousRouter)
 
 //route for testing jwt
-router.get('/test', requireJwtAuth, (req, res) => {
-    res.send('HI')
+router.get('/public-key', (req, res) => {
+    res.json(jsend.success({
+        publicKey: VOPRFPublicKey
+    }))
+})
+
+router.get('/health', (req, res )=>{
+    res.json(jsend.success(null))
 })
 
 export default router
