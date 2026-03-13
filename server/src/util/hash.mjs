@@ -5,5 +5,5 @@ export function sha256Hex(input){
 }
 
 export function hkdf(input){
-    return Buffer.from(crypto.hkdfSync("sha256", input, "wego-v1", "wego-auth", 32))
+    return crypto.hkdfSync("sha256", input, "wego-v1", "wego-auth", 32)
 }

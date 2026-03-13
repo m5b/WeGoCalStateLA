@@ -1,6 +1,3 @@
 services:
   backend:
-    env_file:
-      - ./server/.env.test
     command: ["npm", "run", "test"]
-

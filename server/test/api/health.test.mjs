@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import request from "supertest"
 import {createApp} from '../../src/app/app.mjs'
+import { buildAuthorizationUrlWithJAR } from 'openid-client'
 
 describe("App health test", () => {
     it("GET /api/health -> 200", async () => {

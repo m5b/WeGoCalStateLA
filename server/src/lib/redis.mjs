@@ -3,10 +3,29 @@ import Redis from 'ioredis'
 
 const {
     redisURL,
+<<<<<<< HEAD
     option
 } = redisConfig
 
 const redis = new Redis(redisURL, option)
+=======
+    redisCommandTimeoutMs,
+    redisConnectTimeoutMs,
+    redisMaxRetriesPerRequest,
+} = redisConfig
+
+const redis = new Redis(redisURL, {
+    connectTimeout: Number(redisConnectTimeoutMs),
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: Number(redisMaxRetriesPerRequest),
+    commandTimeout: Number(redisCommandTimeoutMs),
+    retryStrategy(times) {
+        const delay = Math.min(50 * 2 ** times, 2000)
+        return delay
+    },
+    showFriendlyErrorStack: true,
+})
+>>>>>>> abcb6e26 (message)
 
 redis.on('connect', () => {
     console.log('redis connect')
