@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiGet } from '../services/api';
+import { checkAuth } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -26,7 +27,7 @@ export function AuthProvider({ children }) {
 
   const checkSession = async () => {
     try {
-      const userData = await apiGet('/api/auth/me');
+      const userData = await checkAuth();
       if (userData && userData.userId) {
         login(userData);
       }

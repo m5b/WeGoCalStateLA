@@ -1,5 +1,5 @@
 import { Strategy as jwtStrategy, ExtractJwt } from 'passport-jwt'
-import {getCurrentUser} from "../services/userService.mjs";
+import {getCurrentUser} from "../services/users/userService.mjs";
 import dbMapper from '../util/dbMapper.mjs'
 import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
 

@@ -1,20 +1,20 @@
 //Accept a list of commentDto, construct a list of nested comment structure
 
-export default function buildCommentsTree(commentDtos) {
+export default function buildCommentTree(commentDtos) {
     const commentDtoTreeList = []
-    const map = new Map()
+    const commentTreeMap = new Map()
     commentDtos.forEach((commentDto) => {
         commentDto.replies = []
-        map.set(commentDto.commentId, commentDto)
+        commentTreeMap.set(commentDto.commentUuid, commentDto)
     })
     commentDtos.forEach((commentDto) => {
-        const parentId = commentDto.parentId
-        if (parentId == null) {
+        const parentCommentUuid = commentDto.parentCommentUuid
+        if (parentCommentUuid == null) {
             commentDtoTreeList.push(commentDto)
         } else {
-            const parent = map.get(parentId)
+            const parent = commentTreeMap.get(parentCommentUuid)
             parent.replies.push(commentDto)
         }
     })
-    return commentDtoTreeList
+    return {commentDtoTreeList, commentTreeMap}
 }

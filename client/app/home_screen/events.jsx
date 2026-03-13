@@ -65,14 +65,14 @@ export default function EventsScreen() {
   const [events, setEvents] = useState([]);          //holds event data
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
-  // load threads → convert to events
+  // load threads -> convert to events
   useEffect(() => {
     async function loadEvents() {
       try {
         const threads = await getFeed(); // threads
 
         const mapped = threads
-          .filter(t => t.imageUri || t.location || t.date || t.time)
+          .filter(t => t.imageUri && t.location && t.date && t.time)
           .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
           .map(t => ({
             id: t.id,
@@ -165,7 +165,7 @@ export default function EventsScreen() {
                     location={current.location}
                     description={current.description}
                     imageUrl={current.imageUrl}
-                    onPress={() => router.push(`/events/${current.id}`)}
+                    onPress={() => router.push(`/threads/detail?threadid=${current.id}`)}
                   />
                 </View>
 

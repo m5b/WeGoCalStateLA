@@ -1,33 +1,43 @@
-const isProduction = process.env.NODE_ENV === 'production'
 
 export const cookieConfig = {
     httpOnly: true,
-    secure: isProduction,
     maxAge: 60000 * 60,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
     sameSite: 'lax',
 }
 
 
 export const oidcCookieConfig = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: "/",
     sameSite: 'lax',
 }
 
-export const otpCookieConfig = {
+export const otpTokenCookieConfig = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: '/',
     sameSite: 'lax',
 }
 
-export const verifiedCookieConfig= {
+export const signupTokenCookieConfig= {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: 5 * 60000,
     path: '/',
     sameSite: 'lax',
 }
+
+
+export const loginTokenCookieConfig= {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 5 * 60000,
+    path: '/',
+    sameSite: 'lax',
+}
+

@@ -18,7 +18,7 @@ import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import { useAuth } from '../../context/AuthContext';
-import { initiateGoogleLogin, checkAuth } from '../../services/authService';
+import { initiateGoogleLogin, checkAuth, loginWithEmail } from '../../services/authService';
 
 // Removed unused screenWidth from Dimensions
 
@@ -31,9 +31,7 @@ export default function LoginScreen() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const passwordRef = useRef(null);
 
-  // Native app mock login: only one credential pair works on iOS/Android.
-  const VALID_EMAIL = 'student@csla.edu';
-  const VALID_PASSWORD = 'GoldenEagles123!';
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleGoogleAuth = async () => {
     try {
@@ -73,26 +71,51 @@ export default function LoginScreen() {
     }
 
     setIsLoading(true);
+    setErrorMessage('');
 
-    if (Platform.OS === 'web') {
-      // Preserve simulated web login
-      setTimeout(() => {
-        setIsLoading(false);
-        router.push('/home_screen/home');
-      }, 1000);
-      return;
-    }
+    try {
+      await loginWithEmail(email.trim(), password);
 
-    // iOS/Android: enforce single working mock credential
-    const ok = email.trim().toLowerCase() === VALID_EMAIL && password === VALID_PASSWORD;
-    if (ok) {
-      setTimeout(() => {
-        setIsLoading(false);
+      const userData = await checkAuth();
+
+      if (userData && userData.userId) {
+        login(userData);
         router.push('/home_screen/home');
-      }, 700);
-    } else {
+      } else {
+        setErrorMessage('Login succeeded but failed to load user data.');
+      }
+    } catch (err) {
+      if (err.status === 400 && err.data) {
+        const messages = Object.values(err.data).join('\n');
+        if (isWeb) {
+          setErrorMessage(messages);
+        } else {
+          Alert.alert('Validation Error', messages);
+        }
+      } else if (err.status === 401) {
+        const msg = 'Invalid email or password.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Login Failed', msg);
+        }
+      } else if (err.status === 404) {
+        const msg = 'No account found with this email.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Login Failed', msg);
+        }
+      } else {
+        const msg = 'An unexpected error occurred. Please try again.';
+        if (isWeb) {
+          setErrorMessage(msg);
+        } else {
+          Alert.alert('Error', msg);
+        }
+      }
+    } finally {
       setIsLoading(false);
-      Alert.alert('Login failed', 'Invalid email or password. Use the approved test account.');
     }
   };
 
@@ -198,6 +221,10 @@ export default function LoginScreen() {
                 </View>
 
                 <View style={styles.loginForm}>
+                  {errorMessage ? (
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                  ) : null}
+
                   <View style={styles.inputContainer}>
                     <View style={styles.inputIconContainer}>
                       <Mail size={20} color="#9CA3AF" />
@@ -346,7 +373,11 @@ export default function LoginScreen() {
                 <Text style={styles.dividerText}>or</Text>
                 <View style={styles.dividerLine} />
               </View>
-              
+
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
+
               <View style={styles.inputContainer}>
                 <View style={styles.inputIconContainer}>
                   <Mail size={20} color={Colors.GRAY} />
@@ -1036,5 +1067,12 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 12,
+    textAlign: 'center',
   },
 });

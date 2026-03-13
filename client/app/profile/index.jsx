@@ -17,8 +17,16 @@ import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, LogOut, Chevron
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
+
+import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const { logout } = useAuth();
+  const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   // Removed unused darkModeEnabled state
   const [dataSharing, setDataSharing] = useState(true);
@@ -32,11 +40,30 @@ export default function ProfileScreen() {
     major: 'Computer Science',
     year: 'Junior',
     joinedDate: 'September 2023',
+    alias: null, // Always initially null when page loads, needs storing
   });
+
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params?.alias && userData.alias === null) {
+      setUserData(prev => ({...prev, alias: String(params.alias) }));
+    }
+  }, [params.alias]);
+
+  
 
   const handleSaveProfile = () => {
     setIsEditing(false);
     Alert.alert('Success', 'Profile information updated successfully!');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      router.replace('/authentication/login');
+    }
   };
 
 
@@ -138,6 +165,27 @@ export default function ProfileScreen() {
         <View style={styles.webInfoCard}>
           <Text style={styles.webInfoLabel}>Joined</Text>
           <Text style={styles.webInfoValue}>{userData.joinedDate}</Text>
+        </View>
+
+        {/* Anonymous*/}
+        <View style={styles.webInfoCard}>
+          <Text style={styles.webInfoLabel}>Alias</Text>
+          {userData.alias ? (
+            <Text style={styles.webInfoValue}>{userData.alias}</Text>) : 
+            (<TouchableOpacity
+            style={styles.webEditButton}
+            onPress={() => router.push('/profile/claim_alias')}
+            >
+              <LinearGradient
+                colors={[Colors.DARK_BLUE, '#0696d9']}
+                style={styles.webClaimButtonGradient}
+              >
+                <Text style={styles.webClaimButtonText}>Claim Anonymous Identity</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+          )}
+          
         </View>
         
         <View style={styles.webEditButtonContainer}>
@@ -250,7 +298,7 @@ export default function ProfileScreen() {
 
           {/* Actions */}
           <View style={styles.webActionsSection}>
-            <TouchableOpacity style={styles.webLogoutButton}>
+            <TouchableOpacity style={styles.webLogoutButton} onPress={handleLogout}>
               <LinearGradient
                 colors={[Colors.ERROR, '#b91c1c']}
                 style={styles.webLogoutGradient}
@@ -440,7 +488,7 @@ export default function ProfileScreen() {
 
         {/* Actions */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.logoutButton}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <LogOut size={20} color={Colors.ERROR} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -733,6 +781,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  webClaimButtonContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  webClaimButton:{
+    borderRadius: 10,
+    overflow: 'hidden',
+    width: 220,
+  },
+  webClaimButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  webClaimButtonText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: '600',
   },
   
   // Web Layout Styles
