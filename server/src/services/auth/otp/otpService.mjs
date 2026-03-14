@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import { UnauthorizedError } from '../../../errors/unauthorizedError.mjs'
-import {generateOTP} from "./otpGenerator.mjs";
-import {generateKey} from "./keyGenerator.mjs";
+import {generateOTP} from "../../../util/otpGenerator.mjs";
+import {generateKey} from "../../../util/keyGenerator.mjs";
 
 export function createOTPService({otpStore, jwtTokenService, round = 10}){
     return{

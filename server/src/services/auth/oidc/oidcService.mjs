@@ -1,6 +1,6 @@
 import * as client from 'openid-client'
 import { BadRequestError } from '../../../errors/badRequestError.mjs'
-import {generateKey} from "../otp/keyGenerator.mjs";
+import {generateKey} from "../../../util/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 
 export function createOIDCService({oidcStore, jwtTokenService, openIdClient, openIdConfig, provider}){

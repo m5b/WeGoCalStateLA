@@ -33,6 +33,7 @@ export function createVOPRFService({voprfClient, evaluator}){
             const evaluation = await evaluator.blindEvaluate(evalReq)
             return uint8ArrayToBase64UrlString(evaluation.serialize())
         } catch (err) {
+            console.log(err)
             throw new ServiceUnavailable(
                 null,
                 'Login service is temporarily unavailable. Please try again later.'
