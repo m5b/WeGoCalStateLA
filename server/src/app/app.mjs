@@ -37,6 +37,7 @@ import { createCommentRouter } from '../routes/commentsRoutes.mjs'
 import { createUsernameService } from '../services/users/usernameGenerator.mjs'
 import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
 import {createLoginService} from "../services/auth/login/loginService.mjs";
+import {createVOPRFRouter} from "../routes/auth/voprf.mjs";
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -77,6 +78,7 @@ export function createApp(db, redis, emailService){
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
+    const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({signupTokenService: signupTokenService, voprfService: voprfService, userService: userService, passwordService : passwordService})
     const userRouter = createUserRouter(userService)
@@ -90,6 +92,7 @@ export function createApp(db, redis, emailService){
         userRouter: userRouter,
         threadRouter: threadRouter,
         commentRouter: commentRouter,
+        voprfRouter
     })
     app.use('/api', router)
     app.use(errorHandler)

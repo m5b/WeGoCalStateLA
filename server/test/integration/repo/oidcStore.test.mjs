@@ -2,7 +2,7 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it, afterAll} from "
 import Redis from "ioredis";
 import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
-import {generateKey} from "../../../src/services/auth/otp/keyGenerator.mjs";
+import {generateKey} from "../../../src/util/keyGenerator.mjs";
 import {buildRedisKey} from "../../../src/util/redisKeyBuilder.mjs";
 import {ServiceUnavailable} from "../../../src/errors/serviceUnavailable.mjs";
 import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";

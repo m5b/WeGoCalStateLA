@@ -1,4 +1,4 @@
-import {generateKey} from "../otp/keyGenerator.mjs";
+import {generateKey} from "../../../util/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 
 export function createLoginTokenService({loginTokenStore, jwtTokenService}) {

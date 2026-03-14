@@ -3,7 +3,7 @@ import {redisConfig} from "../../../src/config/redisConfig.mjs";
 import Redis from "ioredis";
 import {redisKeysConfig} from "../../../src/config/redisKeysConfig.mjs";
 import {faker} from "@faker-js/faker";
-import {generateKey} from "../../../src/services/auth/otp/keyGenerator.mjs";
+import {generateKey} from "../../../src/util/keyGenerator.mjs";
 import {buildRedisKey} from "../../../src/util/redisKeyBuilder.mjs";
 import {ServiceUnavailable} from "../../../src/errors/serviceUnavailable.mjs";
 import {createLoginTokenStore} from "../../../src/repositories/redis/loginTokenStore.mjs";
