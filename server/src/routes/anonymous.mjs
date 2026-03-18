@@ -8,7 +8,7 @@ import {jsend} from "../util/jSend.mjs";
 
 const router = Router()
 
-router.get("/", requireJwtAuth, async (req, res) => {
+router.get("/", async (req, res) => {
     // get user identification (id)
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
@@ -16,7 +16,7 @@ router.get("/", requireJwtAuth, async (req, res) => {
 
     // retrieve anonymous username
     try{
-        var anon_username = getAnonNameByUserId(userId)
+        var anon_username = await getAnonNameByUserId(userId)
     } catch (err){
         res.status(404).send(jsend.fail({ "reason" : err.message}))
     }
@@ -24,7 +24,7 @@ router.get("/", requireJwtAuth, async (req, res) => {
     res.send(jsend.success({ "anonymous_username" : anon_username}))
 })
 
-router.get("/assign", requireJwtAuth, async (req, res) => {
+router.get("/assign", async (req, res) => {
     // get user identification (id/username)
     const { userId } = userIdSchema.parse({
         userId: req.user.userId,
@@ -35,7 +35,7 @@ router.get("/assign", requireJwtAuth, async (req, res) => {
 
     // retrieve anonymous username
     try{
-        var anon_username = getAnonNameByUserId(userId)
+        var anon_username = await getAnonNameByUserId(userId)
     } catch (err){
         res.status(404).send(jsend.fail({ "reason" : err.message}))
     }
