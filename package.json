@@ -14,7 +14,6 @@
   "author": "wego team",
   "type": "module",
   "scripts": {
-    "dev-docker": "docker compose -f composeCore.yml -f composeDev.yml up",
-    "test-docker": "docker compose -f composeCore.yml -f composeTest.yml up"
+    "dev-docker": "docker compose -f composeDev.yml up"
   }
 }

@@ -17,7 +17,7 @@ export function createVOPRFService({voprfClient, evaluator}){
         const evaluation = await evaluator.blindEvaluate(evalReq)
         const [output] = await voprfClient.finalize(finData, evaluation)
         const emailHash = hkdf(output)
-        return emailHash
+        return uint8ArrayToBase64UrlString(emailHash)
     }
     //used for signup and login
     async function evaluateVOPRF(evalReqB64U) {
