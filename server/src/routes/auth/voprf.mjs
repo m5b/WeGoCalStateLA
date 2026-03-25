@@ -11,5 +11,12 @@ export function createVOPRFRouter(voprfService){
         res.json(jsend.success({ evaluationB64U : evaluationB64U}))
     })
 
+    router.post('/voprf-register', async (req, res) => {
+        const emailHash = await voprfService.handleServerVOPRF(req.body.email)
+        res.json(jsend.success({
+            emailHash
+        }))
+    })
+
     return router
 }
