@@ -3,8 +3,6 @@ include:
     env_file:
       - ./server/.env.development
   - path: infra/keycloak/compose.yml
-    env_file:
-      - infra/keycloak/.env.development
 
 services:
   backend:
