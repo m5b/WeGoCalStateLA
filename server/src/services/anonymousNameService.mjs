@@ -1,5 +1,6 @@
 import usernameGenerator from "../util/usernameGenerator.mjs";
-import { getAvailableAnonymousName,assignAnonymousNameToUser,getAnonymousNameByUserId } from "../repositories/anonymousRepository.mjs";
+
+import { getAvailableAnonymousName,assignAnonymousNameToUser } from "../repositories/anonymousRepository.mjs";
 
 const LOW_STOCK = 200;
 const REFILL_STOCK = 1000;
@@ -55,18 +56,5 @@ export async function assignAnonymous(userId) {
 
     } catch (err) {
         throw err;
-    }
-}
-
-export async function getAnonNameByUserId(userId){
-    try {
-        const anonName = await getAnonymousNameByUserId(userId)
-
-        if(!anonName){
-            throw new NotFoundError("No anonymous name assigned to the given userId")
-        }
-
-    } catch(err){
-        return err;
     }
 }
