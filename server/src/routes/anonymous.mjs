@@ -16,7 +16,7 @@ router.get("/", requireJwtAuth, async (req, res) => {
 
     // retrieve anonymous username
     try{
-        var anon_username = getAnonNameByUserId(userId)
+        var anon_username = await getAnonNameByUserId(userId)
     } catch (err){
         res.status(404).send(jsend.fail({ "reason" : err.message}))
     }
@@ -35,7 +35,7 @@ router.get("/assign", requireJwtAuth, async (req, res) => {
 
     // retrieve anonymous username
     try{
-        var anon_username = getAnonNameByUserId(userId)
+        var anon_username = await getAnonNameByUserId(userId)
     } catch (err){
         res.status(404).send(jsend.fail({ "reason" : err.message}))
     }
