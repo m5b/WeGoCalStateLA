@@ -1,7 +1,0 @@
-node_modules/
-build/
-npm-debug.log
-.env.development
-.env.production
-*.pem
-
