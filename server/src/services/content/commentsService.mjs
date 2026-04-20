@@ -4,7 +4,7 @@ import {UnauthorizedError} from "../../errors/unauthorizedError.mjs";
 import { v4 as uuidv4 } from 'uuid';
 import buildPatchQuery from "../../util/buildPatchQuery.mjs";
 
-export function createCommentService({commentRepo, threadService,userService}) {
+export function createCommentService({commentRepo, threadService}) {
     return{
         getByCommentId,
         getByCommentUuid,
@@ -65,14 +65,13 @@ export function createCommentService({commentRepo, threadService,userService}) {
         return comments
     }
 
-    async function postComment({userUuid, threadUuid, payload, parentCommentUuid}) {
-        const user = await userService.getByUuid(userUuid)
+    async function postComment({userId, threadUuid, payload, parentCommentUuid}) {
         const thread = await threadService.getByThreadUuid(threadUuid)
         const { content } = payload
         let inserted, insertId
         if(parentCommentUuid == null){
             const result = await commentRepo.insertComment({
-                userId: user.userId,
+                userId: userId,
                 threadId: thread.threadId,
                 content: content,
                 commentUuid: uuidv4(),
@@ -82,7 +81,7 @@ export function createCommentService({commentRepo, threadService,userService}) {
         }
         else{
             const result = await commentRepo.insertCommentWithParent({
-                userId: user.userId,
+                userId: userId,
                 threadId: thread.threadId,
                 content: content,
                 commentUuid: uuidv4(),
@@ -99,14 +98,13 @@ export function createCommentService({commentRepo, threadService,userService}) {
     }
 
 
-    async function patchByCommentId({commentId, userUuid, payload}) {
-        const user = await userService.getByUuid(userUuid)
+    async function patchByCommentId({commentId, userId, payload}) {
         const { sqlQuery, dataList } = buildPatchQuery(
             'comments',
             dbMapper.toDb(payload)
         )
         const{existed, changed} = await commentRepo.updateByCommentId({
-            commentId, userId: user.userId, sqlQuery, dataList
+            commentId, userId, sqlQuery, dataList
         })
         if(!existed){
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
@@ -115,14 +113,13 @@ export function createCommentService({commentRepo, threadService,userService}) {
         return comment
     }
 
-    async function patchByCommentUuid({commentUuid, userUuid, payload}){
-        const user = await userService.getByUuid(userUuid)
+    async function patchByCommentUuid({commentUuid, userId, payload}){
         const { sqlQuery, dataList } = buildPatchQuery(
             'comments',
             dbMapper.toDb(payload)
         )
         const{existed, changed} = await commentRepo.updateByCommentUuid({
-            commentUuid, userId: user.userId, sqlQuery, dataList
+            commentUuid, userId, sqlQuery, dataList
         })
         if(!existed){
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
@@ -133,20 +130,18 @@ export function createCommentService({commentRepo, threadService,userService}) {
 
 
 
-    async function deleteByCommentId({commentId, userUuid}) {
-        const user = await userService.getByUuid(userUuid)
+    async function deleteByCommentId({commentId, userId}) {
         const deleted = await commentRepo.deleteByCommentId({
-            commentId, userId:user.userId
+            commentId, userId
         })
         if(!deleted){
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
     }
 
-    async function deleteByCommentUuid({commentUuid, userUuid}) {
-        const user = await userService.getByUuid(userUuid)
+    async function deleteByCommentUuid({commentUuid, userId}) {
         const deleted = await commentRepo.deleteByCommentUuid({
-            commentUuid, userId:user.userId
+            commentUuid, userId
         })
         if(!deleted){
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
