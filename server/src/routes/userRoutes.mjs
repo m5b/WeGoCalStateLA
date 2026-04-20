@@ -11,7 +11,7 @@ export function createUserRouter(userService){
     const router = Router()
 
     router.get('/me', reqAuth(userService),  async (req, res) => {
-        res.status(200).json(jsend.success({ user: req.user}))
+        res.status(200).json(jsend.success({ user: new UserDto(req.user, {scope: "public"})}))
     })
 
     // not enabled due to no field can be updated as for now
