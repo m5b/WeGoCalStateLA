@@ -33,12 +33,12 @@ export function reqAuth(userService){
             }, "You are not authorized, please try again")
         }
         //check provision
-        let user = await userService.getByUserUuid(req.accessToken.userUuid)
-        if(user == null){
-            const{userUuid, createdAt, username} = req.accessToken;
-            user = await userService.createUser({userUuid, username, createdAt});
-        }
-        req.user = user;
+        const {username, userUuid, createdAt} = req.accessToken
+        req.user = await userService.provisionUser({
+            username,
+            userUuid,
+            createdAt,
+        })
         return next()
     }
 }
