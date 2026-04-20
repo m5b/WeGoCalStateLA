@@ -12,7 +12,7 @@ export function createUserService({userRepo}) {
         createUser,
         getUserCount,
         getByUserUuid,
-
+        provisionUser,
     }
     async function getUserCount(){
         const count = await userRepo.getCount()
