@@ -23,7 +23,7 @@
         "dotenv": "^17.2.3",
         "express": "^5.1.0",
         "ioredis": "^5.9.3",
-        "jose": "^6.2.1",
+        "jose": "^6.2.2",
         "js-base64": "^3.7.8",
         "jsonwebtoken": "^9.0.2",
         "keycloak-js": "^26.2.3",
