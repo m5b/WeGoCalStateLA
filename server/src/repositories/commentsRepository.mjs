@@ -47,7 +47,7 @@ export function createCommentRepo(db){
                     WHEN u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN u.username
                     ELSE NULL
-                    END AS username,
+                    END AS username
             FROM
                 comments c
                     JOIN threads t ON c.thread_id = t.thread_id
