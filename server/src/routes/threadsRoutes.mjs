@@ -26,7 +26,7 @@ export function createThreadRouter({userService, threadService}){
     //tested
     router.post('/me', reqAuth(userService), async (req, res) => {
         const payload = threadPostSchema.parse(req.body)
-        const user = await userService.getByUuid(req.userUuid)
+        const user = req.user
         const thread = await threadService.postByUserId(user.userId, payload)
         const threadDto = new ThreadDto(thread)
         res.json(jsend.success({thread: threadDto}))
