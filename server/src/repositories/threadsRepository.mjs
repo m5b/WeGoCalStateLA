@@ -130,16 +130,16 @@ export function createThreadRepo(db){
 
 
     async function deleteByThreadId({threadId, userId}) {
-        const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_id = ? AND user_id = ? AND deleted_at IS NULL",
+        const [result] = await db.execute(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_id = ? AND user_id = ? AND deleted_at IS NULL",
             [threadId, userId]
         )
         return result.affectedRows > 0
     }
 
     async function deleteByThreadUuid({threadUuid, userId}) {
-        const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
+        const [result] = await db.execute(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
             [threadUuid, userId]
         )
         return result.affectedRows > 0
