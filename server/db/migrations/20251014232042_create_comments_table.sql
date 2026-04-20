@@ -9,6 +9,7 @@ CREATE TABLE comments (
     created_at NOT NULL TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at NOT NULL TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
+    status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',
     CONSTRAINT fk_comments_parent_comment_id FOREIGN KEY (parent_comment_id) REFERENCES comments (comment_id),
     CONSTRAINT fk_comments_user_id FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_comments_thread_id FOREIGN KEY (thread_id) REFERENCES threads (thread_id)
