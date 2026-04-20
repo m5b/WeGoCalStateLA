@@ -1,5 +1,4 @@
 import {Router} from 'express'
-import {requireJWTAuth} from '../middlewares/requireCookie.mjs'
 import CommentDto from "../dtos/commentDto.mjs";
 import {jsend} from "../util/jSend.mjs";
 import {commentSchema} from "../validators/commentsValidators.mjs";
@@ -14,7 +13,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
 
     router.get('/me', reqAuth(userService), async (req, res) => {
-        const comments = await commentService.getByUserUuid(req.userUuid)
+        const comments = await commentService.getByUserId(req.user.userId)
         const commentDTOs = comments.map((comment) => new CommentDto(comment))
         res.json(jsend.success({comments: commentDTOs}))
 
@@ -25,11 +24,11 @@ export function createCommentRouter({userService, commentService}) {
         '/me/thread/:threadUuid',
         reqAuth(userService),
         async (req, res) => {
-            const userUuid = req.userUuid
+            const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
             const payload = commentSchema.parse(req.body)
             const comment = await commentService.postComment({
-                userUuid,
+                userId,
                 threadUuid,
                 payload,
                 parentCommentUuid: null,
@@ -46,14 +45,14 @@ export function createCommentRouter({userService, commentService}) {
         '/me/thread/:threadUuid/comment/:parentCommentUuid',
         reqAuth(userService),
         async (req, res) => {
-            const userUuid = req.userUuid
+            const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
             const parentCommentUuid = uuidSchema.parse(
                 req.params.parentCommentUuid
             )
             const payload = commentSchema.parse(req.body)
             const comment = await commentService.postComment({
-                userUuid,
+                userId,
                 threadUuid,
                 payload,
                 parentCommentUuid,
@@ -87,9 +86,9 @@ export function createCommentRouter({userService, commentService}) {
         '/me/:commentUuid',
         reqAuth(userService),
         async (req, res) => {
-            const userUuid = req.userUuid
             const commentUuid = uuidSchema.parse(req.params.commentUuid)
-            await commentService.deleteByCommentUuid({ commentUuid, userUuid })
+            const userId = req.user.userId
+            await commentService.deleteByCommentUuid({ commentUuid, userId})
             res.send(jsend.success(null))
         }
     )
