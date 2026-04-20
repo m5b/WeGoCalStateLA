@@ -9,6 +9,7 @@ export function createUserRepo(db){
         deleteByUserUuid,
         insertUser,
         getCount,
+        checkUserExistsByUserUuid
     }
     async function getCount(){
         const [row] = await db.query(
@@ -32,6 +33,13 @@ export function createUserRepo(db){
         return row[0] || null
     }
 
+    async function checkUserExistsByUserUuid(userUuid){
+        const [rows] = await db.execute(
+            `SELECT EXISTS(SELECT 1 FROM users WHERE uuid_bin = UUID_TO_BIN(?)) AS user_exists`,
+            [userUuid]
+        )
+        return rows[0].user_exists === 1
+    }
 
     async function findByUsername(username) {
         const [row] = await db.execute(
