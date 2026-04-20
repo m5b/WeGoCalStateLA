@@ -20,7 +20,7 @@ export function createThreadRepo(db){
                 t.updated_at AS updated_at,
                 t.deleted_at AS deleted_at,
                 t.status AS status,
-                t.user_id AS user_id 
+                t.user_id AS user_id,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.title
                     ELSE NULL
