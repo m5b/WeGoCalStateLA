@@ -1,16 +1,3 @@
-include:
-  - path: ./server/compose.yml
-    env_file:
-      - ./server/.env.development
-  - path: infra/keycloak/compose.yml
-  - path: infra/nginx/compose.yml
-  - path: infra/oauth2-proxy/compose.yml
-
-services:
+service:
   backend:
     command: ["npm", "run", "dev"]
-  mailhog:
-    image: mailhog/mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"

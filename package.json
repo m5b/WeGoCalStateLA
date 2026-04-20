@@ -14,7 +14,7 @@
   "author": "wego team",
   "type": "module",
   "scripts": {
-    "dev-docker": "docker compose -f composeDev.yml up",
-    "dev-docker-down": "docker compose -f composeDev.yml down"
+    "dev-docker": "docker compose -f composeCore.yml -f composeDev.yml up",
+    "dev-docker-down": "docker compose -f composeCore.yml down"
   }
 }
