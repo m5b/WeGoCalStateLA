@@ -5,6 +5,7 @@ import {
 import ThreadDto from '../dtos/threadDto.mjs'
 import { jsend } from '../util/jSend.mjs'
 import {uuidSchema} from "../validators/authValidators.mjs";
+import { reqAuth } from '../middlewares/reqAuth.mjs'
 
 export function createThreadRouter({userService, threadService, commentService}){
 
