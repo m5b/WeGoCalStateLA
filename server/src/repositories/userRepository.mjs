@@ -2,7 +2,7 @@ export function createUserRepo(db){
     return {
         findByUserId,
         findByUsername,
-        findByUuid,
+        findByUserUuid,
         updateByUserId,
         updateByUserUuid,
         deleteByUserId,
