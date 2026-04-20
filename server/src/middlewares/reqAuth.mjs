@@ -3,8 +3,8 @@ import { keycloakConfig} from '../config/authConfig.mjs'
 import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
 import { keycloakJWK } from '../lib/jose.mjs'
 
-export async function reqAuth(userService){
-    return new async function(req, res, next){
+export function reqAuth(userService){
+    return async function(req, res, next){
         const accessToken = req.get('X-access-token')
         if (!accessToken) {
             console.log("hello")
