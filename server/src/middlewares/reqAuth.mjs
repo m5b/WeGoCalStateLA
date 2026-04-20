@@ -18,7 +18,7 @@ export function reqAuth(userService){
             });
             req.accessToken = {
                 userUuid: payload.sub,
-                createdAt: payload.createdTimestamp,
+                createdAt: new Date(Number(payload.createdTimestamp)),
                 username: payload.preferred_username,
                 roles: [
                     ...(payload.realm_access?.roles ?? []),
