@@ -2,7 +2,6 @@ import cors from 'cors'
 import { corsConfig } from '../config/corsConfig.mjs'
 import express from 'express'
 import cookieParser from 'cookie-parser'
-<<<<<<< HEAD
 import { createAPIRouter } from '../routes/index.mjs'
 import errorHandler from '../middlewares/errorHandler.mjs'
 import { createLoginTokenStore } from '../repositories/redis/loginTokenStore.mjs'
@@ -40,17 +39,10 @@ import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
 import {createLoginService} from "../services/auth/login/loginService.mjs";
 
 export function createApp(db, redis, emailService){
-=======
-import router from '../routes/index.mjs'
-import errorHandler from '../middlewares/errorHandler.mjs'
-
-export function createApp(){
->>>>>>> abcb6e26 (message)
     const app = express()
     app.use(cors(corsConfig))
     app.use(express.json())
     app.use(cookieParser())
-<<<<<<< HEAD
     //launch up the store / repo
     const loginTokenStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken})
     const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
@@ -99,8 +91,6 @@ export function createApp(){
         threadRouter: threadRouter,
         commentRouter: commentRouter,
     })
-=======
->>>>>>> abcb6e26 (message)
     app.use('/api', router)
     app.use(errorHandler)
     return app

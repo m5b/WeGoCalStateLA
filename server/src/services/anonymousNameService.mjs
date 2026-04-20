@@ -1,5 +1,4 @@
 import usernameGenerator from "../util/usernameGenerator.mjs";
-
 import { getAvailableAnonymousName,assignAnonymousNameToUser } from "../repositories/anonymousRepository.mjs";
 
 const LOW_STOCK = 200;

@@ -20,14 +20,3 @@ export async function assignAnonymousNameToUser(anonymousId, userId) {
         [userId, anonymousId]
     );
 }
-
-export async function getAnonymousNameByUserId(userId){
-    const anonName = await connectionPool.query(
-        `SELECT anonymous_name
-        FROM anonymous_name
-        WHERE user_id = ?
-        `,
-        [userId]
-    )
-    return anonymousName || null;
-}
