@@ -36,10 +36,13 @@ export function createThreadRouter({userService, threadService}){
     router.patch('/me/:threadUuid', reqAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const payload = threadPatchSchema.parse(req.body)
-        const user = await userService.getByUuid(req.userUuid)
-        const thread = await threadService.patchByThreadUuid({userId:user.userId, threadUuid, payload})
-        console.log(thread)
-        res.send(jsend.success({ thread:  new ThreadDto(thread)}))
+        const user = req.user
+        const thread = await threadService.patchByThreadUuid({
+            userId: user.userId,
+            threadUuid,
+            payload,
+        })
+        res.send(jsend.success({ thread: new ThreadDto(thread) }))
     })
 
     //tested
