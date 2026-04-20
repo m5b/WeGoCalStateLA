@@ -8,7 +8,7 @@ export default class UserDto {
                 this[p] = user[p]
             })
         }
-        if (scope === 'private') {
+        else if (scope === 'private') {
             PRIVATE_FIELDS.forEach((p) => {
                 this[p] = user[p]
             })
