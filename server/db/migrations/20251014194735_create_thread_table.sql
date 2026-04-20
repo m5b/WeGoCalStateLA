@@ -8,6 +8,7 @@ CREATE TABLE threads (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
+    status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',
     CONSTRAINT fk_threads_user_id FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
