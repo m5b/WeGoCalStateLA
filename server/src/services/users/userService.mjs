@@ -95,7 +95,7 @@ export function createUserService({userRepo}) {
                 'Can not found current user'
             )
         }
-        const user = await getByUuid(userUuid)
+        const user = await getByUserUuid(userUuid)
         return user
     }
 
