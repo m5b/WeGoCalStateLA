@@ -48,11 +48,6 @@ export function createCommentRepo(db){
                         AND c.deleted_at IS NULL THEN u.username
                     ELSE NULL
                     END AS username,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND c.deleted_at IS NULL THEN u.display_name
-                    ELSE '[deleted]'
-                    END AS display_name
             FROM
                 comments c
                     JOIN threads t ON c.thread_id = t.thread_id
