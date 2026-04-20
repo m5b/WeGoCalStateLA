@@ -56,6 +56,14 @@ export function createUserService({userRepo}) {
         return user
     }
 
+    async function provisionUser({userUuid, username, createdAt}) {
+        let user = dbMapper.fromDb(await userRepo.findByUserUuid(userUuid))
+        if(user == null){
+            user = await createUser({userUuid, username, createdAt})
+        }
+        return user
+    }
+
 
     async function patchByUserId(userId, payload) {
 
