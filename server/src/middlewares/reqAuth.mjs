@@ -7,7 +7,6 @@ export function reqAuth(userService){
     return async function(req, res, next){
         const accessToken = req.get('X-access-token')
         if (!accessToken) {
-            console.log("hello")
             throw new UnauthorizedError({
                 "auth": "Not authorized"
             }, "You are not authorized, please try again")
