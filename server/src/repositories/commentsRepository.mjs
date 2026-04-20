@@ -17,12 +17,11 @@ export function createCommentRepo(db){
     function getPublicSelect(){
         return `
             SELECT
-                -- comment
                 c.comment_id AS comment_id,
                 BIN_TO_UUID(c.comment_uuid) AS comment_uuid,
                 CASE
                     WHEN c.deleted_at IS NULL THEN c.content
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS content,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
@@ -42,12 +41,12 @@ export function createCommentRepo(db){
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS user_uuid,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN u.username
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS username,
                 CASE
                     WHEN u.deleted_at IS NULL
