@@ -1,85 +1,85 @@
-const tintColorLight = '#003DA5'; // Cal State LA Blue
-const tintColorDark = '#FFB81C'; // Golden Eagle Gold
+const tintColorLight = '#FFD700'; // Gold
+const tintColorDark = '#FFD700'; // Gold
 
 export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#FFFFFF',
+  light: { // This will be less used if dark mode is default, but should still be black/gold
+    text: '#000000', // Black text on light (gold) background
+    background: '#FFD700', // Gold background
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#000000',
+    tabIconDefault: '#000000',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#FFD700', // Gold text on dark (black) background
+    background: '#000000', // Black background
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#FFD700',
+    tabIconDefault: '#FFD700',
     tabIconSelected: tintColorDark,
   },
-  
-  // Brand Colors - Cal State LA Official
-  PRIMARY: '#003DA5', // Cal State LA Blue
-  SECONDARY: '#FFB81C', // Golden Eagle Gold
-  
-  // Primary Color Variants
-  PRIMARY_50: '#eff6ff',
-  PRIMARY_100: '#dbeafe',
-  PRIMARY_200: '#bfdbfe',
-  PRIMARY_300: '#93c5fd',
-  PRIMARY_400: '#60a5fa',
-  PRIMARY_500: '#3b82f6',
-  PRIMARY_600: '#003DA5', // Main brand color
-  PRIMARY_700: '#1d4ed8',
-  PRIMARY_800: '#1e40af',
-  PRIMARY_900: '#1e3a8a',
-  
-  // Secondary Color Variants
-  SECONDARY_50: '#fffbeb',
-  SECONDARY_100: '#fef3c7',
-  SECONDARY_200: '#fde68a',
-  SECONDARY_300: '#fcd34d',
-  SECONDARY_400: '#fbbf24',
-  SECONDARY_500: '#FFB81C', // Main secondary color
-  SECONDARY_600: '#d97706',
-  SECONDARY_700: '#b45309',
-  SECONDARY_800: '#92400e',
-  SECONDARY_900: '#78350f',
-  
-  // Neutral Colors - Modern Gray Scale
-  WHITE: '#FFFFFF',
-  BLACK: '#000000',
-  GRAY_50: '#f9fafb',
-  GRAY_100: '#f3f4f6',
-  GRAY_200: '#e5e7eb',
-  GRAY_300: '#d1d5db',
-  GRAY_400: '#9ca3af',
-  GRAY_500: '#6b7280',
-  GRAY_600: '#4b5563',
-  GRAY_700: '#374151',
-  GRAY_800: '#1f2937',
-  GRAY_900: '#111827',
-  
-  // Semantic Colors
-  TEXT: '#111827',
-  TEXT_SECONDARY: '#6b7280',
-  TEXT_MUTED: '#9ca3af',
-  BACKGROUND: '#ffffff',
-  BACKGROUND_SECONDARY: '#f9fafb',
-  BORDER: '#e5e7eb',
-  BORDER_LIGHT: '#f3f4f6',
-  
-  // Legacy Colors (for backward compatibility)
-  LIGHT_BLUE: '#60a5fa',
-  DARK_BLUE: '#1e40af',
-  LIGHT_GOLD: '#fcd34d',
-  DARK_GOLD: '#d97706',
-  LIGHT_GRAY: '#f3f4f6',
-  GRAY: '#6b7280',
-  DARK_GRAY: '#374151',
-  
-  // Status Colors - Modern
+
+  // Brand Colors
+  PRIMARY: '#FFD700', // Gold
+  SECONDARY: '#000000', // Black
+
+  // Primary Color Variants (Gold variants)
+  PRIMARY_50: '#FFFBEA',
+  PRIMARY_100: '#FFF4B3',
+  PRIMARY_200: '#FFED80',
+  PRIMARY_300: '#FFE64D',
+  PRIMARY_400: '#FFDF1A',
+  PRIMARY_500: '#FFD700', // Main gold color
+  PRIMARY_600: '#E6C200',
+  PRIMARY_700: '#CCAE00',
+  PRIMARY_800: '#B39A00',
+  PRIMARY_900: '#998600',
+
+  // Secondary Color Variants (Black/Gray variants)
+  SECONDARY_50: '#F0F0F0', // Very light gray for subtle contrast
+  SECONDARY_100: '#D9D9D9',
+  SECONDARY_200: '#A3A3A3',
+  SECONDARY_300: '#7A7A7A',
+  SECONDARY_400: '#4D4D4D',
+  SECONDARY_500: '#262626', // Dark gray
+  SECONDARY_600: '#1A1A1A',
+  SECONDARY_700: '#121212', // Main dark background
+  SECONDARY_800: '#0A0A0A',
+  SECONDARY_900: '#000000', // Pure black
+
+  // Neutral Colors - Modern Gray Scale (Adjusted to fit black theme)
+  WHITE: '#FFFFFF', // Keep white for some elements that need to pop
+  BLACK: '#000000', // Pure black
+  GRAY_50: '#1F1F1F', // Very dark gray, almost black
+  GRAY_100: '#2A2A2A',
+  GRAY_200: '#3A3A3A',
+  GRAY_300: '#4A4A4A',
+  GRAY_400: '#6A6A6A',
+  GRAY_500: '#8A8A8A',
+  GRAY_600: '#A0A0A0',
+  GRAY_700: '#B0B0B0',
+  GRAY_800: '#C0C0C0',
+  GRAY_900: '#D0D0D0',
+
+  // Semantic Colors (Adjusted for dark theme)
+  TEXT: '#FFD700', // Gold text by default (dark mode)
+  TEXT_SECONDARY: '#B0B0B0', // Lighter gray for secondary text
+  TEXT_MUTED: '#8A8A8A', // Even lighter gray for muted text
+  BACKGROUND: '#000000', // Default background is black
+  BACKGROUND_SECONDARY: '#121212', // Slightly lighter black for secondary backgrounds
+  BORDER: '#4D4D4D', // Dark gray border
+  BORDER_LIGHT: '#2A2A2A',
+
+  // Legacy Colors (Adjusted)
+  LIGHT_BLUE: '#FFD700', // Replace with gold
+  DARK_BLUE: '#E6C200', // Replace with darker gold
+  LIGHT_GOLD: '#FFED80', // Adjust gold
+  DARK_GOLD: '#CCAE00', // Adjust gold
+  LIGHT_GRAY: '#2A2A2A', // Dark gray
+  GRAY: '#6A6A6A', // Medium gray
+  DARK_GRAY: '#1A1A1A', // Darker gray
+
+  // Status Colors (Keep as is, or adjust if gold/black versions are needed)
   SUCCESS: '#10b981',
   SUCCESS_LIGHT: '#d1fae5',
   WARNING: '#f59e0b',
@@ -88,23 +88,23 @@ export const Colors = {
   ERROR_LIGHT: '#fee2e2',
   INFO: '#3b82f6',
   INFO_LIGHT: '#dbeafe',
-  
+
   // Mood colors (keep for daily check-in)
   RED: '#ef4444',
   ORANGE: '#f59e0b',
   GREEN: '#10b981',
-  
-  // Interactive Colors
-  HOVER: '#f3f4f6',
-  ACTIVE: '#e5e7eb',
-  FOCUS: '#dbeafe',
-  
-  // Opacity Variants
+
+  // Interactive Colors (Adjusted)
+  HOVER: '#1A1A1A', // Dark gray hover
+  ACTIVE: '#2A2A2A', // Darker gray active
+  FOCUS: '#4D4D4D', // Even darker gray focus
+
+  // Opacity Variants (Adjusted for new palette)
   WHITE_OPACITY_80: 'rgba(255, 255, 255, 0.8)',
   BLACK_OPACITY_10: 'rgba(0, 0, 0, 0.1)',
   BLACK_OPACITY_20: 'rgba(0, 0, 0, 0.2)',
-  PRIMARY_OPACITY_10: 'rgba(0, 61, 165, 0.1)',
-  PRIMARY_OPACITY_20: 'rgba(0, 61, 165, 0.2)',
+  PRIMARY_OPACITY_10: 'rgba(255, 215, 0, 0.1)', // Gold opacity
+  PRIMARY_OPACITY_20: 'rgba(255, 215, 0, 0.2)', // Gold opacity
 };
 
 export default Colors;
