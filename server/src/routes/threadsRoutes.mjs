@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import {
-    threadIdSchema,
     threadPatchSchema, threadPostSchema,
 } from '../validators/threadsValidators.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
