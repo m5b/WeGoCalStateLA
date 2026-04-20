@@ -7,8 +7,7 @@ import { jsend } from '../util/jSend.mjs'
 import {uuidSchema} from "../validators/authValidators.mjs";
 import { reqAuth } from '../middlewares/reqAuth.mjs'
 
-export function createThreadRouter({userService, threadService, commentService}){
-
+export function createThreadRouter({userService, threadService}){
     const router = Router()
 
     router.get("/", async (req, res) => {
