@@ -20,37 +20,28 @@ export function createThreadRepo(db){
                 t.updated_at AS updated_at,
                 t.deleted_at AS deleted_at,
                 t.status AS status,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.user_id
-                    ELSE NULL
-                    END AS user_id,
+                t.user_id AS user_id 
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.title
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS title,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
-                    ELSE '[deleted]'
+                    ELSE NULL 
                     END AS content,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS user_uuid,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN u.username
-                    ELSE '[deleted]'
-                    END AS username,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.display_name
-                    ELSE '[deleted]'
-                    END AS display_name
+                    ELSE NULL
+                    END AS username
             FROM
                 threads t
-                    JOIN users u ON t.user_id = u.user_id
+                    LEFT JOIN users u ON t.user_id = u.user_id
         `
     }
     async function findAll() {
