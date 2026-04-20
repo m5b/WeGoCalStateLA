@@ -24,12 +24,12 @@ export function createUserRouter(userService){
     })
      */
 
-    router.delete('/me', async (req, res) => {
+    router.delete('/me', reqAuth(userService), async (req, res) => {
         const result = await userService.deleteByUserUuid(req.userUuid)
         res.status(200).send(jsend.success(null))
     })
 
-    router.get('/profile/:username', async (req, res) => {
+    router.get('/profile/:username', reqAuth(userService),  async (req, res) => {
         const { username } = usernameSchema.parse({ username: req.params.username })
         const user = await userService.getByUsername(username)
         const userDisplay = new UserDto(user, { scope: 'public' })
