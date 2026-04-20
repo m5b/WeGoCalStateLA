@@ -51,7 +51,7 @@ export function createThreadRepo(db){
         return row
     }
     async function findByThreadId(threadId) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
@@ -63,7 +63,7 @@ export function createThreadRepo(db){
     }
 
     async function findByThreadUuid(threadUuid){
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
@@ -74,28 +74,28 @@ export function createThreadRepo(db){
     }
 
     async function findByUserId(userId) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
-                t.user_id = ?`,
+                t.user_id = ? and t.deleted_at IS NULL`,
             [userId]
         )
         return row
     }
     async function findByUserUuid(userUuid) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE 
-                u.user_uuid = UUID_TO_BIN(?)`,
+                u.user_uuid = UUID_TO_BIN(?) and t.deleted_at IS NULL`,
                 [userUuid]
         )
         return row
     }
 
     async function insertThread({ userId, threadUuid, title, content }) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,UUID_TO_BIN(?), ?, ?)',
             [userId, threadUuid, title, content]
         )
