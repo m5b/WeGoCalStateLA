@@ -49,7 +49,7 @@ export function createUserService({userRepo}) {
     }
 
     async function getByUserUuid(userUuid) {
-        const user = dbMapper.fromDb(await userRepo.findByUuid(userUuid))
+        const user = dbMapper.fromDb(await userRepo.findByUserUuid(userUuid))
         if (!user) {
             throw new NotFoundError(null, 'Can not found the user')
         }
