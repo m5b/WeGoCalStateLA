@@ -11,7 +11,7 @@ export function createUserService({userRepo}) {
         deleteByUserUuid,
         createUser,
         getUserCount,
-        getByUuid
+        getByUserUuid,
 
     }
     async function getUserCount(){
