@@ -25,7 +25,7 @@ export function createUserRepo(db){
         return row[0] || null
     }
 
-    async function findByUuid(userUuid){
+    async function findByUserUuid(userUuid){
         const [row] = await db.execute(
             'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, created_at, updated_at from users where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL ',
             [userUuid]
