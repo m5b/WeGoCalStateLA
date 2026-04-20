@@ -48,8 +48,11 @@ export function createThreadRouter({userService, threadService}){
     //tested
     router.delete('/me/:threadUuid', reqAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
-        const user = await userService.getByUuid(req.userUuid)
-        await threadService.deleteByThreadUuid({threadUuid, userId:user.userId})
+        const user = req.user
+        await threadService.deleteByThreadUuid({
+            threadUuid,
+            userId: user.userId,
+        })
         res.send(jsend.success(null))
     })
 
