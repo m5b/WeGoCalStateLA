@@ -79,8 +79,8 @@ export function createApp(db, redis, emailService){
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({signupTokenService: signupTokenService, voprfService: voprfService, userService: userService, passwordService : passwordService})
     const userRouter = createUserRouter(userService)
-    const threadRouter = createThreadRouter({userService, threadService: threadService, commentService: commentService})
-    const commentRouter = createCommentRouter(commentService)
+    const threadRouter = createThreadRouter({userService, threadService})
+    const commentRouter = createCommentRouter({commentService, userService})
     const router = createAPIRouter({
         emailOTPRouter: emailOTPRouter,
         googleAuthRouter: googleAuthRouter,
