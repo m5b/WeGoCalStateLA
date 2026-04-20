@@ -10,21 +10,21 @@ import { reqAuth } from '../middlewares/reqAuth.mjs'
 export function createThreadRouter({userService, threadService}){
     const router = Router()
 
-    router.get("/", async (req, res) => {
+    router.get('/', reqAuth(userService), async (req, res) => {
         const threads = await threadService.getAll()
         const threadDtos = threads.map((thread) => new ThreadDto(thread))
         res.send(jsend.success({ threads: threadDtos }))
     })
 
     //tested
-    router.get('/me', requireJWTAuth, async (req, res) => {
-        const threads = await threadService.getByUserUuid(req.userUuid)
+    router.get('/me', reqAuth(userService), async (req, res) => {
+        const threads = await threadService.getByUserId(req.user.userId)
         const threadDtos = threads.map((thread) => new ThreadDto(thread))
         res.send(jsend.success({ threads: threadDtos }))
     })
 
     //tested
-    router.post('/me', requireJWTAuth, async (req, res) => {
+    router.post('/me', reqAuth(userService), async (req, res) => {
         const payload = threadPostSchema.parse(req.body)
         const user = await userService.getByUuid(req.userUuid)
         const thread = await threadService.postByUserId(user.userId, payload)
@@ -33,7 +33,7 @@ export function createThreadRouter({userService, threadService}){
     })
 
     //tested
-    router.patch('/me/:threadUuid', requireJWTAuth, async (req, res) => {
+    router.patch('/me/:threadUuid', reqAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const payload = threadPatchSchema.parse(req.body)
         const user = await userService.getByUuid(req.userUuid)
@@ -43,7 +43,7 @@ export function createThreadRouter({userService, threadService}){
     })
 
     //tested
-    router.delete('/me/:threadUuid', requireJWTAuth, async (req, res) => {
+    router.delete('/me/:threadUuid', reqAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const user = await userService.getByUuid(req.userUuid)
         await threadService.deleteByThreadUuid({threadUuid, userId:user.userId})
@@ -52,7 +52,7 @@ export function createThreadRouter({userService, threadService}){
 
 
     //tested
-    router.get('/:threadUuid', async (req, res) => {
+    router.get('/:threadUuid', reqAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const thread = await threadService.getByThreadUuid(threadUuid)
         res.json(jsend.success({thread: new ThreadDto(thread)}))
