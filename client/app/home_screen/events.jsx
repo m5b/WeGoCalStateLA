@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -20,11 +21,10 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
-import { getFeed } from '../../services/threads'; // threadStore
+import { getFeed } from '../../services/threads';
 
 const { width } = Dimensions.get('window');
 
-// ------- Event Card -------
 function EventCard({ title, date, location, description, onPress, imageUrl }) {
   return (
     <TouchableOpacity
@@ -32,7 +32,6 @@ function EventCard({ title, date, location, description, onPress, imageUrl }) {
       onPress={onPress}
       style={eventStyles.card}
     >
-      {/* Image on top */}
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
@@ -40,7 +39,6 @@ function EventCard({ title, date, location, description, onPress, imageUrl }) {
         />
       ) : null}
 
-      {/* Text content with left accent */}
       <View style={eventStyles.contentRow}>
         <View style={eventStyles.leftAccent} />
         <View style={eventStyles.inner}>
@@ -62,36 +60,38 @@ export default function EventsScreen() {
     'Remember: Every small step towards wellness is a victory worth celebrating.'
   );
 
-  const [events, setEvents] = useState([]);          //holds event data
+  const [events, setEvents] = useState([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
-  // load threads -> convert to events
-  useEffect(() => {
-    async function loadEvents() {
-      try {
-        const threads = await getFeed(); // threads
+  useFocusEffect(
+    useCallback(() => {
+      async function loadEvents() {
+        try {
+          const threads = await getFeed();
 
-        const mapped = threads
-          .filter(t => t.imageUri && t.location && t.date && t.time)
-          .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-          .map(t => ({
-            id: t.id,
-            title: t.caption || 'Shared Event',
-            date: t.date || '',
-            time: t.time || '',
-            location: t.location || '',
-            imageUrl: t.imageUri || null,
-          }));
+          const mapped = threads
+            .filter(t => t.imageUri && t.location && t.date && t.time)
+            .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+            .map(t => ({
+              id: t.id,
+              title: t.caption || 'Shared Event',
+              description: t.description || '',
+              date: t.date || '',
+              time: t.time || '',
+              location: t.location || '',
+              imageUrl: t.imageUri || null,
+            }));
 
-        setEvents(mapped);
-        setCurrentEventIndex(0);
-      } catch (e) {
-        console.warn('Failed to load events', e);
+          setEvents(mapped);
+          setCurrentEventIndex(0);
+        } catch (e) {
+          console.warn('Failed to load events', e);
+        }
       }
-    }
 
-    loadEvents();
-  }, []);
+      loadEvents();
+    }, [])
+  );
 
   const scores = [
     { label: 'Daily Check-ins', value: '7 days', icon: Heart, color: Colors.GREEN },
@@ -114,38 +114,39 @@ export default function EventsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <LinearGradient
         colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
         style={styles.header}
       >
         <View style={styles.headerRow}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.replace('/home_screen/home')}
             style={styles.backButton}
           >
             <ArrowLeft size={24} color={Colors.WHITE} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Events & Progress</Text>
-          <View style={styles.headerSpacer} />
+          <TouchableOpacity
+            onPress={() => router.push('/home_screen/create_event')}
+            style={styles.createButton}
+          >
+            <Text style={styles.createButtonText}>+ Create</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Daily Inspiration */}
         <View style={styles.inspirationCard}>
           <Text style={styles.inspirationLabel}>Daily Inspiration</Text>
           <Text style={styles.inspirationText}>{todayInspiration}</Text>
         </View>
 
-        {/* Upcoming Events - Carousel */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upcoming Events</Text>
 
           {hasEvents ? (
             <>
               <View style={styles.carouselRow}>
-                {/* Left Arrow */}
                 <TouchableOpacity
                   onPress={handlePrevEvent}
                   style={styles.arrowButton}
@@ -157,7 +158,6 @@ export default function EventsScreen() {
                   />
                 </TouchableOpacity>
 
-                {/* Card container keeps arrows close to card */}
                 <View style={styles.carouselCardContainer}>
                   <EventCard
                     title={current.title}
@@ -169,7 +169,6 @@ export default function EventsScreen() {
                   />
                 </View>
 
-                {/* Right Arrow */}
                 <TouchableOpacity
                   onPress={handleNextEvent}
                   style={styles.arrowButton}
@@ -182,7 +181,6 @@ export default function EventsScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Dots indicator */}
               <View className="dotsRow" style={styles.dotsRow}>
                 {events.map((event, index) => (
                   <View
@@ -202,7 +200,6 @@ export default function EventsScreen() {
           )}
         </View>
 
-        {/* Progress Cards */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Progress</Text>
           <View style={styles.scoresGrid}>
@@ -310,6 +307,17 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
+  createButton: {
+    backgroundColor: Colors.SECONDARY,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  createButtonText: {
+    color: Colors.PRIMARY,
+    fontWeight: '700',
+    fontSize: 14,
+  },
   content: {
     flex: 1,
   },
@@ -356,7 +364,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  // carousel
   carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,7 +398,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
     opacity: 1,
   },
-  // progress cards
   scoresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

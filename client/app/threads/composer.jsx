@@ -77,7 +77,7 @@ export default function Composer() {
     setTime("");
     setLocation("");
 
-    router.push("/threads/feed");
+    router.replace("/threads/feed");
   }
 
   return (
@@ -90,7 +90,7 @@ export default function Composer() {
       }}
     >
       <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/threads/feed")}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Share an Event</Text>
