@@ -197,7 +197,7 @@ export function createCommentRepo(db){
         const [result] = await db.execute(
             `
                 UPDATE comments 
-                SET deleted_at = NOW()  , content = null , status = 'delete' 
+                SET deleted_at = NOW()  , content = null , status = 'deleted' 
                 WHERE comment_uuid = UUID_TO_BIN(?) 
                     AND user_id = ?
                     AND deleted_at IS NULL
