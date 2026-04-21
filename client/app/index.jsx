@@ -100,7 +100,7 @@ function WebLandingPage() {
           <View style={styles.heroContent}>
             <View style={styles.heroText}>
               <View style={styles.badgeContainer}>
-                <GraduationCap size={16} color={Colors.SECONDARY} />
+                <GraduationCap size={16} color={Colors.PRIMARY} />
                 <Text style={styles.badgeText}>Cal State LA Student Wellness</Text>
               </View>
               
@@ -117,7 +117,7 @@ function WebLandingPage() {
               <View style={styles.heroButtons}>
                 <TouchableOpacity style={styles.primaryButton} onPress={navigateToApp}>
                   <Text style={styles.primaryButtonText}>Access Wellness Tools</Text>
-                  <ArrowRight size={20} color={Colors.WHITE} />
+                  <ArrowRight size={20} color={Colors.PRIMARY} />
                 </TouchableOpacity>
                 
                 <TouchableOpacity style={styles.secondaryButton} onPress={navigateToLogin}>
@@ -246,7 +246,7 @@ function WebLandingPage() {
               </View>
               
               <View style={styles.aboutCard}>
-                <Brain size={48} color={Colors.SECONDARY} />
+                <Brain size={48} color={Colors.PRIMARY} />
                 <Text style={styles.aboutCardTitle}>Evidence-Based</Text>
                 <Text style={styles.aboutCardDescription}>
                   Built on clinically validated assessment tools and evidence-based mental health practices 
@@ -255,7 +255,7 @@ function WebLandingPage() {
               </View>
               
               <View style={styles.aboutCard}>
-                <Clock size={48} color={Colors.SUCCESS} />
+                <Clock size={48} color={Colors.PRIMARY} />
                 <Text style={styles.aboutCardTitle}>Always Available</Text>
                 <Text style={styles.aboutCardDescription}>
                   Access mental health resources and support 24/7, whether you’re on campus, 
@@ -270,7 +270,7 @@ function WebLandingPage() {
         <View style={styles.ctaSection}>
           <View style={styles.ctaContainer}>
             <View style={styles.ctaContent}>
-              <Heart size={48} color={Colors.SECONDARY} />
+              <Heart size={48} color={Colors.PRIMARY} />
               <Text style={styles.ctaTitle}>Take the First Step Toward Better Mental Health</Text>
               <Text style={styles.ctaDescription}>
                 Your mental health matters. Start your wellness journey today with tools and resources 
@@ -279,7 +279,7 @@ function WebLandingPage() {
               <View style={styles.ctaButtons}>
                 <TouchableOpacity style={styles.ctaPrimaryButton} onPress={navigateToApp}>
                   <Text style={styles.ctaPrimaryButtonText}>Begin Wellness Journey</Text>
-                  <ArrowRight size={20} color={Colors.WHITE} />
+                  <ArrowRight size={20} color={Colors.PRIMARY} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.ctaSecondaryButton} onPress={navigateToLogin}>
                   <Text style={styles.ctaSecondaryButtonText}>Student Login</Text>
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   badgeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fef3c7',
+    backgroundColor: Colors.SECONDARY_500,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#92400e',
+    color: Colors.PRIMARY,
   },
   heroTitle: {
     fontSize: width < 640 ? 36 : width < 1024 ? 48 : 64,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     width: width < 640 ? '100%' : 'auto',
   },
   primaryButton: {
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.SECONDARY_900,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButtonText: {
-    color: Colors.WHITE,
+    color: Colors.PRIMARY,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     right: 24,
   },
   heroCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.SECONDARY_500,
     borderRadius: 16,
     padding: 24,
     backdropFilter: 'blur(10px)',
@@ -618,11 +618,11 @@ const styles = StyleSheet.create({
   heroCardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1e293b',
+    color: Colors.PRIMARY,
   },
   heroCardDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: Colors.TEXT_SECONDARY,
     marginBottom: 20,
   },
   moodOptions: {
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   resourceCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.SECONDARY_700,
     borderRadius: 16,
     padding: 32,
     flex: 1,
@@ -692,13 +692,13 @@ const styles = StyleSheet.create({
   resourceTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1e293b',
+    color: Colors.PRIMARY,
     marginBottom: 12,
     textAlign: 'center',
   },
   resourceDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: Colors.TEXT_SECONDARY,
     lineHeight: 24,
     marginBottom: 16,
     textAlign: 'center',
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   featureCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.SECONDARY_700,
     borderRadius: 20,
     padding: 40,
     width: width < 640 ? '100%' : width < 1024 ? '45%' : '45%',
@@ -780,13 +780,13 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
+    color: Colors.PRIMARY,
     marginBottom: 16,
     letterSpacing: -0.3,
   },
   featureDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: Colors.TEXT_SECONDARY,
     lineHeight: 26,
   },
   
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
   },
   aboutCard: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: Colors.SECONDARY_700,
     borderRadius: 20,
     padding: 40,
     shadowColor: '#000',
@@ -832,14 +832,14 @@ const styles = StyleSheet.create({
   aboutCardTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
+    color: Colors.PRIMARY,
     marginTop: 24,
     marginBottom: 16,
     textAlign: 'center',
   },
   aboutCardDescription: {
     fontSize: 16,
-    color: '#64748b',
+    color: Colors.TEXT_SECONDARY,
     lineHeight: 26,
     textAlign: 'center',
   },
@@ -884,23 +884,21 @@ const styles = StyleSheet.create({
     width: width < 640 ? '100%' : 'auto',
   },
   ctaPrimaryButton: {
-    backgroundColor: Colors.SECONDARY,
+    backgroundColor: Colors.SECONDARY_900,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
     paddingVertical: 18,
     borderRadius: 12,
     gap: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.BLACK_OPACITY_20,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
-    shadowRadius: 24,
-    justifyContent: 'center',
+    shadowRadius: 12,
+    elevation: 10,
   },
   ctaPrimaryButtonText: {
-    color: '#1e293b',
-    fontSize: 18,
-    fontWeight: '700',
+    color: Colors.PRIMARY,
   },
   ctaSecondaryButton: {
     backgroundColor: 'transparent',
