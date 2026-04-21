@@ -1,14 +1,14 @@
 //Accept a list of commentDto, construct a list of nested comment structure
 
 export default function buildCommentTree(commentDtos) {
-    const commentDtoTreeList = []
+    const commentDtoTreeList = [...commentDtos]
     const commentTreeMap = new Map()
-    commentDtos.forEach((commentDto) => {
+    commentDtoTreeList.forEach((commentDto) => {
         commentDto.replies = []
-        commentDto.descendantCount = 0;
+        commentDto.descendantCount = 0
         commentTreeMap.set(commentDto.commentUuid, commentDto)
     })
-    commentDtos.forEach((commentDto) => {
+    commentDtoTreeList.forEach((commentDto) => {
         const parentCommentUuid = commentDto.parentCommentUuid
         if (parentCommentUuid == null) {
             commentDtoTreeList.push(commentDto)
@@ -31,7 +31,7 @@ export default function buildCommentTree(commentDtos) {
         return total
     }
 
-    commentDtos.forEach((commentDto) => {
+    commentDtoTreeList.forEach((commentDto) => {
         fillDescendantCount(commentDto)
     })
 
