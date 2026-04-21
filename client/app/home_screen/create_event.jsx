@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Calendar, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
-import { createThread } from '../../services/threads';
+import { createEvent } from '../../services/events';
 
 export default function CreateEventScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -48,7 +48,7 @@ export default function CreateEventScreen() {
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
       }
-    } catch (e) {
+    } catch (_e) {
       Alert.alert('Error', 'Unable to open picker.');
     }
   }
@@ -64,8 +64,8 @@ export default function CreateEventScreen() {
     }
     setLoading(true);
     try {
-      await createThread({
-        caption: title.trim(),
+      await createEvent({
+        title: title.trim(),
         description: description.trim(),
         imageUri,
         date: date.trim(),
@@ -74,7 +74,7 @@ export default function CreateEventScreen() {
         createdAt: Date.now(),
       });
       router.replace('/home_screen/events');
-    } catch (e) {
+    } catch (_e) {
       Alert.alert('Error', 'Failed to create event.');
     } finally {
       setLoading(false);

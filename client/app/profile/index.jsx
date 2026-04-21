@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   },
   webInfoCard: {
     backgroundColor: '#f8fafc',
-    padding: 16,
+    padding: 20,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -755,11 +755,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     fontWeight: '600',
+    marginRight: 100,
   },
   webInfoValue: {
     fontSize: 16,
     color: '#1e293b',
     fontWeight: '500',
+    textAlign: 'right',
   },
   webEditButtonContainer: {
     alignItems: 'center',

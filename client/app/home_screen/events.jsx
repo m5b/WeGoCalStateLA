@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -10,7 +9,7 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
@@ -21,33 +20,88 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
-import { getFeed } from '../../services/threads';
+import { getEvents } from '../../services/events';
+import WebLayout from '../../components/WebLayout';
 
 const { width } = Dimensions.get('window');
+const DAY_MS = 24 * 60 * 60 * 1000;
+const UPCOMING_WINDOW_DAYS = 30;
+const MAX_LATER_EVENTS = 9;
+const EVENT_CARD_WIDTH =
+  width >= 1200 ? 260 : Math.min(320, width - 88);
+const LATER_EVENT_CARD_WIDTH =
+  width >= 1200 ? 175 : EVENT_CARD_WIDTH;
+const LATER_GRID_GAP = 12;
+const LATER_GRID_MAX_WIDTH = LATER_EVENT_CARD_WIDTH * 5 + LATER_GRID_GAP * 4;
+const EVENT_CARD_BACKGROUND = '#fff8d6';
+const EVENT_TEXT_COLOR = '#000000';
 
-function EventCard({ title, date, location, description, onPress, imageUrl }) {
+function startOfToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function parseEventDate(date) {
+  if (!date) return null;
+  const isoDateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim());
+  const parsed = isoDateMatch
+    ? new Date(
+      Number(isoDateMatch[1]),
+      Number(isoDateMatch[2]) - 1,
+      Number(isoDateMatch[3])
+    )
+    : new Date(date);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function getEventTitle(event) {
+  return (event.title || event.caption || event.text || '').trim();
+}
+
+// ------- Event Card -------
+function EventCard({ title, date, location, description, onPress, imageUrl, compact = false }) {
   return (
     <TouchableOpacity
       activeOpacity={0.95}
       onPress={onPress}
-      style={eventStyles.card}
+      style={[
+        eventStyles.card,
+        compact && eventStyles.compactCard,
+      ]}
     >
+      {/* Image on top */}
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
-          style={eventStyles.eventImage}
+          style={[
+            eventStyles.eventImage,
+            compact && eventStyles.compactImage,
+          ]}
         />
       ) : null}
 
+      {/* Text content */}
       <View style={eventStyles.contentRow}>
         <View style={eventStyles.leftAccent} />
-        <View style={eventStyles.inner}>
-          <Text style={eventStyles.title}>{title}</Text>
-          <Text style={eventStyles.date}>{date}</Text>
-          <Text style={eventStyles.location}>{location}</Text>
+        <View style={[eventStyles.inner, compact && eventStyles.compactInner]}>
+          <Text style={[eventStyles.title, compact && eventStyles.compactTitle]}>{title}</Text>
+          {date ? <Text style={[eventStyles.date, compact && eventStyles.compactDate]}>{date}</Text> : null}
+          {location ? (
+            <Text style={[eventStyles.location, compact && eventStyles.compactLocation]}>
+              {location}
+            </Text>
+          ) : null}
 
           {description ? (
-            <Text style={eventStyles.description}>{description}</Text>
+            <Text
+              numberOfLines={compact ? 2 : 3}
+              style={[eventStyles.description, compact && eventStyles.compactDescription]}
+            >
+              {description}
+            </Text>
           ) : null}
         </View>
       </View>
@@ -60,29 +114,43 @@ export default function EventsScreen() {
     'Remember: Every small step towards wellness is a victory worth celebrating.'
   );
 
-  const [events, setEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [laterEvents, setLaterEvents] = useState([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       async function loadEvents() {
         try {
-          const threads = await getFeed();
+          const events = await getEvents();
 
-          const mapped = threads
-            .filter(t => t.imageUri && t.location && t.date && t.time)
-            .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-            .map(t => ({
-              id: t.id,
-              title: t.caption || 'Shared Event',
-              description: t.description || '',
-              date: t.date || '',
-              time: t.time || '',
-              location: t.location || '',
-              imageUrl: t.imageUri || null,
-            }));
+          const today = startOfToday();
+          const upcomingCutoff = new Date(today.getTime() + UPCOMING_WINDOW_DAYS * DAY_MS);
 
-          setEvents(mapped);
+          const mapped = events
+            .map(event => {
+              const title = getEventTitle(event);
+              const eventDate = parseEventDate(event.date);
+
+              if (!title || !eventDate) return null;
+
+              return {
+                id: event.id,
+                title,
+                date: event.date || '',
+                time: event.time || '',
+                location: event.location || '',
+                description: event.description || (event.text && event.text !== title ? event.text : ''),
+                imageUrl: event.imageUri || null,
+                eventDate,
+              };
+            })
+            .filter(Boolean)
+            .filter(event => event.eventDate >= today)
+            .sort((a, b) => a.eventDate - b.eventDate);
+
+          setUpcomingEvents(mapped.filter(event => event.eventDate <= upcomingCutoff));
+          setLaterEvents(mapped.filter(event => event.eventDate > upcomingCutoff));
           setCurrentEventIndex(0);
         } catch (e) {
           console.warn('Failed to load events', e);
@@ -100,139 +168,194 @@ export default function EventsScreen() {
   ];
 
   const handleNextEvent = () => {
-    if (!events.length) return;
-    setCurrentEventIndex(prev => (prev + 1) % events.length);
+    if (!upcomingEvents.length) return;
+    setCurrentEventIndex(prev => (prev + 1) % upcomingEvents.length);
   };
 
   const handlePrevEvent = () => {
-    if (!events.length) return;
-    setCurrentEventIndex(prev => (prev - 1 + events.length) % events.length);
+    if (!upcomingEvents.length) return;
+    setCurrentEventIndex(prev => (prev - 1 + upcomingEvents.length) % upcomingEvents.length);
   };
 
-  const hasEvents = events.length > 0;
-  const current = hasEvents ? events[currentEventIndex] : null;
+  const hasUpcomingEvents = upcomingEvents.length > 0;
+  const visibleUpcomingEvents = hasUpcomingEvents
+    ? Array.from(
+      { length: Math.min(3, upcomingEvents.length) },
+      (_, offset) => upcomingEvents[(currentEventIndex + offset) % upcomingEvents.length]
+    )
+    : [];
+  const visibleUpcomingIds = new Set(visibleUpcomingEvents.map(event => event.id));
+  const visibleLaterEvents = laterEvents.slice(0, MAX_LATER_EVENTS);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
-        style={styles.header}
-      >
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.replace('/home_screen/home')}
-            style={styles.backButton}
-          >
-            <ArrowLeft size={24} color={Colors.WHITE} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Events & Progress</Text>
-          <TouchableOpacity
-            onPress={() => router.push('/home_screen/create_event')}
-            style={styles.createButton}
-          >
-            <Text style={styles.createButtonText}>+ Create</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+    <WebLayout>
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
+        <LinearGradient
+          colors={[Colors.PRIMARY, Colors.DARK_BLUE]}
+          style={styles.header}
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => router.replace('/home_screen/home')}
+              style={styles.backButton}
+            >
+              <ArrowLeft size={24} color={Colors.WHITE} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Events & Progress</Text>
+            <TouchableOpacity
+              onPress={() => router.push('/home_screen/create_event')}
+              style={styles.createButton}
+            >
+              <Text style={styles.createButtonText}>+ Create</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.inspirationCard}>
-          <Text style={styles.inspirationLabel}>Daily Inspiration</Text>
-          <Text style={styles.inspirationText}>{todayInspiration}</Text>
-        </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Daily Inspiration */}
+          <View style={styles.inspirationCard}>
+            <Text style={styles.inspirationLabel}>Daily Inspiration</Text>
+            <Text style={styles.inspirationText}>{todayInspiration}</Text>
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          {/* Upcoming Events - Carousel */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {upcomingEvents.length} Upcoming Events
+            </Text>
 
-          {hasEvents ? (
-            <>
-              <View style={styles.carouselRow}>
-                <TouchableOpacity
-                  onPress={handlePrevEvent}
-                  style={styles.arrowButton}
-                  disabled={events.length <= 1}
-                >
-                  <ChevronLeft
-                    size={26}
-                    color={events.length <= 1 ? Colors.GRAY : Colors.PRIMARY}
-                  />
-                </TouchableOpacity>
+            {hasUpcomingEvents ? (
+              <>
+                <View style={styles.carouselRow}>
+                  {/* Left Arrow */}
+                  <TouchableOpacity
+                    onPress={handlePrevEvent}
+                    style={styles.arrowButton}
+                    disabled={upcomingEvents.length <= 3}
+                  >
+                    <ChevronLeft
+                      size={26}
+                      color={upcomingEvents.length <= 3 ? Colors.GRAY : Colors.PRIMARY}
+                    />
+                  </TouchableOpacity>
 
-                <View style={styles.carouselCardContainer}>
-                  <EventCard
-                    title={current.title}
-                    date={`${current.date}${current.time ? ` at ${current.time}` : ''}`}
-                    location={current.location}
-                    description={current.description}
-                    imageUrl={current.imageUrl}
-                    onPress={() => router.push(`/threads/detail?threadid=${current.id}`)}
-                  />
+                  <View style={styles.carouselCardsContainer}>
+                    {visibleUpcomingEvents.map(event => (
+                      <EventCard
+                        key={event.id}
+                        title={event.title}
+                        date={`${event.date}${event.time ? ` at ${event.time}` : ''}`}
+                        location={event.location}
+                        description={event.description}
+                        imageUrl={event.imageUrl}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/home_screen/details',
+                            params: { eventId: event.id },
+                          })
+                        }
+                      />
+                    ))}
+                  </View>
+
+                  {/* Right Arrow */}
+                  <TouchableOpacity
+                    onPress={handleNextEvent}
+                    style={styles.arrowButton}
+                    disabled={upcomingEvents.length <= 3}
+                  >
+                    <ChevronRight
+                      size={26}
+                      color={upcomingEvents.length <= 3 ? Colors.GRAY : Colors.PRIMARY}
+                    />
+                  </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                  onPress={handleNextEvent}
-                  style={styles.arrowButton}
-                  disabled={events.length <= 1}
-                >
-                  <ChevronRight
-                    size={26}
-                    color={events.length <= 1 ? Colors.GRAY : Colors.PRIMARY}
-                  />
-                </TouchableOpacity>
-              </View>
+                {/* Dots indicator */}
+                <View style={styles.dotsRow}>
+                  {upcomingEvents.map((event, index) => (
+                    <View
+                      key={event.id}
+                      style={[
+                        styles.dot,
+                        visibleUpcomingIds.has(event.id) && styles.dotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              </>
+            ) : (
+              <Text style={styles.noEventsText}>
+                No upcoming events yet. Create one to get started!
+              </Text>
+            )}
+          </View>
 
-              <View className="dotsRow" style={styles.dotsRow}>
-                {events.map((event, index) => (
-                  <View
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Later Events</Text>
+            {visibleLaterEvents.length ? (
+              <View style={styles.laterEventsGrid}>
+                {visibleLaterEvents.map(event => (
+                  <EventCard
                     key={event.id}
-                    style={[
-                      styles.dot,
-                      index === currentEventIndex && styles.dotActive,
-                    ]}
+                    title={event.title}
+                    date={`${event.date}${event.time ? ` at ${event.time}` : ''}`}
+                    location={event.location}
+                    description={event.description}
+                    imageUrl={event.imageUrl}
+                    compact
+                    onPress={() =>
+                      router.push({
+                        pathname: '/home_screen/details',
+                        params: { eventId: event.id },
+                      })
+                    }
                   />
                 ))}
               </View>
-            </>
-          ) : (
-            <Text style={styles.noEventsText}>
-              No events yet. Share one from the Threads tab!
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Progress</Text>
-          <View style={styles.scoresGrid}>
-            {scores.map((score, index) => (
-              <View key={index} style={styles.scoreCard}>
-                <View style={styles.scoreBorder} />
-                <View style={styles.scoreContent}>
-                  <View
-                    style={[
-                      styles.scoreIconContainer,
-                      { backgroundColor: score.color + '20' },
-                    ]}
-                  >
-                    <score.icon size={24} color={score.color} />
-                  </View>
-                  <Text style={styles.scoreLabel}>{score.label}</Text>
-                  <Text style={[styles.scoreValue, { color: score.color }]}>
-                    {score.value}
-                  </Text>
-                </View>
-              </View>
-            ))}
+            ) : (
+              <Text style={styles.noEventsText}>
+                No events scheduled more than 30 days out yet.
+              </Text>
+            )}
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+
+          {/* Progress Cards */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your Progress</Text>
+            <View style={styles.scoresGrid}>
+              {scores.map((score, index) => (
+                <View key={index} style={styles.scoreCard}>
+                  <View style={styles.scoreBorder} />
+                  <View style={styles.scoreContent}>
+                    <View
+                      style={[
+                        styles.scoreIconContainer,
+                        { backgroundColor: score.color + '20' },
+                      ]}
+                    >
+                      <score.icon size={24} color={score.color} />
+                    </View>
+                    <Text style={styles.scoreLabel}>{score.label}</Text>
+                    <Text style={[styles.scoreValue, { color: score.color }]}>
+                      {score.value}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </WebLayout>
   );
 }
 
 const eventStyles = StyleSheet.create({
   card: {
-    width: Math.min(360, width - 40),
-    backgroundColor: Colors.WHITE,
+    width: EVENT_CARD_WIDTH,
+    backgroundColor: EVENT_CARD_BACKGROUND,
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: Colors.BLACK,
@@ -241,13 +364,20 @@ const eventStyles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
+  compactCard: {
+    width: LATER_EVENT_CARD_WIDTH,
+  },
   eventImage: {
     width: '100%',
-    height: 180,
+    height: 132,
+    resizeMode: 'cover',
+  },
+  compactImage: {
+    height: 94,
   },
   contentRow: {
     flexDirection: 'row',
-    backgroundColor: Colors.WHITE,
+    backgroundColor: EVENT_CARD_BACKGROUND,
   },
   leftAccent: {
     width: 6,
@@ -255,27 +385,48 @@ const eventStyles = StyleSheet.create({
   },
   inner: {
     flex: 1,
-    padding: 16,
+    padding: 12,
+  },
+  compactInner: {
+    padding: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.PRIMARY,
-    marginBottom: 6,
+    color: EVENT_TEXT_COLOR,
+    marginBottom: 4,
+  },
+  compactTitle: {
+    fontSize: 13,
+    marginBottom: 3,
   },
   date: {
-    color: Colors.PRIMARY,
+    color: EVENT_TEXT_COLOR,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 4,
+    fontSize: 12,
+  },
+  compactDate: {
+    fontSize: 11,
+    marginBottom: 3,
   },
   location: {
-    color: Colors.GRAY,
-    marginBottom: 10,
+    color: EVENT_TEXT_COLOR,
+    marginBottom: 8,
+    fontSize: 12,
+  },
+  compactLocation: {
+    fontSize: 11,
+    marginBottom: 6,
   },
   description: {
-    color: Colors.DARK_GRAY || '#333',
-    fontSize: 14,
-    lineHeight: 20,
+    color: EVENT_TEXT_COLOR,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  compactDescription: {
+    fontSize: 11,
+    lineHeight: 15,
   },
 });
 
@@ -364,15 +515,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
+  // carousel
   carouselRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
-  carouselCardContainer: {
-    width: Math.min(360, width - 40),
-    alignItems: 'center',
+  carouselCardsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+    maxWidth: EVENT_CARD_WIDTH * 3 + 32,
   },
   arrowButton: {
     paddingHorizontal: 8,
@@ -383,6 +538,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
     columnGap: 6,
+  },
+  laterEventsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: LATER_GRID_GAP,
+    maxWidth: LATER_GRID_MAX_WIDTH,
+    alignSelf: 'center',
   },
   dot: {
     width: 6,
@@ -398,6 +561,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
     opacity: 1,
   },
+  // progress cards
   scoresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -450,10 +614,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   noEventsText: {
-  color: Colors.TEXT_MUTED,
-  textAlign: "center",
-  marginTop: 10,
-  fontSize: 16,
-},
+    color: Colors.TEXT_MUTED,
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 16,
+  },
 
 });
