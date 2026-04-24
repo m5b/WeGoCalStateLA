@@ -16,9 +16,7 @@ export function createSignupRouter({signupTokenService, voprfService, userServic
         const passwordHash = await passwordService.hashPassword(password)
         //sign up the user
         const user = await userService.createUser({emailHash, passwordHash})
-        res.json(jsend.success({
-            userUuid: user.userUuid
-        }))
+        res.json(jsend.success(null))
     })
     return router
 }

@@ -9,7 +9,7 @@ import {ServiceUnavailable} from "../../../src/errors/serviceUnavailable.mjs";
 import {UnauthorizedError} from "../../../src/errors/unauthorizedError.mjs";
 import {createSignupTokenStore} from "../../../src/repositories/redis/signupTokenStore.mjs";
 import {faker} from "@faker-js/faker";
-import {generateKey} from "../../../src/services/auth/otp/keyGenerator.mjs";
+import {generateKey} from "../../../src/util/keyGenerator.mjs";
 
 describe("signupTokenStore Integration", () => {
     let signupTokenStore

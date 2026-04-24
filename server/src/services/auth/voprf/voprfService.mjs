@@ -17,7 +17,7 @@ export function createVOPRFService({voprfClient, evaluator}){
         const evaluation = await evaluator.blindEvaluate(evalReq)
         const [output] = await voprfClient.finalize(finData, evaluation)
         const emailHash = hkdf(output)
-        return emailHash
+        return uint8ArrayToBase64UrlString(emailHash)
     }
     //used for signup and login
     async function evaluateVOPRF(evalReqB64U) {
@@ -27,15 +27,16 @@ export function createVOPRFService({voprfClient, evaluator}){
            evalReq =  EvaluationRequest.deserialize(evaluator.suite, evalReqUint8)
         }
         catch (err){
-            throw new BadRequestError(null, "Invalid evalReq")
+            throw new BadRequestError({evalReqB64U: "Invalid evaluation request"}, "Invalid request payload.")
         }
         try {
             const evaluation = await evaluator.blindEvaluate(evalReq)
             return uint8ArrayToBase64UrlString(evaluation.serialize())
         } catch (err) {
+            console.log(err)
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Login service is temporarily unavailable. Please try again later.'
             )
         }
     }

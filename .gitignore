@@ -4,4 +4,4 @@ npm-debug.log
 .env.development
 .env.production
 *.pem
-
+.idea

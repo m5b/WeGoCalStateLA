@@ -67,8 +67,8 @@ All responses are JSON.
 - Path: /
 
 #### Frontend:
-
-- Set up the .env file in /server. **Note: Must set the correct CLIENT_URL_DEV in the server .env file.**
+- Install Docker Desktop to setup dependencies
+- Set up the .env.development file in /server. **Note: Must set the correct CLIENT_URL_DEV in the server .env.development file.**
 - Doe not set or read the token
 - Relies on browser handling cookies
 - Must send credentials: "include" on cross-origin requests.
@@ -83,112 +83,103 @@ fetch("/api/users/me", {
 
 ## Auth Endpoints
 
-### 3.1 POST /auth/signup
+### 3.1 POST /otp/send
 
 #### **Behavior**
-
-password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (5 - 21)
+- Send otp to the email input by request body
+- Set Cookie called otp_tx to keep session going
 
 #### **Example**
 ```js
-const res = await fetch('http://localhost:3000/api/auth/signup', {
+const res = await fetch('http://localhost:3000/api/auth/otp/send', {
         method: 'POST',
-        credentials: "include",
         headers:{
             'Content-Type': 'application/json'
         },
         body:JSON.stringify({
             email: "example2@gmail.com",
-            password: "ndN123456!"
         })
     });
 const {status, data} = await res.json();
 ```
-#### **Request**
+#### **Request Body**
 
 ```json
 {
-  "email": "a@gmail.com",
-  "password": "123456778"
+  "email": "a@gmail.com"
 }
 ```
 
-#### **Response**
+#### **Response Body**
 
 ##### 200 ok
 
 ```json
 {
   "status": "success",
-  "data": {
-    "auth": "User created"
-  }
+  "data": null
 }
 ```
 
-##### 409 Conflict
+##### 400 Bad Request 
 
 ```json
 {
   "status": "fail",
-  "data": {
-    "email": "Email already taken"
-  }
+  "error": {
+    "email": "Invalid email format"
+  },
+  "message": "Validation Error"
 }
 ```
 
-### 3.2 POST /auth/login
+##### 503 Service Unavailable
+
+```json
+{
+  "status": "fail",
+  "message": "Signup service is temporarily unavailable. Please try again later."
+}
+```
+
+### 3.2 POST /auth/otp/verify
 
 #### **Behavior**
-
-Login by local, afterward the response will assign a cookie which contain the jwt token for authication
+- Validate the otp_tx cookie
+- Verify the otp code
+- Set cookie verify_tx to keep session going
 
 #### **Example**
 ```js
-const res = await fetch('http://localhost:3000/api/auth/login', {
+const res = await fetch('http://localhost:3000/api/auth/otp/verify', {
         method: 'POST',
         credentials: "include",
         headers:{
             'Content-Type': 'application/json'
         },
         body:JSON.stringify({
-            email: "example2@gmail.com",
-            password: "ndN123456!"
+            "otp": "123456"
         })
     });
 const {status, data} = await res.json();
 console.log(data);
 ```
-#### **Request**
+#### **Request Body**
 
 ```json
 {
-  "email": "a@gmail.com",
-  "password": "123456778"
+  "otp": "123456"
 }
 ```
 
-#### **Response**
+#### **Response Body**
 
 ##### 200 ok
 
 ```json
 {
   "status": "success",
-  "data": {
-    "auth": "authentication acquired"
-  }
-}
-```
-
-##### 404 Not Found
-
-```json
-{
-  "status": "fail",
-  "data": {
-    "email": "Can not found the user of the given email"
-  }
+  "data": null
 }
 ```
 
@@ -197,9 +188,61 @@ console.log(data);
 ```json
 {
   "status": "fail",
-  "data": {
-    "password": "Unmatch password"
+  "error": {
+    "otp_tx": "Invalid Cookie"
+  },
+  "message": "Authentication required."
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "otp": "Record not found"
+  },
+  "message": "OTP expired. Please request a new code."
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "otp": "Incorrect OTP"
+  },
+  "message": "Incorrect OTP. Please try again."
+}
+```
+
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "otp": "Too many failed attempts"
+  },
+  "message": "Too many failed attempts. Please request a new code."
+}
+```
+
+##### 400 Bad Request 
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "otp": "Must be a string of exactly 6 digits"
   }
+}
+```
+
+##### 503 Service Unavailable
+
+```json
+{
+  "status": "fail",
+  "message": "Signup service is temporarily unavailable. Please try again later."
 }
 ```
 
@@ -217,14 +260,233 @@ For more information check this [link](https://stackoverflow.com/questions/72382
 </a>
 ```
 
-#### **Request**
+#### **Request Body**
 
 - No body
-- Please set up .env for redicting to frontend page
+- Please set up .env.delvoepment for redicting to frontend page
 
-#### **Response**
+#### **Response Body**
 
-No Response body
+- No Response body
+
+### 3.4 POST /auth/signup
+
+#### **Behavior**
+- Validate the signup_tx Cookie
+- Validate the password field in the request body
+- create the user in the database
+
+#### **Request Body**
+```json
+{
+  "password": "wego123456A!" 
+}
+```
+
+#### **Response Body**
+##### 200 ok
+```json
+{
+  "status": "success",
+  "data": null
+}
+```
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "signup_tx": "Invalid Cookie"
+  },
+  "message": "Sign up session expired. Please try again."
+}
+```
+```json
+{
+  "status": "fail",
+  "error": {
+    "signup_tx": "Session not found"
+  },
+  "message": "Sign up session expired. Please start again."
+}
+
+```
+
+##### 400 Bad Request
+```json
+{
+  "status": "fail",
+  "error": {
+    "password": "Reason why password failed"
+  },
+  "message": "Validation Error"
+}
+```
+
+
+##### 503 Service Unavailable
+
+```json
+{
+  "status": "fail",
+  "message": "Signup service is temporarily unavailable. Please try again later."
+}
+```
+
+### 3.5 POST /auth/login/voprf
+
+
+#### **Behavior**
+- Calculate the evaluation from the give evalReqB64U 
+- Set Cookie login_tx to keep session going 
+- Send the evaluationB64U back in the response body 
+
+#### **Request Body**
+```json
+{
+  "evalReqB64U": "some Base64URL string" 
+}
+```
+
+#### **Response Body**
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": {
+    "evaluationB64U": "some Base64URL string"
+  }
+}
+```
+##### 400 BadRequest
+```json
+{
+  "status": "fail",
+  "error": {
+    "evalReqB64U": "Invalid base64url string"
+  },
+  "message": "Validaton Error"
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "evalReqB64U": "Invalid evaluation request"
+  },
+  "message": "Invalid request payload."
+}
+```
+##### 503 Service Unavailable
+
+```json
+{
+  "status": "fail",
+  "message": "Login service is temporarily unavailable. Please try again later."
+}
+```
+### 3.6 POST /auth/login/complete
+
+#### **Behavior**
+- Validate the login_tx Cookie 
+- Validate emailHashB64U and password
+- Set auth_tx Cookie for access token 
+
+#### **Request Body**
+```json
+{
+  "emailHashB64U": "some Base64URL string",
+  "password": "wego12312!A"
+}
+```
+
+#### **Response Body**
+##### 200 ok
+
+```json
+{
+  "status": "success",
+  "data": null
+}
+```
+##### 401 Unauthorized
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "login_tx": "Invalid Cookie"
+  },
+  "message": "Login session expired. Please try again."
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "login_tx": "Session not found"
+  },
+  "message": "Login session expired. Please try again."
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "login_tx": "Invalid Cookie"
+  },
+  "message": "Login session expired. Please try again."
+}
+```
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "password": "Incorrect password"
+  },
+  "message": "Incorrect password. Please try again."
+}
+```
+
+##### 400 Bad Request
+
+```json
+{
+  "status": "success",
+  "error": {
+    "emailHashB64U": "reason why fail",
+    "password": "reason why fail"
+  },
+  "message": "Validation Error"
+}
+```
+
+##### 404 Not Found
+
+```json
+{
+  "status": "fail",
+  "error": {
+    "emailHash": "Not Found"
+  },
+  "message": "Given EmailHash can not be found in our database."
+}
+```
+
+##### 503 Service Unavailable
+```json
+{
+  "status": "success",
+  "message": "Login Service is temporarily unavailable. Please try again later."
+}
+```
+
 
 ## 4. User Endpoints
 

@@ -23,7 +23,7 @@ export function createLoginTokenStore({redis, loginTokenPrefix, opt = {}}) {
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Login Service is temporarily unavailable. Please try again later.'
             )
         }
     }
@@ -40,7 +40,7 @@ export function createLoginTokenStore({redis, loginTokenPrefix, opt = {}}) {
         } catch (err) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again later.'
+                'Login Service is temporarily unavailable. Please try again later.'
             )
         }
         //destructure the reply
@@ -49,7 +49,7 @@ export function createLoginTokenStore({redis, loginTokenPrefix, opt = {}}) {
         if (errGet || errDel) {
             throw new ServiceUnavailable(
                 null,
-                'Service is temporarily unavailable. Please try again.'
+                'Login Service is temporarily unavailable. Please try again later.'
             )
         }
 

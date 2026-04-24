@@ -1,4 +1,4 @@
-import {generateKey} from "../otp/keyGenerator.mjs";
+import {generateKey} from "../../../util/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 
 export function createLoginTokenService({loginTokenStore, jwtTokenService}) {
@@ -20,7 +20,7 @@ export function createLoginTokenService({loginTokenStore, jwtTokenService}) {
             await loginTokenStore.consume(key)
         if (!loginValue || Object.keys(loginValue).length === 0) {
             throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
+                { "login_tx": 'Session not found' },
                 'Login session expired. Please try again'
             )
         }

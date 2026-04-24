@@ -1,4 +1,4 @@
-const PUBLIC_FIELDS = ['userUuid', 'username', 'displayName', 'createdAt']
+const PUBLIC_FIELDS = ['userUuid', 'username', 'createdAt']
 const PRIVATE_FIELDS = ['updatedAt']
 
 export default class UserDto {
@@ -8,7 +8,7 @@ export default class UserDto {
                 this[p] = user[p]
             })
         }
-        if (scope === 'private') {
+        else if (scope === 'private') {
             PRIVATE_FIELDS.forEach((p) => {
                 this[p] = user[p]
             })

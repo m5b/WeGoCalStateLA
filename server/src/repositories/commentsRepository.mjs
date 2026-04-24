@@ -17,12 +17,11 @@ export function createCommentRepo(db){
     function getPublicSelect(){
         return `
             SELECT
-                -- comment
                 c.comment_id AS comment_id,
                 BIN_TO_UUID(c.comment_uuid) AS comment_uuid,
                 CASE
                     WHEN c.deleted_at IS NULL THEN c.content
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS content,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
@@ -42,18 +41,13 @@ export function createCommentRepo(db){
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS user_uuid,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN u.username
-                    ELSE '[deleted]'
-                    END AS username,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND c.deleted_at IS NULL THEN u.display_name
-                    ELSE '[deleted]'
-                    END AS display_name
+                    ELSE NULL
+                    END AS username
             FROM
                 comments c
                     JOIN threads t ON c.thread_id = t.thread_id
@@ -65,7 +59,7 @@ export function createCommentRepo(db){
         // returns data from given commentID
         // WILL NOT CHECK IF THREAD IS DELETED
 
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `WHERE c.comment_id = ?`, [commentId]
         )
@@ -76,7 +70,7 @@ export function createCommentRepo(db){
         // returns data from given commentID
         // WILL NOT CHECK IF THREAD IS DELETED
 
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `WHERE c.comment_uuid = UUID_TO_BIN(?)`, [commentUuid]
         )
@@ -84,7 +78,7 @@ export function createCommentRepo(db){
     }
 
     async function findByUserId(userId) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
                 WHERE u.user_id = ? 
@@ -97,7 +91,7 @@ export function createCommentRepo(db){
     }
 
     async function findByUserUuid(userUuid) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
                 WHERE u.user_uuid = UUID_TO_BIN(?) 
@@ -109,8 +103,7 @@ export function createCommentRepo(db){
         return row
     }
     async function findByThreadId(threadId) {
-        const [row] = await db.query(
-            getPublicSelect() +
+        const [row] = await db.execute(
             `
                 WHERE c.thread_id = ?
                 ORDER BY c.created_at ASC
@@ -121,7 +114,7 @@ export function createCommentRepo(db){
     }
 
     async function findByThreadUuid(threadUuid) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
                 WHERE t.thread_uuid = UUID_TO_BIN(?)
@@ -133,7 +126,7 @@ export function createCommentRepo(db){
     }
 
     async function insertCommentWithParent({userId, threadId, content, commentUuid, parentCommentUuid,}) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             `
                 INSERT INTO comments (comment_uuid, parent_comment_id, user_id, thread_id, content)
                 SELECT UUID_TO_BIN(?), p.comment_id, ?, ?, ?
@@ -150,7 +143,7 @@ export function createCommentRepo(db){
 
 
     async function insertComment({ userId, threadId, content, commentUuid}) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             `
                 INSERT INTO comments
                     (comment_uuid, user_id, thread_id, content)
@@ -165,7 +158,7 @@ export function createCommentRepo(db){
     async function updateByCommentId({commentId,userId, sqlQuery, dataList}) {
         dataList.push(commentId)
         dataList.push(userId)
-        const [result] = await db.query(
+        const [result] = await db.execute(
             sqlQuery + ' where comment_id = ? and user_id = ? and deleted_at is NULL',
             dataList
         )
@@ -177,7 +170,7 @@ export function createCommentRepo(db){
     async function updateByCommentUuid({commentUuid,userId, sqlQuery, dataList}) {
         dataList.push(commentUuid)
         dataList.push(userId)
-        const [result] = await db.query(
+        const [result] = await db.execute(
             sqlQuery + ' where comment_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
             dataList
         )
@@ -187,7 +180,7 @@ export function createCommentRepo(db){
     }
 
     async function deleteByCommentId({commentId, userId}) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             `
                 UPDATE comments 
                 SET deleted_at = NOW()  , content = null , status = 'delete' 
@@ -201,10 +194,10 @@ export function createCommentRepo(db){
     }
 
     async function deleteByCommentUuid({commentUuid, userId}) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             `
                 UPDATE comments 
-                SET deleted_at = NOW()  , content = null , status = 'delete' 
+                SET deleted_at = NOW()  , content = null , status = 'deleted' 
                 WHERE comment_uuid = UUID_TO_BIN(?) 
                     AND user_id = ?
                     AND deleted_at IS NULL

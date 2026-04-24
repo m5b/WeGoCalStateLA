@@ -1,4 +1,4 @@
-import {generateKey} from "../otp/keyGenerator.mjs";
+import {generateKey} from "../../../util/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
 export function createSignupTokenService({signupTokenStore, jwtTokenService, opt ={}}){
     return {
@@ -20,8 +20,8 @@ export function createSignupTokenService({signupTokenStore, jwtTokenService, opt
         const signupValue = await signupTokenStore.consume(key)
         if (!signupValue || Object.keys(signupValue).length === 0) {
             throw new UnauthorizedError(
-                { error: 'invalid_auth_response' },
-                'Sign up session expired. Please try again'
+                { "signup_tx": 'Session not found' },
+                'Sign up session expired. Please start again.'
             )
         }
         return signupValue.email

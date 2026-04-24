@@ -4,7 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /server
 ENV NODE_ENV = development
 RUN adduser --disabled-password dev && chown -R dev:dev /server

@@ -20,37 +20,28 @@ export function createThreadRepo(db){
                 t.updated_at AS updated_at,
                 t.deleted_at AS deleted_at,
                 t.status AS status,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.user_id
-                    ELSE NULL
-                    END AS user_id,
+                t.user_id AS user_id,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.title
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS title,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
-                    ELSE '[deleted]'
+                    ELSE NULL 
                     END AS content,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
-                    ELSE '[deleted]'
+                    ELSE NULL
                     END AS user_uuid,
                 CASE
                     WHEN u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN u.username
-                    ELSE '[deleted]'
-                    END AS username,
-                CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.display_name
-                    ELSE '[deleted]'
-                    END AS display_name
+                    ELSE NULL
+                    END AS username
             FROM
                 threads t
-                    JOIN users u ON t.user_id = u.user_id
+                    LEFT JOIN users u ON t.user_id = u.user_id
         `
     }
     async function findAll() {
@@ -60,7 +51,7 @@ export function createThreadRepo(db){
         return row
     }
     async function findByThreadId(threadId) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
@@ -72,7 +63,7 @@ export function createThreadRepo(db){
     }
 
     async function findByThreadUuid(threadUuid){
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
@@ -83,28 +74,28 @@ export function createThreadRepo(db){
     }
 
     async function findByUserId(userId) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE
-                t.user_id = ?`,
+                t.user_id = ? and t.deleted_at IS NULL`,
             [userId]
         )
         return row
     }
     async function findByUserUuid(userUuid) {
-        const [row] = await db.query(
+        const [row] = await db.execute(
             getPublicSelect() +
             `
             WHERE 
-                u.user_uuid = UUID_TO_BIN(?)`,
+                u.user_uuid = UUID_TO_BIN(?) and t.deleted_at IS NULL`,
                 [userUuid]
         )
         return row
     }
 
     async function insertThread({ userId, threadUuid, title, content }) {
-        const [result] = await db.query(
+        const [result] = await db.execute(
             'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,UUID_TO_BIN(?), ?, ?)',
             [userId, threadUuid, title, content]
         )
@@ -139,16 +130,16 @@ export function createThreadRepo(db){
 
 
     async function deleteByThreadId({threadId, userId}) {
-        const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_id = ? AND user_id = ? AND deleted_at IS NULL",
+        const [result] = await db.execute(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_id = ? AND user_id = ? AND deleted_at IS NULL",
             [threadId, userId]
         )
         return result.affectedRows > 0
     }
 
     async function deleteByThreadUuid({threadUuid, userId}) {
-        const [result] = await db.query(
-            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'delete' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
+        const [result] = await db.execute(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
             [threadUuid, userId]
         )
         return result.affectedRows > 0
