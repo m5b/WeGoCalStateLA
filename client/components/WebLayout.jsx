@@ -64,7 +64,7 @@ export default function WebLayout({ children }) {
             <View style={styles.brandIcon}>
               <Sparkles size={24} color={Colors.PRIMARY} />
             </View>
-            <Text style={styles.brandText}>WeGo</Text>
+            <Text style={styles.brandText}>WeGoToCalStateLA</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -145,7 +145,7 @@ export default function WebLayout({ children }) {
             <View style={styles.sidebarHeader}>
               <View style={styles.sidebarBrand}>
                 <Sparkles size={24} color={Colors.PRIMARY} />
-                <Text style={styles.sidebarBrandText}>WeGo</Text>
+                <Text style={styles.sidebarBrandText}>WeGoToCalStateLA</Text>
               </View>
               <TouchableOpacity 
                 style={styles.sidebarClose}
@@ -254,14 +254,14 @@ const styles = StyleSheet.create({
   },
   desktopNav: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
     display: responsive({ xs: 'none', lg: 'flex' }),
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 8,
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY + '10',
   },
   navText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     color: '#64748b',
   },
