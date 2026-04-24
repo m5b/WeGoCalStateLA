@@ -73,7 +73,7 @@ function WebLandingPage() {
       title: 'Counseling Services',
       description: 'Professional mental health support',
       contact: '(323) 343-3371',
-      color: Colors.PRIMARY,
+      color: '#ffffff',
     },
     {
       icon: Heart,
@@ -106,12 +106,11 @@ function WebLandingPage() {
               
               <Text style={styles.heroTitle}>
                 Supporting Golden Eagles{'\n'}
-                <Text style={styles.heroTitleAccent}>Mental Health & Wellness</Text>
+                <Text style={styles.heroTitleAccent}>Community & Engagement</Text>
               </Text>
               
               <Text style={styles.heroDescription}>
-                A comprehensive mental health platform designed specifically for Cal State LA students. 
-                Access professional assessments, daily wellness tracking, and campus support resources.
+                Your central hub for Cal State LA. Discover events, connect with the community, and access essential resources for students and families.
               </Text>
               
               <View style={styles.heroButtons}>
@@ -298,9 +297,9 @@ function WebLandingPage() {
                 <View style={styles.footerLogo}>
                   <Sparkles size={24} color={Colors.PRIMARY} />
                 </View>
-                <Text style={styles.footerBrandText}>WeGo</Text>
+                <Text style={styles.footerBrandText}>WeGoToCalStateLA</Text>
                 <Text style={styles.footerBrandSubtext}>
-                  Mental Health & Wellness Platform for Cal State LA
+                  Your Hub for Cal State LA Community & Resources
                 </Text>
               </View>
               
@@ -403,7 +402,7 @@ function MobileSplashScreen() {
 
    const handleEnterApp = () => {
      // Navigate directly to the login screen on mobile
-     router.push('/authentication/login');
+     router.push('/home_screen/home');
    };
 
    return (
@@ -424,10 +423,10 @@ function MobileSplashScreen() {
 
            <Animated.View style={[styles.card, cardAnimatedStyle]}>
              <Text style={styles.title}>WeGoToCalStateLA</Text>
-             <Text style={styles.subtitle}>Mental Health & Wellness Platform</Text>
+             <Text style={styles.subtitle}>Cal State LA Wellbeing Platform</Text>
              <Text style={styles.description}>
-               Supporting Golden Eagles in their journey to mental wellness and academic success
-             </Text>
+                          Connecting families of Cal State LA students to community, events, and essential resources.
+                        </Text>
              
              <Animated.View style={buttonAnimatedStyle}>
                <TouchableOpacity 
@@ -439,7 +438,7 @@ function MobileSplashScreen() {
                </TouchableOpacity>
              </Animated.View>
 
-             <Text style={styles.demoNote}>Demo Version</Text>
+
            </Animated.View>
          </View>
        </LinearGradient>
@@ -864,7 +863,7 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: width < 640 ? 32 : 48,
     fontWeight: '900',
-    color: '#ffffff',
+    color: Colors.PRIMARY,
     textAlign: 'center',
     marginTop: 24,
     marginBottom: 24,
@@ -1100,7 +1099,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   enterButtonText: {
-    color: Colors.BLACK,
+    color: Colors.PRIMARY,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',

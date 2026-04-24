@@ -32,13 +32,13 @@ const quickActions = [
     title: 'Daily Check-in',
     subtitle: 'How are you feeling today?',
     icon: Heart,
-    color: Colors.GREEN,
+    color: Colors.PRIMARY,
     route: 'daily',
   },
   {
     id: 'quiz',
     title: 'Wellness Quiz',
-    subtitle: 'Take a mental health assessment',
+    subtitle: 'Take a wellbeing assessment',
     icon: Brain,
     color: Colors.PRIMARY,
     route: 'quizzes',
@@ -48,7 +48,7 @@ const quickActions = [
     title: 'Resources',
     subtitle: 'Find help and support',
     icon: BookOpen,
-    color: Colors.INFO,
+    color: Colors.PRIMARY,
     route: 'resources',
   },
   {
@@ -331,7 +331,7 @@ export default function HomeScreen() {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Icon size={24} color={isActive ? Colors.WHITE : Colors.LIGHT_BLUE} />
+      <Icon size={24} color={isActive ? Colors.WHITE : Colors.BLACK} />
       <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>
         {label}
       </Text>
@@ -361,10 +361,25 @@ export default function HomeScreen() {
           <View style={styles.welcomeCard}>
             <Text style={styles.welcomeTitle}>Your Wellness Journey</Text>
             <Text style={styles.welcomeText}>
-              Take charge of your mental health with personalized tools and
-              resources designed for Cal State LA students.
+              Connecting you to the Cal State LA community, events, and essential resources.
             </Text>
           </View>
+
+          {/* Student Login Button */}
+          <TouchableOpacity
+            style={styles.studentLoginButton}
+            onPress={() => router.push('/authentication/login')}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[Colors.PRIMARY, Colors.SECONDARY]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.studentLoginButtonGradient}
+            >
+              <Text style={styles.studentLoginButtonText}>Student Login</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
           {/* Quick Actions */}
           <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -534,6 +549,24 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: Colors.SECONDARY,
   },
+  studentLoginButton: {
+    marginTop: 20,
+    marginBottom: 30,
+    borderRadius: 16,
+    overflow: 'hidden',
+    width: '100%',
+    alignSelf: 'center',
+  },
+  studentLoginButtonGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  studentLoginButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.WHITE,
+  },
   welcomeTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -542,7 +575,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 16,
-    color: Colors.GRAY,
+    color: Colors.BLACK,
     lineHeight: 24,
   },
   sectionTitle: {
@@ -590,7 +623,7 @@ const styles = StyleSheet.create({
   },
   actionSubtitle: {
     fontSize: 12,
-    color: Colors.GRAY,
+    color: Colors.BLACK,
     textAlign: 'center',
     lineHeight: 16,
   },
@@ -685,7 +718,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 12,
-    color: Colors.LIGHT_BLUE,
+    color: Colors.BLACK,
     marginTop: 4,
     fontWeight: '500',
   },

@@ -12,7 +12,7 @@ export async function initiateGoogleLogin() {
     try {
       const result = await WebBrowser.openAuthSessionAsync(
         `${BASE_URL}/api/auth/google`,
-        'wegoapp://auth/callback'
+        'wegotocalstatela://auth/callback'
       );
       return result;
     } catch (error) {

@@ -115,7 +115,7 @@ export default function ChatBotScreen() {
                   <Sparkles size={24} color={Colors.PRIMARY} />
                 </View>
                 <View>
-                  <Text style={styles.webChatTitle}>WeGo AI Assistant</Text>
+                  <Text style={styles.webChatTitle}>WeGoToCalStateLA AI Assistant</Text>
                   <View style={styles.webStatusIndicator}>
                     <View style={styles.webOnlineStatus} />
                     <Text style={styles.webStatusText}>Online • Ready to help</Text>
