@@ -74,12 +74,15 @@ export default function ThreadFeed() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.BACKGROUND_SECONDARY }}>
       <View style={styles.headerRow}>
-        <Text style={styles.screenTitle}>Threads</Text>
+        <View>
+          <Text style={styles.screenTitle}>Community conversations</Text>
+          <Text style={styles.previewText}>Preview data is stored only in this browser. Do not share private information.</Text>
+        </View>
         <TouchableOpacity
           style={styles.newButton}
           onPress={() => router.push("/threads/composer")}
         >
-          <Text style={styles.newButtonText}>+ New thread</Text>
+          <Text style={styles.newButtonText}>+ Start a conversation</Text>
         </TouchableOpacity>
       </View>
 
@@ -118,6 +121,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "800",
     color: Colors.TEXT,
+  },
+  previewText: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+    marginTop: 4,
   },
   headerRow: {
     paddingHorizontal: 16,

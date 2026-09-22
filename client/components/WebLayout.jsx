@@ -7,24 +7,22 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, Brain, BookOpen, User, MessagesSquare, MessageCircle, Heart, Menu, X, Sparkles, Bell, Settings, LogOut, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const navigationItems = [
     { name: 'Home', icon: Home, route: '/home_screen/home', active: pathname === '/home_screen/home' || pathname === '/' },
-    { name: 'Daily Check-in', icon: Heart, route: '/daily_check_in/daily', active: pathname.includes('/daily_check_in') },
-    { name: 'Threads', icon: MessagesSquare, route: '/threads/feed', active: pathname.includes('/threads') }, //Replace Assessments with Threads
+    { name: 'Community', icon: MessagesSquare, route: '/threads/feed', active: pathname.includes('/threads') },
     { name: 'Events', icon: Calendar, route: '/home_screen/events', active: pathname === '/home_screen/events' },
     { name: 'Resources', icon: BookOpen, route: '/resources/resource', active: pathname.includes('/resources') },
-    { name: 'AI Assistant', icon: MessageCircle, route: '/chat_bot/chatbotui', active: pathname.includes('/chat_bot') },
     { name: 'Profile', icon: User, route: '/profile', active: pathname.includes('/profile') },
   ];
 
@@ -32,15 +30,6 @@ export default function WebLayout({ children }) {
     router.push(route);
     setSidebarOpen(false);
     setUserMenuOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } finally {
-      setUserMenuOpen(false);
-      router.replace('/authentication/login');
-    }
   };
 
   return (
@@ -62,7 +51,7 @@ export default function WebLayout({ children }) {
             onPress={() => router.push('/')}
           >
             <View style={styles.brandIcon}>
-              <Sparkles size={24} color={Colors.PRIMARY} />
+              <Sparkles size={24} color={Colors.BRAND_GOLD} />
             </View>
             <Text style={styles.brandText}>WeGoToCalStateLA</Text>
           </TouchableOpacity>
@@ -77,7 +66,7 @@ export default function WebLayout({ children }) {
                   style={[styles.navItem, item.active && styles.navItemActive]}
                   onPress={() => navigateToScreen(item.route)}
                 >
-                  <IconComponent size={18} color={item.active ? Colors.PRIMARY : '#64748b'} />
+                  <IconComponent size={18} color={item.active ? Colors.BLACK : '#64748b'} />
                   <Text style={[styles.navText, item.active && styles.navTextActive]}>
                     {item.name}
                   </Text>
@@ -88,11 +77,6 @@ export default function WebLayout({ children }) {
 
           {/* User Menu */}
           <View style={styles.userSection}>
-            <TouchableOpacity style={styles.notificationButton}>
-              <Bell size={20} color="#64748b" />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-            
             <TouchableOpacity 
               style={styles.userButton}
               onPress={() => setUserMenuOpen(!userMenuOpen)}
@@ -100,7 +84,7 @@ export default function WebLayout({ children }) {
               <View style={styles.avatar}>
                 <User size={16} color={Colors.WHITE} />
               </View>
-              <Text style={styles.userName}>{user?.username || user?.email || 'Guest'}</Text>
+              <Text style={styles.userName}>{user?.username || 'Community guest'}</Text>
               <ChevronDown size={16} color="#64748b" />
             </TouchableOpacity>
 
@@ -114,19 +98,9 @@ export default function WebLayout({ children }) {
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.dropdownItem}>
-                  <Settings size={16} color="#64748b" />
-                  <Text style={styles.dropdownText}>Settings</Text>
-                </TouchableOpacity>
-                <View style={styles.dropdownDivider} />
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={handleLogout}
-                  activeOpacity={0.7}
-                >
-                  <LogOut size={16} color="#ef4444" />
-                  <Text style={[styles.dropdownText, { color: '#ef4444' }]}>Sign Out</Text>
-                </TouchableOpacity>
+                <View style={styles.previewNote}>
+                  <Text style={styles.previewNoteText}>Preview mode · Sign-in is coming later</Text>
+                </View>
               </View>
             )}
           </View>
@@ -144,7 +118,7 @@ export default function WebLayout({ children }) {
           <View style={styles.sidebar}>
             <View style={styles.sidebarHeader}>
               <View style={styles.sidebarBrand}>
-                <Sparkles size={24} color={Colors.PRIMARY} />
+                <Sparkles size={24} color={Colors.BRAND_GOLD} />
                 <Text style={styles.sidebarBrandText}>WeGoToCalStateLA</Text>
               </View>
               <TouchableOpacity 
@@ -166,7 +140,7 @@ export default function WebLayout({ children }) {
                   >
                     <IconComponent 
                       size={20} 
-                      color={item.active ? Colors.PRIMARY : '#64748b'} 
+                      color={item.active ? Colors.BLACK : '#64748b'}
                     />
                     <Text style={[
                       styles.sidebarNavText,
@@ -182,7 +156,7 @@ export default function WebLayout({ children }) {
             <View style={styles.sidebarFooter}>
               <View style={styles.emergencyCard}>
                 <Shield size={16} color="#ef4444" />
-                <Text style={styles.emergencyText}>Emergency: 988</Text>
+                <Text style={styles.emergencyText}>Need immediate support? Call or text 988</Text>
               </View>
             </View>
           </View>
@@ -213,8 +187,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomWidth: 4,
+    borderBottomColor: Colors.BRAND_GOLD,
     paddingVertical: 16,
     zIndex: 100,
   },
@@ -242,7 +216,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: Colors.PRIMARY + '15',
+    backgroundColor: Colors.BLACK,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -266,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   navItemActive: {
-    backgroundColor: Colors.PRIMARY + '10',
+    backgroundColor: Colors.BRAND_GOLD,
   },
   navText: {
     fontSize: 12,
@@ -274,7 +248,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   navTextActive: {
-    color: Colors.PRIMARY,
+    color: Colors.BLACK,
     fontWeight: '600',
   },
   userSection: {
@@ -311,7 +285,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.BLACK,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -354,6 +328,17 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e2e8f0',
     marginVertical: 4,
+  },
+  previewNote: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  previewNoteText: {
+    color: '#64748b',
+    fontSize: 12,
+    lineHeight: 18,
   },
   overlay: {
     position: 'absolute',
@@ -415,7 +400,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   sidebarNavItemActive: {
-    backgroundColor: Colors.PRIMARY + '10',
+    backgroundColor: Colors.BRAND_GOLD,
     borderLeftWidth: 3,
     borderLeftColor: Colors.PRIMARY,
   },
@@ -425,7 +410,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   sidebarNavTextActive: {
-    color: Colors.PRIMARY,
+    color: Colors.BLACK,
     fontWeight: '600',
   },
   sidebarFooter: {

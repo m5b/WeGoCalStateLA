@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView, KeyboardAvoidingView, ActivityIndicator, Platform } from 'react-native';
 import WebLayout from '../../components/WebLayout';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
+    "name": "WeGoToCalStateLA",
+    "slug": "wego-to-cal-state-la",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +21,12 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "WeGoToCalStateLA",
+      "shortName": "WeGo",
+      "description": "A community hub for the families and loved ones of Cal State LA students.",
+      "themeColor": "#111827",
+      "backgroundColor": "#f8fafc"
     },
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
     "experiments": {

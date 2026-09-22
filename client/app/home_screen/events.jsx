@@ -13,9 +13,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  Star,
-  Trophy,
-  Heart,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react-native';
@@ -111,7 +108,7 @@ function EventCard({ title, date, location, description, onPress, imageUrl, comp
 
 export default function EventsScreen() {
   const [todayInspiration] = useState(
-    'Remember: Every small step towards wellness is a victory worth celebrating.'
+    'Events shown in this evaluation are sample content. Tell us what kinds of gatherings would be useful to your family.'
   );
 
   const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -161,12 +158,6 @@ export default function EventsScreen() {
     }, [])
   );
 
-  const scores = [
-    { label: 'Daily Check-ins', value: '7 days', icon: Heart, color: Colors.GREEN },
-    { label: 'Quizzes Completed', value: '3', icon: Trophy, color: Colors.SECONDARY },
-    { label: 'Wellness Score', value: '85%', icon: Star, color: Colors.PRIMARY },
-  ];
-
   const handleNextEvent = () => {
     if (!upcomingEvents.length) return;
     setCurrentEventIndex(prev => (prev + 1) % upcomingEvents.length);
@@ -202,7 +193,7 @@ export default function EventsScreen() {
             >
               <ArrowLeft size={24} color={Colors.WHITE} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Events & Progress</Text>
+            <Text style={styles.headerTitle}>Community Events</Text>
             <TouchableOpacity
               onPress={() => router.push('/home_screen/create_event')}
               style={styles.createButton}
@@ -215,7 +206,7 @@ export default function EventsScreen() {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Daily Inspiration */}
           <View style={styles.inspirationCard}>
-            <Text style={styles.inspirationLabel}>Daily Inspiration</Text>
+            <Text style={styles.inspirationLabel}>Evaluation note</Text>
             <Text style={styles.inspirationText}>{todayInspiration}</Text>
           </View>
 
@@ -321,31 +312,6 @@ export default function EventsScreen() {
             )}
           </View>
 
-          {/* Progress Cards */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Progress</Text>
-            <View style={styles.scoresGrid}>
-              {scores.map((score, index) => (
-                <View key={index} style={styles.scoreCard}>
-                  <View style={styles.scoreBorder} />
-                  <View style={styles.scoreContent}>
-                    <View
-                      style={[
-                        styles.scoreIconContainer,
-                        { backgroundColor: score.color + '20' },
-                      ]}
-                    >
-                      <score.icon size={24} color={score.color} />
-                    </View>
-                    <Text style={styles.scoreLabel}>{score.label}</Text>
-                    <Text style={[styles.scoreValue, { color: score.color }]}>
-                      {score.value}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </WebLayout>

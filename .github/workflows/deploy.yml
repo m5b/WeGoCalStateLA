@@ -1,0 +1,42 @@
+name: Deploy evaluation site
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci --legacy-peer-deps
+        working-directory: client
+      - run: npm run build:web
+        working-directory: client
+      - name: Configure restricted deployment key
+        env:
+          DEPLOY_KEY: ${{ secrets.WEGO_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.WEGO_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/wego_deploy
+          chmod 600 ~/.ssh/wego_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Atomically publish static build
+        env:
+          DEPLOY_HOST: ${{ secrets.WEGO_DEPLOY_HOST }}
+        run: |
+          tar -C client/dist -czf - . | ssh -i ~/.ssh/wego_deploy -o IdentitiesOnly=yes "wego-deploy@$DEPLOY_HOST"
+

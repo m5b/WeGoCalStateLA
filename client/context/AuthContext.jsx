@@ -1,13 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiGet } from '../services/api';
-import { checkAuth } from '../services/authService';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ username: 'Community guest', preview: true });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
 
   const login = (userData) => {
     setUser(userData);
@@ -15,34 +13,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-      await apiGet('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
+    setUser({ username: 'Community guest', preview: true });
+    setIsAuthenticated(false);
   };
 
-  const checkSession = async () => {
-    try {
-      const userData = await checkAuth();
-      if (userData && userData.userId) {
-        login(userData);
-      }
-    } catch (error) {
-      console.log('No active session');
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    checkSession();
-  }, []);
+  const checkSession = async () => null;
 
   const value = {
     user,

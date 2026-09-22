@@ -1,27 +1,30 @@
-const tintColorLight = '#FFD700'; // Gold
-const tintColorDark = '#FFD700'; // Gold
+const tintColorLight = '#000000';
+const tintColorDark = '#FFCE00';
 
 export const Colors = {
-  light: { // This will be less used if dark mode is default, but should still be black/gold
-    text: '#000000', // Black text on light (gold) background
-    background: '#FFD700', // Gold background
+  light: {
+    text: '#111827',
+    background: '#F8FAFC',
     tint: tintColorLight,
-    icon: '#000000',
-    tabIconDefault: '#000000',
+    icon: '#334155',
+    tabIconDefault: '#64748B',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#FFD700', // Gold text on dark (black) background
-    background: '#000000', // Black background
+    text: '#F8FAFC',
+    background: '#111827',
     tint: tintColorDark,
     icon: '#FFD700',
     tabIconDefault: '#FFD700',
     tabIconSelected: tintColorDark,
   },
 
-  // Brand Colors
-  PRIMARY: '#FFD700', // Gold
-  SECONDARY: '#000000', // Black
+  // Accessible application colors based on the Cal State LA palette.
+  // Black carries light text; gold is used as an accent with dark text.
+  PRIMARY: '#000000',
+  SECONDARY: '#6F5B16',
+  BRAND_GOLD: '#FFCE00',
+  BRAND_MARIGOLD: '#FCB237',
 
   // Primary Color Variants (Gold variants)
   PRIMARY_50: '#FFFBEA',
@@ -29,7 +32,7 @@ export const Colors = {
   PRIMARY_200: '#FFED80',
   PRIMARY_300: '#FFE64D',
   PRIMARY_400: '#FFDF1A',
-  PRIMARY_500: '#FFD700', // Main gold color
+  PRIMARY_500: '#FFCE00',
   PRIMARY_600: '#E6C200',
   PRIMARY_700: '#CCAE00',
   PRIMARY_800: '#B39A00',
@@ -47,37 +50,35 @@ export const Colors = {
   SECONDARY_800: '#0A0A0A',
   SECONDARY_900: '#000000', // Pure black
 
-  // Neutral Colors - Modern Gray Scale (Adjusted to fit black theme)
-  WHITE: '#FFFFFF', // Keep white for some elements that need to pop
-  BLACK: '#000000', // Pure black
-  GRAY_50: '#1F1F1F', // Very dark gray, almost black
-  GRAY_100: '#2A2A2A',
-  GRAY_200: '#3A3A3A',
-  GRAY_300: '#4A4A4A',
-  GRAY_400: '#6A6A6A',
-  GRAY_500: '#8A8A8A',
-  GRAY_600: '#A0A0A0',
-  GRAY_700: '#B0B0B0',
-  GRAY_800: '#C0C0C0',
-  GRAY_900: '#D0D0D0',
+  // Conventional light-to-dark neutral scale.
+  WHITE: '#FFFFFF',
+  BLACK: '#000000',
+  GRAY_50: '#F8FAFC',
+  GRAY_100: '#F1F5F9',
+  GRAY_200: '#E2E8F0',
+  GRAY_300: '#CBD5E1',
+  GRAY_400: '#94A3B8',
+  GRAY_500: '#64748B',
+  GRAY_600: '#475569',
+  GRAY_700: '#334155',
+  GRAY_800: '#1E293B',
+  GRAY_900: '#0F172A',
 
-  // Semantic Colors (Adjusted for dark theme)
-  TEXT: '#FFD700', // Gold text by default (dark mode)
-  TEXT_SECONDARY: '#B0B0B0', // Lighter gray for secondary text
-  TEXT_MUTED: '#8A8A8A', // Even lighter gray for muted text
-  BACKGROUND: '#000000', // Default background is black
-  BACKGROUND_SECONDARY: '#121212', // Slightly lighter black for secondary backgrounds
-  BORDER: '#4D4D4D', // Dark gray border
-  BORDER_LIGHT: '#2A2A2A',
+  TEXT: '#111827',
+  TEXT_SECONDARY: '#475569',
+  TEXT_MUTED: '#64748B',
+  BACKGROUND: '#FFFFFF',
+  BACKGROUND_SECONDARY: '#F8FAFC',
+  BORDER: '#CBD5E1',
+  BORDER_LIGHT: '#E2E8F0',
 
-  // Legacy Colors (Adjusted)
-  LIGHT_BLUE: '#FFD700', // Replace with gold
-  DARK_BLUE: '#E6C200', // Replace with darker gold
-  LIGHT_GOLD: '#FFED80', // Adjust gold
-  DARK_GOLD: '#CCAE00', // Adjust gold
-  LIGHT_GRAY: '#2A2A2A', // Dark gray
-  GRAY: '#6A6A6A', // Medium gray
-  DARK_GRAY: '#1A1A1A', // Darker gray
+  LIGHT_BLUE: '#4986B8',
+  DARK_BLUE: '#252525',
+  LIGHT_GOLD: '#FFF2B2',
+  DARK_GOLD: '#6F5B16',
+  LIGHT_GRAY: '#F1F5F9',
+  GRAY: '#64748B',
+  DARK_GRAY: '#334155',
 
   // Status Colors (Keep as is, or adjust if gold/black versions are needed)
   SUCCESS: '#10b981',
@@ -95,9 +96,9 @@ export const Colors = {
   GREEN: '#10b981',
 
   // Interactive Colors (Adjusted)
-  HOVER: '#1A1A1A', // Dark gray hover
-  ACTIVE: '#2A2A2A', // Darker gray active
-  FOCUS: '#4D4D4D', // Even darker gray focus
+  HOVER: '#F1F5F9',
+  ACTIVE: '#E2E8F0',
+  FOCUS: '#4986B8',
 
   // Opacity Variants (Adjusted for new palette)
   WHITE_OPACITY_80: 'rgba(255, 255, 255, 0.8)',

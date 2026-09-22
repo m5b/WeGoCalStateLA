@@ -13,12 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   Chrome as Home,
   Calendar,
-  Brain,
   BookOpen,
   User,
-  MessageCircle,
-  Heart,
-  TrendingUp,
   Clock,
   MessageSquare,
 } from 'lucide-react-native';
@@ -28,43 +24,35 @@ import WebLayout from '../../components/WebLayout';
 
 const quickActions = [
   {
-    id: 'daily',
-    title: 'Daily Check-in',
-    subtitle: 'How are you feeling today?',
-    icon: Heart,
-    color: Colors.PRIMARY,
-    route: 'daily',
-  },
-  {
-    id: 'quiz',
-    title: 'Wellness Quiz',
-    subtitle: 'Take a wellbeing assessment',
-    icon: Brain,
-    color: Colors.PRIMARY,
-    route: 'quizzes',
+    id: 'events',
+    title: 'Community Events',
+    subtitle: 'Find ways to connect and participate',
+    icon: Calendar,
+    color: Colors.SECONDARY,
+    route: 'events',
   },
   {
     id: 'resources',
-    title: 'Resources',
-    subtitle: 'Find help and support',
+    title: 'Family Resources',
+    subtitle: 'Find campus and community support',
     icon: BookOpen,
     color: Colors.PRIMARY,
     route: 'resources',
   },
   {
     id: 'threads',
-    title: 'Threads',
-    subtitle: 'Share anonymously',
+    title: 'Community Conversations',
+    subtitle: 'Share encouragement with a public alias',
     icon: MessageSquare,
     color: Colors.SECONDARY,
     route: 'threads',
   },
   {
-    id: 'progress',
-    title: 'My Progress',
-    subtitle: 'Track your wellness journey',
-    icon: TrendingUp,
-    color: Colors.SECONDARY,
+    id: 'profile',
+    title: 'Preview Profile',
+    subtitle: 'Explore how a community alias could work',
+    icon: User,
+    color: Colors.PRIMARY,
     route: 'profile',
   },
 ];
@@ -77,23 +65,11 @@ export default function HomeScreen() {
       case 'events':
         router.push('/home_screen/events');
         break;
-      case 'quizzes':
-        router.push('/quizzes/quiz_list');
-        break;
       case 'resources':
         router.push('/resources/resource');
         break;
       case 'profile':
         router.push('/profile');
-        break;
-      case 'daily':
-        router.push('/daily_check_in/daily');
-        break;
-      case 'progress':
-        router.push('/daily_check_in/progress');
-        break;
-      case 'chat':
-        router.push('/chat_bot/chatbotui');
         break;
       case 'threads':
         router.push('/threads/feed');
@@ -262,13 +238,13 @@ export default function HomeScreen() {
           {/* Welcome Section */}
           <View style={webStyles.webWelcomeSection}>
             <View style={webStyles.webWelcomeContent}>
-              <Text style={webStyles.webWelcomeTitle}>Welcome Back!</Text>
+              <Text style={webStyles.webWelcomeTitle}>Welcome to the community</Text>
               <Text style={webStyles.webWelcomeSubtitle}>
-                Cal State LA Golden Eagles
+                For the families and loved ones behind every Golden Eagle
               </Text>
               <Text style={webStyles.webWelcomeDescription}>
-                Take charge of your mental health with personalized tools and
-                resources designed for Cal State LA students.
+                Discover events and resources, exchange useful experience, and
+                help one another support Cal State LA students.
               </Text>
             </View>
           </View>
@@ -303,20 +279,20 @@ export default function HomeScreen() {
 
           {/* Today's Highlight */}
           <View style={webStyles.webSection}>
-            <Text style={webStyles.webSectionTitle}>Today’s Focus</Text>
+            <Text style={webStyles.webSectionTitle}>Community reminder</Text>
             <View style={webStyles.webHighlightCard}>
               <View style={webStyles.webHighlightHeader}>
                 <Clock size={20} color={Colors.SECONDARY} />
                 <Text style={webStyles.webHighlightTitle}>
-                  Daily Inspiration
+                  A place to listen and learn
                 </Text>
               </View>
               <Text style={webStyles.webHighlightText}>
-                “Mental health is not a destination, but a process. It’s about
-                how you drive, not where you’re going.”
+                Every family brings different experience. Share what has helped,
+                ask thoughtful questions, and protect one another’s privacy.
               </Text>
               <Text style={webStyles.webHighlightAuthor}>
-                - Noam Shpancer
+                WeGo community guidelines
               </Text>
             </View>
           </View>
@@ -346,8 +322,8 @@ export default function HomeScreen() {
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Welcome Back!</Text>
-          <Text style={styles.headerSubtitle}>Cal State LA Golden Eagles</Text>
+          <Text style={styles.headerTitle}>Welcome to WeGo</Text>
+          <Text style={styles.headerSubtitle}>Families supporting Golden Eagles</Text>
         </View>
       </LinearGradient>
 
@@ -359,27 +335,11 @@ export default function HomeScreen() {
         <View style={styles.contentPadding}>
           {/* Welcome Card */}
           <View style={styles.welcomeCard}>
-            <Text style={styles.welcomeTitle}>Your Wellness Journey</Text>
+            <Text style={styles.welcomeTitle}>Your community connection</Text>
             <Text style={styles.welcomeText}>
-              Connecting you to the Cal State LA community, events, and essential resources.
+              Find events, exchange experience, and discover resources that help you support your student.
             </Text>
           </View>
-
-          {/* Student Login Button */}
-          <TouchableOpacity
-            style={styles.studentLoginButton}
-            onPress={() => router.push('/authentication/login')}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[Colors.PRIMARY, Colors.SECONDARY]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.studentLoginButtonGradient}
-            >
-              <Text style={styles.studentLoginButtonText}>Student Login</Text>
-            </LinearGradient>
-          </TouchableOpacity>
 
           {/* Quick Actions */}
           <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -412,29 +372,15 @@ export default function HomeScreen() {
               <Text style={styles.highlightTitle}>Today’s Focus</Text>
             </View>
             <Text style={styles.highlightText}>
-              “Mental health is not a destination, but a process. It’s about how
-              you drive, not where you’re going.”
+              Every family brings different experience. Share what has helped,
+              ask thoughtful questions, and protect one another’s privacy.
             </Text>
             <View style={styles.highlightFooter}>
-              <Text style={styles.highlightAuthor}>- Noam Shpancer</Text>
+              <Text style={styles.highlightAuthor}>WeGo community guidelines</Text>
             </View>
           </View>
         </View>
       </ScrollView>
-
-      {/* Floating Chatbot Button */}
-      <TouchableOpacity
-        style={styles.chatButton}
-        onPress={() => navigateToScreen('chat')}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={[Colors.SECONDARY, Colors.DARK_GOLD]}
-          style={styles.chatButtonGradient}
-        >
-          <MessageCircle size={28} color={Colors.BLACK} />
-        </LinearGradient>
-      </TouchableOpacity>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
@@ -459,17 +405,8 @@ export default function HomeScreen() {
               }}
             />
             <TabButton
-              icon={Brain}
-              label="Quizzes"
-              isActive={activeTab === 'quizzes'}
-              onPress={() => {
-                setActiveTab('quizzes');
-                navigateToScreen('quizzes');
-              }}
-            />
-            <TabButton
               icon={MessageSquare}
-              label="Threads"
+              label="Community"
               isActive={activeTab === 'threads'}
               onPress={() => {
                 setActiveTab('threads');

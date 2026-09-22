@@ -1,11 +1,12 @@
+const STORAGE_KEY = "wego-preview-threads-v1";
 let NEXT_ID = 3;
 
 let THREADS = [
   {
     id: "1",
-    author: "WeGo Team",
-    caption: "Welcome to WeGo threads! Share thoughts and support each other.",
-    text: "Welcome to WeGo threads! Share thoughts and support each other.",
+    author: "WeGo Community Team",
+    caption: "Welcome! What would help your family feel more connected to Cal State LA?",
+    text: "Welcome! What would help your family feel more connected to Cal State LA?",
     likes: 24,
     imageUri: null,
     date: "",
@@ -15,17 +16,17 @@ let THREADS = [
     replies: [
       {
         id: "r1",
-        author: "Student A",
-        text: "Excited to try this out!",
+        author: "Golden Poppy",
+        text: "A simple calendar of family events and important dates would help us.",
         createdAt: Date.now() - 1000 * 60 * 30,
       },
     ],
   },
   {
     id: "2",
-    author: "Student B",
-    caption: "Any tips for staying focused during midterms?",
-    text: "Any tips for staying focused during midterms?",
+    author: "Kind Coyote",
+    caption: "What do you wish you had known when your student started at Cal State LA?",
+    text: "What do you wish you had known when your student started at Cal State LA?",
     likes: 156,
     imageUri: null,
     date: "",
@@ -35,13 +36,30 @@ let THREADS = [
     replies: [
       {
         id: "r2",
-        author: "Student C",
-        text: "I like to use 25-minute focus blocks and short walks.",
+        author: "Golden Oak",
+        text: "I wish I had understood the academic calendar and financial-aid deadlines earlier.",
         createdAt: Date.now() - 1000 * 60 * 5,
       },
     ],
   },
 ];
+
+function readStoredThreads() {
+  try {
+    const stored = globalThis.localStorage?.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistThreads() {
+  try {
+    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(THREADS));
+  } catch {
+    // Storage can be unavailable in private or restricted browser contexts.
+  }
+}
 
 function delay(ms = 300) {
   return new Promise((r) => setTimeout(r, ms));
@@ -49,6 +67,8 @@ function delay(ms = 300) {
 
 export async function getFeed() {
   await delay();
+  const stored = readStoredThreads();
+  if (Array.isArray(stored)) THREADS = stored;
   return THREADS.map((t) => ({
     replies: [],
     ...t,
@@ -63,7 +83,7 @@ export async function createThread(data) {
 
   const thread = {
     id,
-    author: "Alex J.", 
+    author: "Community guest",
     likes: 0,
     replies: [],
     createdAt: now,
@@ -72,6 +92,7 @@ export async function createThread(data) {
   };
 
   THREADS = [thread, ...THREADS];
+  persistThreads();
   return thread;
 }
 
@@ -82,10 +103,12 @@ export async function createReply(threadId, { text }) {
 
   const reply = {
     id: `r-${thread.id}-${(thread.replies?.length ?? 0) + 1}`,
-    author: "Alex J.",
+    author: "Community guest",
     text,
     createdAt: Date.now(),
   };
+  thread.replies = [...(thread.replies ?? []), reply];
+  persistThreads();
   return reply;
 }
 
@@ -96,6 +119,7 @@ export async function toggleLike(threadId) {
   if (!thread) throw new Error("Thread not found");
 
   thread.likes = (thread.likes ?? 0) + 1; 
+  persistThreads();
   return thread.likes;
 }
 

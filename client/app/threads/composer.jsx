@@ -20,9 +20,6 @@ export default function Composer() {
 
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
 
   async function pickFrom(kind) {
     try {
@@ -65,17 +62,11 @@ export default function Composer() {
     await actions.addThread({
       caption,
       imageUri,
-      date,
-      time,
-      location,
       createdAt: Date.now(),
     });
 
     setImageUri(null);
     setCaption("");
-    setDate("");
-    setTime("");
-    setLocation("");
 
     router.replace("/threads/feed");
   }
@@ -93,7 +84,7 @@ export default function Composer() {
         <TouchableOpacity onPress={() => router.replace("/threads/feed")}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Share an Event</Text>
+        <Text style={styles.title}>Start a conversation</Text>
         <View style={{ width: 40 }} /> 
       </View>
 
@@ -125,7 +116,7 @@ export default function Composer() {
         </View>
 
         <TextInput
-          placeholder="Caption..."
+          placeholder="Share a question, resource, or encouraging thought…"
           placeholderTextColor={Colors.TEXT_MUTED}
           value={caption}
           onChangeText={setCaption}
@@ -133,33 +124,8 @@ export default function Composer() {
           multiline
         />
 
-        <View style={styles.row}>
-          <TextInput
-            placeholder="Date (e.g., 2025-11-14)"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={date}
-            onChangeText={setDate}
-            style={[styles.input, { flex: 1 }]}
-          />
-          <TextInput
-            placeholder="Time (e.g., 7:30 PM)"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={time}
-            onChangeText={setTime}
-            style={[styles.input, { flex: 1 }]}
-          />
-        </View>
-
-        <TextInput
-          placeholder="Location (optional)"
-          placeholderTextColor={Colors.TEXT_MUTED}
-          value={location}
-          onChangeText={setLocation}
-          style={styles.input}
-        />
-
         <TouchableOpacity style={styles.postButton} onPress={submit}>
-          <Text style={styles.postButtonText}>Post</Text>
+          <Text style={styles.postButtonText}>Share with the community</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

@@ -92,9 +92,9 @@ export default function ResourceScreen() {
           {/* Header */}
           <View style={styles.webHeaderSection}>
             <View style={styles.webHeaderContent}>
-              <Text style={styles.webHeaderTitle}>Student Support Resources</Text>
+              <Text style={styles.webHeaderTitle}>Family & Community Resources</Text>
               <Text style={styles.webHeaderSubtitle}>
-                Find support and guidance for your wellness journey
+                Find trusted services and information to help you support your student
               </Text>
             </View>
           </View>
@@ -188,11 +188,11 @@ export default function ResourceScreen() {
           >
             <ArrowLeft size={24} color={Colors.WHITE} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Resources</Text>
+          <Text style={styles.headerTitle}>Family & Community Resources</Text>
           <View style={styles.headerSpacer} />
         </View>
         <Text style={styles.headerSubtitle}>
-          Find support and guidance for your wellness journey
+          Find trusted services and information to help you support your student
         </Text>
       </LinearGradient>
 
@@ -200,10 +200,10 @@ export default function ResourceScreen() {
         <View style={styles.contentPadding}>
           {/* Welcome Message */}
           <View style={styles.welcomeCard}>
-            <Text style={styles.welcomeTitle}>Cal State LA Student Resources</Text>
+            <Text style={styles.welcomeTitle}>Resources for families and supporters</Text>
             <Text style={styles.welcomeText}>
               Access comprehensive support services designed specifically for Golden Eagles. 
-              From mental health counseling to career guidance, we&apos;re here to help you succeed.
+              Explore campus and community services that can help your student and family navigate the university journey.
             </Text>
           </View>
 
