@@ -15,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -39,4 +39,3 @@ jobs:
           DEPLOY_HOST: ${{ secrets.WEGO_DEPLOY_HOST }}
         run: |
           tar -C client/dist -czf - . | ssh -i ~/.ssh/wego_deploy -o IdentitiesOnly=yes "wego-deploy@$DEPLOY_HOST"
-
