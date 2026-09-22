@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+account=wego-deploy
+home=/var/lib/wego-deploy
+public_key=/tmp/wego_deploy_key_20260921.pub
+
+if ! id "$account" >/dev/null 2>&1; then
+  useradd --system --home-dir "$home" --create-home --shell /bin/sh "$account"
+fi
+
+install -o root -g root -m 0755 /tmp/deploy-wego /usr/local/sbin/deploy-wego
+install -d -o "$account" -g "$account" -m 0700 "$home/.ssh"
+
+key_options='restrict,command="/usr/local/sbin/deploy-wego"'
+sed "s|^|$key_options |" "$public_key" > "$home/.ssh/authorized_keys"
+chown "$account:$account" "$home/.ssh/authorized_keys"
+chmod 0600 "$home/.ssh/authorized_keys"
+
+install -d -o "$account" -g "$account" -m 0755 /var/www/wegotocalstatela/releases
+chown -R "$account:$account" /var/www/wegotocalstatela
+chmod 0755 /var/www/wegotocalstatela
+
+# Persist the Nginx-readable SELinux label across future releases.
+if command -v semanage >/dev/null 2>&1; then
+  semanage fcontext -a -t httpd_sys_content_t '/var/www/wegotocalstatela(/.*)?' 2>/dev/null ||
+    semanage fcontext -m -t httpd_sys_content_t '/var/www/wegotocalstatela(/.*)?'
+  restorecon -RF /var/www/wegotocalstatela
+fi
