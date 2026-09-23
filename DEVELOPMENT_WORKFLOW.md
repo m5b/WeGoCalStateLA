@@ -3,6 +3,10 @@
 ## Overview
 This guide provides step-by-step instructions for our development workflow, including JIRA ticket management, Git branching, merge requests, and testing procedures.
 
+Non-draft pull requests from project collaborators merge automatically after the required
+checks pass. Each successful merge to `main` then deploys the evaluation site automatically.
+Changes to repository automation, deployment, or infrastructure still require owner approval.
+
 ## Prerequisites
 - Git installed and configured
 - Access to the repository
