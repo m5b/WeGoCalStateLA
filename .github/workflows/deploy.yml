@@ -1,6 +1,8 @@
 name: Deploy evaluation site
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:

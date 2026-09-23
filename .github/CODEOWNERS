@@ -1,0 +1,7 @@
+# Routine application changes can merge automatically after CI passes.
+# Changes to automation, server deployment, or infrastructure require the
+# repository owner because those files define the security boundary.
+/.github/ @m5b
+/deploy/ @m5b
+/infra/ @m5b
+
