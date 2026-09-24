@@ -6,6 +6,7 @@ This guide provides step-by-step instructions for our development workflow, incl
 Non-draft pull requests from project collaborators merge automatically after the required
 checks pass. Each successful merge to `main` then deploys the evaluation site automatically.
 Changes to repository automation, deployment, or infrastructure still require owner approval.
+Failed checks leave the pull request open for the author to correct.
 
 ## Prerequisites
 - Git installed and configured
