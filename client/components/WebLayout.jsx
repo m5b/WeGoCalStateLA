@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, UsersRound, ChevronDown, Shield } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -50,6 +50,13 @@ export default function WebLayout({ children }) {
             style={styles.brand}
             onPress={() => router.push('/')}
           >
+            <View style={styles.brandIcon}>
+              <UsersRound 
+                size={24} 
+                color={Colors.BLACK} 
+                strokeWidth={2.5}
+              />
+            </View>
             <Text style={styles.brandText}>WeGo</Text>
           </TouchableOpacity>
 
@@ -207,7 +214,16 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: responsive({ xs: 0, lg: 96 }),
+    gap: 12,
+    marginLeft: responsive({ xs: 0, lg: 72 }),
+  },
+  brandIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.BRAND_GOLD,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   brandText: {
     fontSize: 24,
