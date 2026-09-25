@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "WeGoToCalStateLA",
+    "name": "WeGo",
     "slug": "wego-to-cal-state-la",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -22,7 +22,7 @@
       "bundler": "metro",
       "output": "single",
       "favicon": "./assets/images/favicon.png",
-      "name": "WeGoToCalStateLA",
+      "name": "WeGo",
       "shortName": "WeGo",
       "description": "A community hub for the families and loved ones of Cal State LA students.",
       "themeColor": "#111827",

@@ -227,7 +227,7 @@ export default function SignupScreen() {
           <View style={styles.mobileContentContainer}>
             <View style={styles.mobileLogoContainer}>
               <GraduationCap size={60} color={Colors.PRIMARY} />
-              <Text style={styles.mobileAppTitle}>WeGoToCalStateLA</Text>
+              <Text style={styles.mobileAppTitle}>WeGo</Text>
             </View>
 
             <Text style={styles.mobileWelcomeText}>Cal State LA Wellbeing Platform</Text>
