@@ -53,7 +53,7 @@ export default function WebLayout({ children }) {
             <View style={styles.brandIcon}>
               <Sparkles size={24} color={Colors.BRAND_GOLD} />
             </View>
-            <Text style={styles.brandText}>WeGoToCalStateLA</Text>
+            <Text style={styles.brandText}>WeGo</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -119,7 +119,7 @@ export default function WebLayout({ children }) {
             <View style={styles.sidebarHeader}>
               <View style={styles.sidebarBrand}>
                 <Sparkles size={24} color={Colors.BRAND_GOLD} />
-                <Text style={styles.sidebarBrandText}>WeGoToCalStateLA</Text>
+                <Text style={styles.sidebarBrandText}>WeGo</Text>
               </View>
               <TouchableOpacity 
                 style={styles.sidebarClose}
