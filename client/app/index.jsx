@@ -33,7 +33,7 @@ export default function ProjectOverview() {
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.hero}>
           <Text style={styles.eyebrow}>PACIFIC CLINICS · CAL STATE LA COMMUNITY</Text>
-          <Text style={styles.title}>WeGoToCalStateLA</Text>
+          <Text style={styles.title}>WeGo</Text>
           <Text style={styles.subtitle}>
             Helping families and loved ones connect, share support, and find resources for the Cal State LA journey.
           </Text>
@@ -47,7 +47,7 @@ export default function ProjectOverview() {
           <Text style={styles.sectionLabel}>THE PROJECT</Text>
           <Text style={styles.sectionTitle}>Support for the people behind every student</Text>
           <Text style={styles.body}>
-            WeGoToCalStateLA is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
+            WeGo is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
           </Text>
           <Text style={styles.body}>
             The current application is an early prototype. Feedback from families, students, and community partners will shape what it becomes.
@@ -75,7 +75,7 @@ export default function ProjectOverview() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>WeGoToCalStateLA · Prototype overview</Text>
+          <Text style={styles.footerText}>WeGo · Prototype overview</Text>
           {Platform.OS !== 'web' ? (
             <TouchableOpacity style={styles.mobilePreviewButton}>
               <Text style={styles.mobilePreviewText}>Evaluation access is provided separately</Text>
