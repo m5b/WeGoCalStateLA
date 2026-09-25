@@ -114,6 +114,9 @@ export default function WebLayout({ children }) {
           />
           <View style={styles.sidebar}>
             <View style={styles.sidebarHeader}>
+                <View style={styles.sidebarBrand}>
+                  <Text style={styles.sidebarBrandText}>WeGo</Text>
+                </View>
 
               <TouchableOpacity 
                 style={styles.sidebarClose}
@@ -204,7 +207,7 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: width < 640 ? 0 : 128
+    marginLeft: responsive({ xs: 0, lg: 96 }),
   },
   brandText: {
     fontSize: 24,
@@ -356,6 +359,16 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+  },
+  sidebarBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sidebarBrandText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e293b',
   },
   sidebarClose: {
     padding: 8,
