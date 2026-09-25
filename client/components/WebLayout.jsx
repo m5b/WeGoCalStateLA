@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginLeft: width < 640 ? 0 : 128
   },
   brandText: {
     fontSize: 24,
