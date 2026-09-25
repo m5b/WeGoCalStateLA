@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, ChevronDown, Shield } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
@@ -50,9 +50,6 @@ export default function WebLayout({ children }) {
             style={styles.brand}
             onPress={() => router.push('/')}
           >
-            <View style={styles.brandIcon}>
-              <Sparkles size={24} color={Colors.BRAND_GOLD} />
-            </View>
             <Text style={styles.brandText}>WeGo</Text>
           </TouchableOpacity>
 
@@ -117,10 +114,7 @@ export default function WebLayout({ children }) {
           />
           <View style={styles.sidebar}>
             <View style={styles.sidebarHeader}>
-              <View style={styles.sidebarBrand}>
-                <Sparkles size={24} color={Colors.BRAND_GOLD} />
-                <Text style={styles.sidebarBrandText}>WeGo</Text>
-              </View>
+
               <TouchableOpacity 
                 style={styles.sidebarClose}
                 onPress={() => setSidebarOpen(false)}
@@ -211,14 +205,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  brandIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.BLACK,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   brandText: {
     fontSize: 24,
@@ -370,16 +356,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
-  },
-  sidebarBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  sidebarBrandText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e293b',
   },
   sidebarClose: {
     padding: 8,
