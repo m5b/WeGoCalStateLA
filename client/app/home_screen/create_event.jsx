@@ -15,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Calendar, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { createEvent } from '../../services/events';
+import { createThread } from '../../services/threads';
 
 export default function CreateEventScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -64,7 +65,7 @@ export default function CreateEventScreen() {
     }
     setLoading(true);
     try {
-      await createEvent({
+      const createdEvent = await createEvent({
         title: title.trim(),
         description: description.trim(),
         imageUri,
@@ -73,6 +74,18 @@ export default function CreateEventScreen() {
         location: location.trim(),
         createdAt: Date.now(),
       });
+
+      await createThread({
+        caption: `${createdEvent.title} — Event Discussion`,
+        imageUri: createdEvent.imageUri,
+        date: createdEvent.date,
+        time: createdEvent.time,
+        location: createdEvent.location,
+        eventId: createdEvent.id,
+        type: 'event',
+        createdAt: Date.now(),
+      });
+
       router.replace('/home_screen/events');
     } catch (_e) {
       Alert.alert('Error', 'Failed to create event.');
