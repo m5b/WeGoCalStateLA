@@ -1,0 +1,39 @@
+name: wego-prototype
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - .env.prototype
+    ports:
+      - "127.0.0.1:3306:3306"
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=30
+      - --performance-schema=OFF
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - prototype-db-data:/var/lib/mysql
+
+  migrate:
+    image: amacneil/dbmate:latest
+    profiles: ["tools"]
+    env_file:
+      - .env.prototype
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/db/migrations:/db/migrations:ro,Z
+    command: ["up"]
+
+volumes:
+  prototype-db-data:
+
