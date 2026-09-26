@@ -51,9 +51,12 @@ export default function WebLayout({ children }) {
             onPress={() => router.push('/')}
           >
             <View style={styles.brandIcon}>
-              <Sparkles size={24} color={Colors.BRAND_GOLD} />
+              <Sparkles 
+                size={24} 
+                color={Colors.BRAND_GOLD} 
+              />
             </View>
-            <Text style={styles.brandText}>WeGoToCalStateLA</Text>
+            <Text style={styles.brandText}>WeGo</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -117,10 +120,10 @@ export default function WebLayout({ children }) {
           />
           <View style={styles.sidebar}>
             <View style={styles.sidebarHeader}>
-              <View style={styles.sidebarBrand}>
-                <Sparkles size={24} color={Colors.BRAND_GOLD} />
-                <Text style={styles.sidebarBrandText}>WeGoToCalStateLA</Text>
-              </View>
+                <View style={styles.sidebarBrand}>
+                  <Text style={styles.sidebarBrandText}>WeGo</Text>
+                </View>
+
               <TouchableOpacity 
                 style={styles.sidebarClose}
                 onPress={() => setSidebarOpen(false)}
@@ -210,7 +213,8 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+    marginLeft: responsive({ xs: 0, lg: 72 }),
   },
   brandIcon: {
     width: 40,
