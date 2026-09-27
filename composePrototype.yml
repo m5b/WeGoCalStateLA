@@ -22,6 +22,35 @@ services:
     volumes:
       - prototype-db-data:/var/lib/mysql
 
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prototype
+    environment:
+      DB_HOST: db
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_DATABASE: ${MYSQL_DATABASE}
+      UPLOAD_DIR: /server/uploads
+      SERVER_PUBLIC_URL: http://146.190.55.14:3000
+      SERVER_URL: http://146.190.55.14:3000/api
+      KEYCLOAK_ISSUER: https://placeholder.invalid/realms/wegoapp
+      KEYCLOAK_AUDIENCE: placeholder
+      GOOGLE_CLIENT_ID: placeholder
+      GOOGLE_CLIENT_SECRET: placeholder
+      GOOGLE_CALLBACK_URL: /auth/google/callback
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    mem_limit: 384m
+    volumes:
+      - prototype-uploads-data:/server/uploads
+
   migrate:
     image: amacneil/dbmate:latest
     profiles: ["tools"]
@@ -36,4 +65,5 @@ services:
 
 volumes:
   prototype-db-data:
+  prototype-uploads-data:
 
