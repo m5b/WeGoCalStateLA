@@ -292,7 +292,7 @@ export default function HomeScreen() {
                 ask thoughtful questions, and protect one another’s privacy.
               </Text>
               <Text style={webStyles.webHighlightAuthor}>
-                WeGo community guidelines
+                WeGoCSULA community guidelines
               </Text>
             </View>
           </View>
@@ -376,7 +376,7 @@ export default function HomeScreen() {
               ask thoughtful questions, and protect one another’s privacy.
             </Text>
             <View style={styles.highlightFooter}>
-              <Text style={styles.highlightAuthor}>WeGo community guidelines</Text>
+              <Text style={styles.highlightAuthor}>WeGoCSULA community guidelines</Text>
             </View>
           </View>
         </View>

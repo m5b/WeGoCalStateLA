@@ -7,13 +7,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -56,7 +56,7 @@ export default function WebLayout({ children }) {
                 color={Colors.BRAND_GOLD} 
               />
             </View>
-            <Text style={styles.brandText}>WeGo</Text>
+            <Text style={styles.brandText}>WeGoCSULA</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -95,15 +95,30 @@ export default function WebLayout({ children }) {
             {userMenuOpen && (
               <View style={styles.userDropdown}>
                 <TouchableOpacity 
+                  accessibilityRole="button"
+                  activeOpacity={0.8}
                   style={styles.dropdownItem}
                   onPress={() => navigateToScreen('/profile')}
                 >
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
-                <View style={styles.previewNote}>
-                  <Text style={styles.previewNoteText}>Preview mode · Sign-in is coming later</Text>
-                </View>
+                {!isAuthenticated ? (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.8}
+                    onPress={() => navigateToScreen('/authentication/login')}
+                    style={styles.dropdownItem}
+                  >
+                    <LogIn size={16} color="#64748b" />
+                    <Text style={styles.dropdownText}>Sign in</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {!isAuthenticated ? (
+                  <View style={styles.previewNote}>
+                    <Text style={styles.previewNoteText}>You are currently browsing in preview mode.</Text>
+                  </View>
+                ) : null}
               </View>
             )}
           </View>
@@ -260,6 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     position: 'relative',
+    zIndex: 101,
   },
   notificationButton: {
     padding: 8,
@@ -447,6 +463,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: 99,
   },
 });
