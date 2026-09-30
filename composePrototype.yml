@@ -22,6 +22,19 @@ services:
     volumes:
       - prototype-db-data:/var/lib/mysql
 
+  redis:
+    image: redis:8.6.0-alpine
+    restart: unless-stopped
+    command: ["redis-server"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    mem_limit: 128m
+    expose:
+      - "6379"
+
   backend:
     build:
       context: ./server
@@ -34,6 +47,7 @@ services:
       DB_USERNAME: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
       DB_DATABASE: ${MYSQL_DATABASE}
+      REDIS_URL: redis://redis:6379
       UPLOAD_DIR: /server/uploads
       SERVER_PUBLIC_URL: http://146.190.55.14:3000
       SERVER_URL: http://146.190.55.14:3000/api
@@ -44,6 +58,8 @@ services:
       GOOGLE_CALLBACK_URL: /auth/google/callback
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     ports:
       - "3000:3000"
