@@ -22,6 +22,57 @@ services:
     volumes:
       - prototype-db-data:/var/lib/mysql
 
+  redis:
+    image: redis:8.6.0-alpine
+    restart: unless-stopped
+    command: ["redis-server"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    mem_limit: 128m
+    expose:
+      - "6379"
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prototype
+    environment:
+      DB_HOST: db
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_DATABASE: ${MYSQL_DATABASE}
+      REDIS_URL: redis://redis:6379
+      UPLOAD_DIR: /server/uploads
+      SERVER_PUBLIC_URL: http://146.190.55.14:3000
+      SERVER_URL: http://146.190.55.14:3000/api
+      KEYCLOAK_ISSUER: https://placeholder.invalid/realms/wegoapp
+      KEYCLOAK_AUDIENCE: placeholder
+      GOOGLE_CLIENT_ID: placeholder
+      GOOGLE_CLIENT_SECRET: placeholder
+      GOOGLE_CALLBACK_URL: /auth/google/callback
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    volumes:
+      - prototype-uploads-data:/server/uploads
+
   migrate:
     image: amacneil/dbmate:latest
     profiles: ["tools"]
@@ -36,4 +87,5 @@ services:
 
 volumes:
   prototype-db-data:
+  prototype-uploads-data:
 
