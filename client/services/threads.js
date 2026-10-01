@@ -76,6 +76,11 @@ export async function getFeed() {
   }));
 }
 
+export async function getThreadByEventId(eventId) {
+  const threads = await getFeed();
+  return threads.find((t) => String(t.eventId) === String(eventId)) ?? null;
+}
+
 export async function createThread(data) {
   await delay();
   const id = String(NEXT_ID++);
