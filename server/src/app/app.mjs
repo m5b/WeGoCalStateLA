@@ -48,6 +48,7 @@ export function createApp(db, redis, emailService){
         origin: allowedOrigins.length > 0 ? allowedOrigins : true,
         credentials: true,
     }))
+
     app.use(express.json())
     app.use(cookieParser())
     //launch up the store / repo
