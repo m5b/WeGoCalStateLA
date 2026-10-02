@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Users, HeartHandshake, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
@@ -19,39 +19,48 @@ import WebLayout from '../../components/WebLayout';
 export default function ResourceScreen() {
   const resourceCategories = [
     {
-      id: 'mental',
-      title: 'Mental Health Resources',
-      description: 'Counseling, therapy, and mental health support services',
-      icon: Brain,
-      color: Colors.PRIMARY,
-      route: '/resources/mental_res',
-      count: '25+ services'
-    },
-    {
-      id: 'physical',
-      title: 'Physical Wellness',
-      description: 'Fitness, nutrition, and physical health resources',
-      icon: Heart,
-      color: Colors.ERROR,
-      route: '/resources/physical_res',
-      count: '18+ programs'
-    },
-    {
       id: 'career',
-      title: 'Career Services',
-      description: 'Job search, career counseling, and professional development',
+      title: 'Career',
+      description: 'Job search, career counseling and professional development',
       icon: Briefcase,
       color: '#3B82F6',
       route: '/resources/career_res',
-      count: '30+ resources'
+      count: '25+ services'
+    },
+    {
+      id: 'social',
+      title: 'Social',
+      description: 'CSULA peer support, community engagement, and mentorship ',
+      icon: Users,
+      color: Colors.PRIMARY,
+      route: '/resources/social_res',
+      count: '18+ programs'
     },
     {
       id: 'financial',
-      title: 'Financial Resources',
-      description: 'Financial aid, budgeting, and money management support',
+      title: 'Financial',
+      description: 'public benefits, financial literacy, housing and rental assistance',
       icon: DollarSign,
       color: Colors.SECONDARY,
       route: '/resources/financial_res',
+      count: '30+ resources'
+    },
+    {
+      id: 'physical',
+      title: 'Physical',
+      description: 'Physical and behavioral health services, counseling and wellness programs',
+      icon: Heart,
+      color: Colors.ERROR,
+      route: '/resources/physical_res',
+      count: '15+ services'
+    },
+    {
+      id: 'community',
+      title: 'Community',
+      description: 'Volunteer opportunities, civic engagement and support services',
+      icon: HeartHandshake,
+      color: Colors.SUCCESS,
+      route: '/resources/community_res',
       count: '15+ services'
     }
   ];
@@ -124,7 +133,7 @@ export default function ResourceScreen() {
 
           {/* Resource Categories */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Resource Categories</Text>
+            <Text style={styles.webSectionTitle}>Wellness Resources</Text>
             <View style={styles.webCategoriesGrid}>
               {resourceCategories.map((category) => (
                 <TouchableOpacity
@@ -229,7 +238,7 @@ export default function ResourceScreen() {
           </View>
 
           {/* Resource Categories */}
-          <Text style={styles.sectionTitle}>Resource Categories</Text>
+          <Text style={styles.sectionTitle}>Wellness Resources</Text>
           {resourceCategories.map((category) => (
             <TouchableOpacity
               key={category.id}
