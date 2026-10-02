@@ -7,13 +7,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -30,6 +30,12 @@ export default function WebLayout({ children }) {
     router.push(route);
     setSidebarOpen(false);
     setUserMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setUserMenuOpen(false);
+    router.replace('/');
   };
 
   return (
@@ -112,6 +118,17 @@ export default function WebLayout({ children }) {
                   >
                     <LogIn size={16} color="#64748b" />
                     <Text style={styles.dropdownText}>Sign in</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {isAuthenticated ? (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.8}
+                    onPress={handleLogout}
+                    style={styles.dropdownItem}
+                  >
+                    <LogOut size={16} color="#64748b" />
+                    <Text style={styles.dropdownText}>Log out</Text>
                   </TouchableOpacity>
                 ) : null}
                 {!isAuthenticated ? (
