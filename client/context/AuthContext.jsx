@@ -1,23 +1,43 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { checkAuth, logout as logoutSession } from '../services/authService';
 
 const AuthContext = createContext(null);
+const GUEST_USER = { username: 'Community guest', preview: true };
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState({ username: 'Community guest', preview: true });
+  const [user, setUser] = useState(GUEST_USER);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = (userData) => {
+  const login = useCallback((userData) => {
     setUser(userData);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const logout = async () => {
-    setUser({ username: 'Community guest', preview: true });
+  const logout = useCallback(async () => {
+    await logoutSession();
+    setUser(GUEST_USER);
     setIsAuthenticated(false);
-  };
+  }, []);
 
-  const checkSession = async () => null;
+  const checkSession = useCallback(async () => {
+    setIsLoading(true);
+    const currentUser = await checkAuth();
+
+    if (currentUser?.userId) {
+      login(currentUser);
+    } else {
+      setUser(GUEST_USER);
+      setIsAuthenticated(false);
+    }
+
+    setIsLoading(false);
+    return currentUser;
+  }, [login]);
+
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   const value = {
     user,
