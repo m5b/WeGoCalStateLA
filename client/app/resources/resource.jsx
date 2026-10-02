@@ -93,7 +93,7 @@ export default function ResourceScreen() {
                 <TouchableOpacity
                   key={category.id}
                   style={styles.webCategoryCard}
-                  onPress={() => router.push(category.route)}
+                  onPress={() => router.push(`/resources/${category.id}`)}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.webCategoryIcon, { backgroundColor: category.color + '20' }]}>
@@ -197,7 +197,7 @@ export default function ResourceScreen() {
             <TouchableOpacity
               key={category.id}
               style={styles.categoryCard}
-              onPress={() => router.push(category.route)}
+              onPress={() => router.push(`/resources/${category.id}`)}
               activeOpacity={0.8}
             >
               <View style={[styles.categoryIconContainer, { backgroundColor: category.color + '20' }]}>
