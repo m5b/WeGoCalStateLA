@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Info, Users, MapPin, Phone, Globe } from 'lucide-react-native';
+import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
@@ -35,6 +35,57 @@ function ResourceCard({ resource }) {
       <View style={styles.cardButton}>
         <Globe size={16} color={Colors.PRIMARY} />
         <Text style={styles.cardButtonText}>Visit website</Text>
+      </View>
+    </View>
+  );
+}
+
+const templateEvent = {
+  title: '[Insert event title here]',
+  date: '[Insert date and time here]',
+  location: '[Insert location here]',
+  description: '[Insert event description here]',
+};
+const templateEvents = [templateEvent, templateEvent, templateEvent];
+
+function TemplateEventCard({ event, color }) {
+  return (
+    <View style={styles.eventCard}>
+      <View style={[styles.eventAccent, { backgroundColor: color }]} />
+      <View style={styles.eventInner}>
+        <Text style={styles.templateBadge}>TEMPLATE</Text>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+        <Text style={styles.eventDate}>{event.date}</Text>
+        <Text style={styles.eventLocation}>{event.location}</Text>
+        <Text style={styles.eventDescription}>{event.description}</Text>
+      </View>
+    </View>
+  );
+}
+
+function CategoryEvents({ category }) {
+  return (
+    <View style={styles.eventsSection}>
+      <View style={styles.eventsHeader}>
+        <View style={styles.eventsHeaderTitle}>
+          <Calendar size={22} color={Colors.PRIMARY} />
+          <Text style={styles.sectionTitle}>Upcoming {category.title} Events</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.eventsLink}
+          onPress={() => router.push('/home_screen/events')}
+        >
+          <Text style={styles.eventsLinkText}>See all events</Text>
+          <ChevronRight size={18} color={Colors.PRIMARY} />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.eventsNote}>
+        Preview only: events tagged with this category will appear here.
+      </Text>
+      <View style={styles.grid}>
+        {templateEvents.map((event, index) => (
+          <TemplateEventCard key={index} event={event} color={category.color} />
+        ))}
       </View>
     </View>
   );
@@ -78,6 +129,8 @@ export default function ResourceCategoryScreen() {
                   <ResourceCard key={index} resource={resource} />
                 ))}
               </View>
+
+              <CategoryEvents category={category} />
             </>
           ) : (
             <Text style={styles.headerTitle}>Category not found</Text>
@@ -207,5 +260,99 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.PRIMARY,
+  },
+
+    eventsSection: {
+    marginTop: 40,
+    paddingTop: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  eventsHeader: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 8,
+  },
+  eventsHeaderTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: Colors.PRIMARY,
+  },
+  eventsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  eventsLinkText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.PRIMARY,
+  },
+  eventsNote: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 20,
+  },
+  eventCard: {
+    flexDirection: 'row',
+    flexGrow: 1,
+    flexBasis: 300,
+    backgroundColor: '#fff8d6',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  eventAccent: {
+    width: 6,
+  },
+  eventInner: {
+    flex: 1,
+    padding: 14,
+  },
+  templateBadge: {
+    alignSelf: 'flex-start',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.SECONDARY,
+    backgroundColor: 'white',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 4,
+  },
+  eventDate: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  eventLocation: {
+    fontSize: 13,
+    color: '#000',
+    marginBottom: 8,
+  },
+  eventDescription: {
+    fontSize: 13,
+    color: '#000',
   },
 });
