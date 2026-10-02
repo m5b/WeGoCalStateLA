@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   View,
   Text,
   FlatList,
@@ -17,10 +18,20 @@ export default function ThreadDetail() {
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
   const [text, setText] = useState("");
+  const [loadingReplies, setLoadingReplies] = useState(false);
 
   const thread =
     state.threads.find((t) => String(t.id) === String(threadId)) ??
     state.threads[0];
+
+  useEffect(() => {
+    if (!thread || thread.repliesLoaded) return;
+    setLoadingReplies(true);
+    actions
+      .loadThreadDetail(thread.id)
+      .catch((err) => console.warn("Failed to load replies", err))
+      .finally(() => setLoadingReplies(false));
+  }, [thread?.id]);
 
   if (!thread) {
     return (
@@ -84,10 +95,15 @@ export default function ThreadDetail() {
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <View style={styles.replyCard}>
-            <Text style={styles.replyAuthor}>Anonymous</Text>
+            <Text style={styles.replyAuthor}>{item.author || "Anonymous"}</Text>
             <Text style={styles.replyText}>{item.text}</Text>
           </View>
         )}
+        ListFooterComponent={
+          loadingReplies ? (
+            <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
+          ) : null
+        }
         contentContainerStyle={{ paddingBottom: 120 }}
       />
       
