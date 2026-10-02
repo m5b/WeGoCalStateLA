@@ -19,32 +19,34 @@ import { resourceCategories } from '../../constant/ResourceCategories';
 
 export default function ResourceScreen() {
   
-  const emergencyContacts = [
-    {
-      title: 'Crisis Text Line',
-      subtitle: 'Text HOME to 741741',
-      description: '24/7 crisis support via text message',
-      icon: MessageSquare,
-      action: () => {},
-      urgent: true
-    },
-    {
-      title: 'Suicide & Crisis Lifeline',
-      subtitle: 'Call 988',
-      description: 'National suicide prevention lifeline',
-      icon: Phone,
-      action: () => {},
-      urgent: true
-    },
-    {
-      title: 'Campus Safety',
-      subtitle: '(323) 343-3700',
-      description: 'Cal State LA emergency services',
-      icon: Shield,
-      action: () => {},
-      urgent: false
-    }
-  ];
+const emergencyContacts = [
+  { title: 'Crisis Text Line', detail: 'Text HOME to 741741', icon: MessageSquare },
+  { title: 'Suicide & Crisis Lifeline', detail: 'Call 988', icon: Phone },
+  { title: 'Campus Safety', detail: '(323) 343-3700', icon: Shield },
+];
+
+function EmergencyBar({ style }) {
+  return (
+    <View style={[styles.emergencyBar, style]}>
+      <View style={styles.emergencyBarLabel}>
+        <Text style={styles.emergencyBarLabelText}>EMERGENCY</Text>
+      </View>
+      <View style={styles.emergencyBarItems}>
+        {emergencyContacts.map((contact, index) => (
+          <View key={contact.title} style={styles.emergencyBarItem}>
+            {index > 0 && <Text style={styles.emergencyBarDivider}>|</Text>}
+            <contact.icon size={14} color={Colors.ERROR} />
+            <Text style={styles.emergencyBarText}>
+              <Text style={styles.emergencyBarTitle}>{contact.title}: </Text>
+              {contact.detail}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 
   // campusServices array removed (unused)
 
@@ -62,28 +64,8 @@ export default function ResourceScreen() {
             </View>
           </View>
 
-          {/* Emergency Contacts */}
-          <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Emergency Contacts</Text>
-            <View style={styles.webEmergencyGrid}>
-              {emergencyContacts.map((contact, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.webEmergencyCard}
-                  onPress={contact.action}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.webEmergencyIcon}>
-                    <contact.icon size={24} color={Colors.ERROR} />
-                  </View>
-                  <View style={styles.webEmergencyContent}>
-                    <Text style={styles.webEmergencyTitle}>{contact.title}</Text>
-                    <Text style={styles.webEmergencySubtitle}>{contact.subtitle}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                    {/* Emergency Contacts */}
+          <EmergencyBar style={styles.webEmergencyBar} />
 
           {/* Resource Categories */}
           <View style={styles.webSection}>
@@ -171,25 +153,7 @@ export default function ResourceScreen() {
           </View>
 
           {/* Emergency Contacts */}
-          <View style={styles.emergencySection}>
-            <Text style={styles.sectionTitle}>Emergency Contacts</Text>
-            {emergencyContacts.map((contact, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.emergencyCard}
-                onPress={contact.action}
-                activeOpacity={0.8}
-              >
-                <View style={styles.emergencyIconContainer}>
-                  <contact.icon size={24} color={Colors.ERROR} />
-                </View>
-                <View style={styles.emergencyContent}>
-                  <Text style={styles.emergencyTitle}>{contact.title}</Text>
-                  <Text style={styles.emergencySubtitle}>{contact.subtitle}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <EmergencyBar style={styles.mobileEmergencyBar} />
 
           {/* Resource Categories */}
           <Text style={styles.sectionTitle}>Wellness Resources</Text>
@@ -240,6 +204,61 @@ export default function ResourceScreen() {
 }
 
 const styles = StyleSheet.create({
+    emergencyBar: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  emergencyBarLabel: {
+    backgroundColor: Colors.ERROR,
+    justifyContent: 'center',
+    paddingHorizontal: width < 640 ? 8 : 12,
+  },
+  emergencyBarLabelText: {
+    color: Colors.WHITE,
+    fontSize: width < 640 ? 10 : 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  emergencyBarItems: {
+    flexshrink: 1,
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 12,
+    rowGap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  emergencyBarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  emergencyBarDivider: {
+    color: '#fca5a5',
+    marginRight: 6,
+  },
+  emergencyBarText: {
+    flexShrink: 1,
+    fontSize: 13,
+    color: '#1e293b',
+  },
+  emergencyBarTitle: {
+    fontWeight: '700',
+  },
+  webEmergencyBar: {
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+  },
+  mobileEmergencyBar: {
+    marginBottom: 24,
+  },
   // Web Styles
   /* duplicate webContainer removed */
   webHeroSection: {

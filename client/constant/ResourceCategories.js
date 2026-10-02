@@ -21,7 +21,7 @@ export const resourceCategories = [
     {
       id: 'financial',
       title: 'Financial',
-      description: 'public benefits, financial literacy, housing and rental assistance',
+      description: 'Public benefits, financial literacy, housing and rental assistance',
       icon: DollarSign,
       color: Colors.SECONDARY,
       count: '30+ resources'
