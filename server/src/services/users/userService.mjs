@@ -19,12 +19,15 @@ export function createUserService({userRepo}) {
         return count
     }
 
-    async function createUser({username, userUuid, createdAt}) {
+    async function createUser({username, userUuid, createdAt, emailHash = null, passwordHash = null, isAdmin = false}) {
         //perform database insertion for user creation
         const insertId = await userRepo.insertUser({
             username,
             userUuid,
             createdAt,
+            emailHash,
+            passwordHash,
+            isAdmin,
         })
         return dbMapper.fromDb(await userRepo.findByUserId(insertId))
     }

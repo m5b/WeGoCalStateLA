@@ -76,7 +76,7 @@ export function createApp(db, redis, emailService){
     const googleAuthService = createGoogleAuthService(createOIDCService(
         {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
     ))
-    const loginService= createLoginService({authRepo, passwordService, jwtTokenService})
+    const loginService= createLoginService({authRepo, passwordService, jwtTokenService, voprfService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo)
@@ -87,7 +87,7 @@ export function createApp(db, redis, emailService){
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
     const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
-    const signupRouter = createSignupRouter({signupTokenService: signupTokenService, voprfService: voprfService, userService: userService, passwordService : passwordService})
+    const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const commentRouter = createCommentRouter({commentService, userService})

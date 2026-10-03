@@ -19,7 +19,7 @@ export function createUserRepo(db){
     }
     async function findByUserId(userId) {
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username,  created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, is_admin,  created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
             [userId]
         )
         return row[0] || null
@@ -27,7 +27,7 @@ export function createUserRepo(db){
 
     async function findByUserUuid(userUuid){
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, created_at, updated_at from users where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL ',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, is_admin, created_at, updated_at from users where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL ',
             [userUuid]
         )
         return row[0] || null
@@ -43,7 +43,7 @@ export function createUserRepo(db){
 
     async function findByUsername(username) {
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username,  created_at, updated_at from users where username = ? and deleted_at is NULL',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username,  is_admin, created_at, updated_at from users where username = ? and deleted_at is NULL',
             [username]
         )
 
@@ -91,11 +91,11 @@ export function createUserRepo(db){
         return result.affectedRows > 0
     }
 
-    async function insertUser({username , userUuid, createdAt}) {
+    async function insertUser({username, userUuid, createdAt, emailHash = null, passwordHash = null, isAdmin = false}) {
         const [result] = await db.execute(
-            'INSERT INTO users (username, user_uuid, created_at, updated_at) VALUES (?,  UUID_TO_BIN(?), ?, ?)',
-            [username, userUuid, createdAt, createdAt]
-        )
+            'INSERT INTO users (username, email_hash, password_hash, is_admin, user_uuid, created_at, updated_at) VALUES (?, ?, ?, ?, UUID_TO_BIN(?), ?, ?)',
+            [username, emailHash, passwordHash, isAdmin, userUuid, createdAt, createdAt]
+      )
         return result.insertId
     }
 }

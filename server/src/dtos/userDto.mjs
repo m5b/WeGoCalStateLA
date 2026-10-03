@@ -1,4 +1,4 @@
-const PUBLIC_FIELDS = ['userUuid', 'username', 'createdAt']
+const PUBLIC_FIELDS = ['userUuid', 'username', 'isAdmin', 'createdAt']
 const PRIVATE_FIELDS = ['updatedAt']
 
 export default class UserDto {
