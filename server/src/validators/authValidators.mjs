@@ -34,6 +34,18 @@ export const passwordSchema = z.object({
         ),
 }).strict()
 
+export const identifierPasswordSchema = z.object({
+    identifier: z.string().min(1, { message: 'Enter a username or email' }).max(255),
+    password: z
+        .string()
+        .min(8, { message: 'password must be at least 8 characters long' })
+        .max(21, { message: 'password must be at most 21 characters long' })
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+            { message: 'password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' }
+        ),
+}).strict()
+
 export const evalReqB64UhSchema = z.object({
     evalReqB64U: z
         .string()
