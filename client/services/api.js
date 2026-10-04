@@ -1,5 +1,6 @@
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
+  || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
 
 async function handleResponse(res) {
   if (res.ok) return res.json();
@@ -18,7 +19,7 @@ async function handleResponse(res) {
 }
 
 export async function apiGet(path) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'GET',
     credentials: 'include',
   });
@@ -26,7 +27,7 @@ export async function apiGet(path) {
 }
 
 export async function apiJson(path, method, body) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

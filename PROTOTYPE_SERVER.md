@@ -44,6 +44,11 @@ ssh -N -L 3307:127.0.0.1:3306 your-linux-username@146.190.55.14
 Then connect the client to `127.0.0.1`, port `3307`, using the values in
 `/srv/wego/app/.env.prototype`.
 
+The backend is also bound only to server localhost. Public browser requests use the existing
+HTTPS virtual host: Nginx proxies `https://wegotocalstatela.org/api/...` internally to
+`http://127.0.0.1:3000/api/...`. Do not expose port 3000 publicly or add TLS inside the backend
+container.
+
 ## Update the shared checkout
 
 Do not develop directly in `/srv/wego/app`. Make changes locally and use the normal GitHub pull
@@ -76,4 +81,3 @@ docker compose -f composePrototype.yml up -d db
 ```
 
 Coordinate with the backend team before resetting shared data.
-
