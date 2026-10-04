@@ -44,9 +44,7 @@ services:
       - .env.prototype
     environment:
       DB_HOST: db
-      DB_USERNAME: ${MYSQL_USER}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
-      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_PORT: 3306
       REDIS_URL: redis://redis:6379
       UPLOAD_DIR: /server/uploads
       SERVER_PUBLIC_URL: https://wegotocalstatela.org
