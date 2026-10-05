@@ -6,23 +6,28 @@ import { router } from 'expo-router';
 import { ArrowLeft, GraduationCap, Shield, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import Colors from '../../constant/Colors';
 import { useAuth } from '../../context/AuthContext';
-import { initiateGoogleLogin, checkAuth, signupWithEmail, loginWithEmail } from '../../services/authService';
+import { initiateGoogleLogin, checkAuth, signupWithIdentifier } from '../../services/authService';
 
 import { isWeb, width } from '../../utils/responsive';
 
 
 export default function SignupScreen() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleSignup = async () => {
-    if (!email || !password) {
+    if (!identifier || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
@@ -30,12 +35,11 @@ export default function SignupScreen() {
     setErrorMessage('');
 
     try {
-      await signupWithEmail(email.trim(), password);
-      await loginWithEmail(email.trim(), password);
+      await signupWithIdentifier(identifier.trim(), password);
 
       const userData = await checkAuth();
 
-      if (userData && userData.userId) {
+      if (userData && userData.userUuid) {
         login(userData);
         router.push('/home_screen/home');
       } else {
@@ -46,7 +50,7 @@ export default function SignupScreen() {
         const messages = Object.values(err.data).join('\n');
         setErrorMessage(messages);
       } else if (err.status === 409) {
-        const msg = 'An account with this email already exists.';
+        const msg = 'That username or email is already taken.';
         setErrorMessage(msg);
       } else {
         const msg = 'An unexpected error occurred. Please try again.';
@@ -138,7 +142,6 @@ export default function SignupScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Optional email sign-up placeholders (not wired) */}
             <View style={styles.loginForm}>
               <View style={styles.inputContainer}>
                 <View style={styles.inputIconContainer}>
@@ -146,11 +149,10 @@ export default function SignupScreen() {
                 </View>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Email Address / Username"
+                  placeholder="Username or Email"
                   placeholderTextColor="#9CA3AF"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  value={identifier}
+                  onChangeText={setIdentifier}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -178,6 +180,22 @@ export default function SignupScreen() {
                     <Eye size={20} color="#9CA3AF" />
                   )}
                 </TouchableOpacity>
+              </View>
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Lock size={20} color="#9CA3AF" />
+                </View>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Confirm password"
+                  placeholderTextColor="#9CA3AF"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  returnKeyType="go"
+                  onSubmitEditing={handleSignup}
+                />
               </View>
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
@@ -242,11 +260,10 @@ export default function SignupScreen() {
                 <Mail size={20} color={Colors.TEXT_SECONDARY} />
                 <TextInput
                   style={styles.mobileTextInput}
-                  placeholder="Email Address"
+                  placeholder="Username or Email"
                   placeholderTextColor={Colors.TEXT_SECONDARY}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  value={identifier}
+                  onChangeText={setIdentifier}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -270,6 +287,21 @@ export default function SignupScreen() {
                     <Eye size={20} color={Colors.TEXT_SECONDARY} />
                   )}
                 </TouchableOpacity>
+              </View>
+
+              <View style={styles.mobileInputContainer}>
+                <Lock size={20} color={Colors.TEXT_SECONDARY} />
+                <TextInput
+                  style={styles.mobileTextInput}
+                  placeholder="Confirm password"
+                  placeholderTextColor={Colors.TEXT_SECONDARY}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  returnKeyType="go"
+                  onSubmitEditing={handleSignup}
+                />
               </View>
             </View>
 

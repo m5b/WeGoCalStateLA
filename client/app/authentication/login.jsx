@@ -61,7 +61,7 @@ export default function LoginScreen() {
 
       const userData = await checkAuth();
 
-      if (userData && userData.userId) {
+      if (userData && userData.userUuid) {
         login(userData);
         router.push('/home_screen/home');
       } else {

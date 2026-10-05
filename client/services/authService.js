@@ -20,12 +20,13 @@ export async function initiateGoogleLogin() {
   }
 }
 
-export async function loginWithEmail(email, password) {
-  return apiJson('/api/auth/login', 'POST', { email, password });
+// identifier can be a username or an email — the server figures out which.
+export async function loginWithIdentifier(identifier, password) {
+  return apiJson('/api/auth/login', 'POST', { identifier, password });
 }
 
-export async function signupWithEmail(email, password) {
-  return apiJson('/api/auth/signup', 'POST', { email, password });
+export async function signupWithIdentifier(identifier, password) {
+  return apiJson('/api/auth/signup', 'POST', { identifier, password });
 }
 
 export async function checkAuth() {
