@@ -28,3 +28,18 @@ export const userSchema = z
     })
 
 //change the password and email require more process, so defining a individual schema might be better
+
+// Admin-only: unlike profileSchema (self-serve), this allows changing
+// isAdmin. Never exposed through the self-serve PATCH /user/me route.
+export const adminUserPatchSchema = z
+    .object({
+        alias: z.string().min(1).max(40),
+        relationship: z.string().max(80),
+        interests: z.string().max(240),
+        isAdmin: z.boolean(),
+    })
+    .partial()
+    .refine(
+        (v) => Object.keys(v).length > 0,
+        { message: 'One of the fields must be defined' }
+    )

@@ -40,6 +40,7 @@ import {createVOPRFRouter} from "../routes/auth/voprf.mjs";
 import { createResetTokenStore } from '../repositories/redis/resetTokenStore.mjs'
 import { createResetPasswordService } from '../services/auth/resetPassword/resetPasswordService.mjs'
 import { createResetPasswordRouter } from '../routes/auth/resetPassword.mjs'
+import { createAdminRouter } from '../routes/adminRoutes.mjs'
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -94,6 +95,7 @@ export function createApp(db, redis, emailService){
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})
     const resetPasswordRouter = createResetPasswordRouter({voprfService, authRepo, emailService, resetPasswordService, passwordService, userService, jwtTokenService})
+    const adminRouter = createAdminRouter(userService)
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const commentRouter = createCommentRouter({commentService, userService})
@@ -107,6 +109,7 @@ export function createApp(db, redis, emailService){
         commentRouter: commentRouter,
         voprfRouter,
         resetPasswordRouter,
+        adminRouter,
     })
     app.use('/api', router)
     app.use(errorHandler)

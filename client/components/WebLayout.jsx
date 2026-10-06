@@ -121,6 +121,17 @@ export default function WebLayout({ children }) {
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
+                {isAuthenticated && user?.isAdmin ? (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.8}
+                    style={styles.dropdownItem}
+                    onPress={() => navigateToScreen('/admin/users')}
+                  >
+                    <Shield size={16} color="#64748b" />
+                    <Text style={styles.dropdownText}>Manage Users</Text>
+                  </TouchableOpacity>
+                ) : null}
                 {isAuthenticated ? (
                   <>
                     <View style={styles.dropdownDivider} />
