@@ -42,3 +42,15 @@ export async function checkAuth() {
     return null;
   }
 }
+
+export async function requestPasswordReset(email) {
+  return apiJson('/api/auth/password-reset/request', 'POST', { email });
+}
+
+export async function verifyPasswordResetOtp(otp) {
+  return apiJson('/api/auth/password-reset/verify', 'POST', { otp });
+}
+
+export async function completePasswordReset(password) {
+  return apiJson('/api/auth/password-reset/complete', 'POST', { password });
+}

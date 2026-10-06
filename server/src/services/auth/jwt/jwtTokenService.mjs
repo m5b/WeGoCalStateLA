@@ -11,6 +11,8 @@ export function createJWTTokenService(){
         issueSignupToken,
         issueLoginToken,
         issueOTPToken,
+        issueResetOtpToken,
+        issueResetToken,
     }
     function signJWTToken({sub, expiresIn, audience, extra = {}}) {
         return jwt.sign(
@@ -42,6 +44,13 @@ export function createJWTTokenService(){
 
     function issueOTPToken(key){
         return signJWTToken( {sub: key, expiresIn: '5h', audience: 'otpToken'})
+    }
+    function issueResetOtpToken(key){
+        return signJWTToken( {sub: key, expiresIn: '5m', audience: 'resetOtpToken'})
+    }
+
+    function issueResetToken(userUuid){
+        return signJWTToken( {sub: userUuid, expiresIn: '5m', audience: 'resetToken'})
     }
 
 }
