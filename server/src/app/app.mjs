@@ -37,6 +37,9 @@ import { createUsernameService } from '../services/users/usernameGenerator.mjs'
 import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
 import {createLoginService} from "../services/auth/login/loginService.mjs";
 import {createVOPRFRouter} from "../routes/auth/voprf.mjs";
+import { createResetTokenStore } from '../repositories/redis/resetTokenStore.mjs'
+import { createResetPasswordService } from '../services/auth/resetPassword/resetPasswordService.mjs'
+import { createResetPasswordRouter } from '../routes/auth/resetPassword.mjs'
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -56,6 +59,7 @@ export function createApp(db, redis, emailService){
     const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
+    const resetTokenStore = createResetTokenStore({redis, resetTokenPrefix: redisKeysConfig.resetToken})
 
     const authRepo = createAuthRepo(db)
     const commentRepo = createCommentRepo(db)
@@ -77,6 +81,7 @@ export function createApp(db, redis, emailService){
         {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
     ))
     const loginService= createLoginService({authRepo, passwordService, jwtTokenService, voprfService})
+    const resetPasswordService = createResetPasswordService({resetTokenStore, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo)
@@ -88,6 +93,7 @@ export function createApp(db, redis, emailService){
     const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})
+    const resetPasswordRouter = createResetPasswordRouter({voprfService, authRepo, emailService, resetPasswordService, passwordService, userService, jwtTokenService})
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const commentRouter = createCommentRouter({commentService, userService})
@@ -99,7 +105,8 @@ export function createApp(db, redis, emailService){
         userRouter: userRouter,
         threadRouter: threadRouter,
         commentRouter: commentRouter,
-        voprfRouter
+        voprfRouter,
+        resetPasswordRouter,
     })
     app.use('/api', router)
     app.use(errorHandler)

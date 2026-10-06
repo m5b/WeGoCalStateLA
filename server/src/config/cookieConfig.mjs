@@ -41,3 +41,19 @@ export const loginTokenCookieConfig= {
     sameSite: 'lax',
 }
 
+export const resetOtpTokenCookieConfig = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 5 * 60000,
+    path: '/',
+    sameSite: 'lax',
+}
+
+export const resetTokenCookieConfig = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 5 * 60000,
+    path: '/',
+    sameSite: 'lax',
+}
+
