@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { checkAuth } from '../services/authService';
+import { checkAuth, signOut } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    await signOut();
     setUser({ username: 'Community guest', preview: true });
     setIsAuthenticated(false);
   };
