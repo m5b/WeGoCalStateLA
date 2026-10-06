@@ -7,15 +7,17 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
   const pathname = usePathname();
 
   const navigationItems = [
@@ -30,6 +32,22 @@ export default function WebLayout({ children }) {
     router.push(route);
     setSidebarOpen(false);
     setUserMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    setSignOutError('');
+    try {
+      await logout();
+      setUserMenuOpen(false);
+      setSidebarOpen(false);
+      router.replace('/authentication/login');
+    } catch {
+      setSignOutError('Unable to sign out. Please try again.');
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -103,7 +121,25 @@ export default function WebLayout({ children }) {
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
-                {!isAuthenticated ? (
+                {isAuthenticated ? (
+                  <>
+                    <View style={styles.dropdownDivider} />
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: isSigningOut, busy: isSigningOut }}
+                      activeOpacity={0.8}
+                      disabled={isSigningOut}
+                      onPress={handleSignOut}
+                      style={styles.dropdownItem}
+                    >
+                      <LogOut size={16} color="#64748b" />
+                      <Text style={styles.dropdownText}>{isSigningOut ? 'Signing out...' : 'Sign out'}</Text>
+                    </TouchableOpacity>
+                    {signOutError ? (
+                      <Text accessibilityRole="alert" style={styles.signOutError}>{signOutError}</Text>
+                    ) : null}
+                  </>
+                ) : (
                   <TouchableOpacity
                     accessibilityRole="button"
                     activeOpacity={0.8}
@@ -113,7 +149,7 @@ export default function WebLayout({ children }) {
                     <LogIn size={16} color="#64748b" />
                     <Text style={styles.dropdownText}>Sign in</Text>
                   </TouchableOpacity>
-                ) : null}
+                )}
                 {!isAuthenticated ? (
                   <View style={styles.previewNote}>
                     <Text style={styles.previewNoteText}>You are currently browsing in preview mode.</Text>
@@ -348,6 +384,13 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e2e8f0',
     marginVertical: 4,
+  },
+  signOutError: {
+    color: '#dc2626',
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    maxWidth: 240,
   },
   previewNote: {
     paddingHorizontal: 16,

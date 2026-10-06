@@ -12,6 +12,12 @@ import {base64UrlStringToUint8Array} from "../../util/encoding.mjs";
 export function createLoginRouter({voprfService, loginTokenService, loginService}){
     const router = Router()
 
+    router.post('/logout', (req, res) => {
+        const { maxAge, ...clearCookieOptions } = cookieConfig
+        res.clearCookie('auth_tx', clearCookieOptions)
+        res.json(jsend.success(null))
+    })
+
     router.post('/login', async (req, res) => {
         const { identifier, password } = identifierPasswordSchema.parse(req.body)
         const token = await loginService.authenticateUser(identifier, password)

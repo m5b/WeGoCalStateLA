@@ -29,6 +29,10 @@ export async function signupWithIdentifier(identifier, password) {
   return apiJson('/api/auth/signup', 'POST', { identifier, password });
 }
 
+export async function signOut() {
+  return apiJson('/api/auth/logout', 'POST', {});
+}
+
 export async function checkAuth() {
   try {
     const response = await apiGet('/api/user/me');
