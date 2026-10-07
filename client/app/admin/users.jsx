@@ -3,7 +3,7 @@ import { ActivityIndicator, Modal, Platform, SafeAreaView, ScrollView, StyleShee
 import { router } from 'expo-router';
 import { ShieldAlert, Trash2, UserCog } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 import { useAuth } from '../../context/AuthContext';
 import { listUsers, updateUser, deleteUser } from '../../services/adminService';
 
@@ -29,7 +29,6 @@ export default function AdminUsersScreen() {
     if (authLoading) return;
     if (!isAuthenticated || !user?.isAdmin) return;
     loadUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAuthenticated, user?.isAdmin]);
 
   if (authLoading) {
@@ -45,7 +44,7 @@ export default function AdminUsersScreen() {
       <SafeAreaView style={styles.page}>
         <View style={styles.deniedBox}>
           <ShieldAlert size={32} color="#dc2626" />
-          <Text style={styles.deniedText}>You don't have permission to view this page.</Text>
+          <Text style={styles.deniedText}>You don&apos;t have permission to view this page.</Text>
           <TouchableOpacity onPress={() => router.replace('/home_screen/home')} style={styles.deniedButton}>
             <Text style={styles.deniedButtonText}>Go home</Text>
           </TouchableOpacity>
@@ -70,7 +69,7 @@ export default function AdminUsersScreen() {
       const updated = await updateUser(editingUser.userUuid, editForm);
       setUsers((prev) => prev.map((u) => (u.userUuid === updated.userUuid ? updated : u)));
       setEditingUser(null);
-    } catch (err) {
+    } catch {
       setErrorMessage('Could not save changes.');
     } finally {
       setSaving(false);
@@ -85,7 +84,7 @@ export default function AdminUsersScreen() {
     try {
       await deleteUser(u.userUuid);
       setUsers((prev) => prev.filter((x) => x.userUuid !== u.userUuid));
-    } catch (err) {
+    } catch {
       setErrorMessage('Could not delete that user.');
     }
   };

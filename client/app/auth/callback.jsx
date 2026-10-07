@@ -3,14 +3,17 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { checkAuth } from '../../services/authService';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 
 export default function OAuthCallback() {
   const { login } = useAuth();
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Runs once on mount to validate the session from the OAuth redirect;
+    // validateSession is stable for the lifetime of this screen.
     validateSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const validateSession = async () => {
