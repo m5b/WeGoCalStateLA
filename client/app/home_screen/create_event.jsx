@@ -12,10 +12,11 @@ import {
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
-import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Calendar, Clock } from 'lucide-react-native';
+import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { createEvent } from '../../services/events';
 import { createThread } from '../../services/threads';
+import DateTimeInput from '../../components/DateTimeInput';
 
 export default function CreateEventScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -155,14 +156,12 @@ export default function CreateEventScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>Date</Text>
               <View style={styles.iconInput}>
-                <Calendar size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.iconInputField}
-                  placeholder="MM/DD/YYYY"
-                  placeholderTextColor={Colors.TEXT_MUTED}
-                  value={date}
-                  onChangeText={setDate}
-                />
+                
+                <DateTimeInput
+                        type="date"
+                        value={date}
+                        onChange={setDate}
+                        />
               </View>
             </View>
             <View style={{ width: 12 }} />
@@ -170,13 +169,11 @@ export default function CreateEventScreen() {
               <Text style={styles.label}>Time</Text>
               <View style={styles.iconInput}>
                 <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.iconInputField}
-                  placeholder="e.g. 3:00 PM"
-                  placeholderTextColor={Colors.TEXT_MUTED}
-                  value={time}
-                  onChangeText={setTime}
-                />
+                <DateTimeInput
+                      type="time"
+                      value={time}
+                      onChange={setTime}
+                      />
               </View>
             </View>
           </View>
