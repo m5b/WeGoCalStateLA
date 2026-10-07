@@ -13,7 +13,14 @@ export function createUserService({userRepo}) {
         getUserCount,
         getByUserUuid,
         provisionUser,
+        listUsers,
     }
+
+    async function listUsers(opts) {
+        const rows = await userRepo.findAll(opts)
+        return rows.map((row) => dbMapper.fromDb(row))
+    }
+
     async function getUserCount(){
         const count = await userRepo.getCount()
         return count

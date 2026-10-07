@@ -29,6 +29,10 @@ export async function signupWithIdentifier(identifier, password) {
   return apiJson('/api/auth/signup', 'POST', { identifier, password });
 }
 
+export async function signOut() {
+  return apiJson('/api/auth/logout', 'POST', {});
+}
+
 export async function checkAuth() {
   try {
     const response = await apiGet('/api/user/me');
@@ -37,4 +41,16 @@ export async function checkAuth() {
     console.log('Session check failed:', error);
     return null;
   }
+}
+
+export async function requestPasswordReset(email) {
+  return apiJson('/api/auth/password-reset/request', 'POST', { email });
+}
+
+export async function verifyPasswordResetOtp(otp) {
+  return apiJson('/api/auth/password-reset/verify', 'POST', { otp });
+}
+
+export async function completePasswordReset(password) {
+  return apiJson('/api/auth/password-reset/complete', 'POST', { password });
 }

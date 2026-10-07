@@ -9,8 +9,18 @@ export function createUserRepo(db){
         deleteByUserUuid,
         insertUser,
         getCount,
-        checkUserExistsByUserUuid
+        checkUserExistsByUserUuid,
+        findAll,
     }
+
+    async function findAll({ limit = 100, offset = 0 } = {}) {
+        const [rows] = await db.query(
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, alias, relationship, interests, is_admin, email_hash IS NOT NULL as has_email, created_at, updated_at from users where deleted_at is NULL order by created_at desc limit ? offset ?',
+            [limit, offset]
+        )
+        return rows
+    }
+
     async function getCount(){
         const [row] = await db.query(
             'select COUNT(*) as cnt from users where deleted_at is NULL'

@@ -50,7 +50,7 @@ export const evalReqB64UhSchema = z.object({
     evalReqB64U: z
         .string()
         .min(1)
-        .regex(/^[A-Za-z0-9_-]+$/, {message: "Invalid base64url string"})
+        .regex(/^[A-Za-z0-9_-]$/, {message: "Invalid base64url string"})
 }).strict()
 
 export const verifyOTPSchema = z.object({
@@ -61,4 +61,13 @@ export const verifyOTPSchema = z.object({
 
 export const uuidSchema = z.uuidv4()
 
-
+export const passwordOnlySchema = z.object({
+    password: z
+        .string()
+        .min(8, { message: 'password must be at least 8 characters long' })
+        .max(21, { message: 'password must be at most 21 characters long' })
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+            { message: 'password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' }
+        ),
+}).strict()

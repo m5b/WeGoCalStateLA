@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import WebLayout from '../../components/WebLayout';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, GraduationCap, Shield, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
+import { ArrowLeft, GraduationCap, CheckCircle, User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Colors } from '../../constant/Colors';
 import { useAuth } from '../../context/AuthContext';
 import { initiateGoogleLogin, checkAuth, signupWithIdentifier } from '../../services/authService';
 
