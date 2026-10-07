@@ -14,18 +14,25 @@ export const usernameSchema = z.object({
         .max(21, { message: 'String must be at most 21 characters long' }),
 })
 
-export const userSchema = z
+export const profileSchema = z
     .object({
-        //can be add more field later when there is more changeable data
-        displayName: z
+        alias: z
             .string()
-            .min(5, { message: 'String must be at least 5 characters long' })
-            .max(21, { message: 'String must be at most 21 characters long' }),
+            .min(1, { message: 'Alias cannot be empty' })
+            .max(40, { message: 'Alias must be at most 40 characters long' }),
+        relationship: z
+            .string()
+            .max(80, { message: 'Relationship must be at most 80 characters long' }),
+        interests: z
+            .string()
+            .max(240, { message: 'Interests must be at most 240 characters long' }),
     })
     .partial()
-    .refine(({ displayName }) => displayName !== undefined, {
-        message: 'One of the fields must be defined',
-    })
+    .refine(
+        ({ alias, relationship, interests }) =>
+            alias !== undefined || relationship !== undefined || interests !== undefined,
+        { message: 'One of the fields must be defined' }
+    )
 
 //change the password and email require more process, so defining a individual schema might be better
 
