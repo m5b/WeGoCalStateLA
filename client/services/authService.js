@@ -1,17 +1,15 @@
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { apiGet, apiJson } from './api';
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_BASE_URL, apiGet, apiJson } from './api';
 
 export async function initiateGoogleLogin() {
   if (Platform.OS === 'web') {
-    window.location.href = `${BASE_URL}/api/auth/google`;
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
     return { type: 'redirect' };
   } else {
     try {
       const result = await WebBrowser.openAuthSessionAsync(
-        `${BASE_URL}/api/auth/google`,
+        `${API_BASE_URL}/api/auth/google`,
         'wegotocalstatela://auth/callback'
       );
       return result;
@@ -22,12 +20,17 @@ export async function initiateGoogleLogin() {
   }
 }
 
-export async function loginWithEmail(email, password) {
-  return apiJson('/api/auth/login', 'POST', { email, password });
+// identifier can be a username or an email — the server figures out which.
+export async function loginWithIdentifier(identifier, password) {
+  return apiJson('/api/auth/login', 'POST', { identifier, password });
 }
 
-export async function signupWithEmail(email, password) {
-  return apiJson('/api/auth/signup', 'POST', { email, password });
+export async function signupWithIdentifier(identifier, password) {
+  return apiJson('/api/auth/signup', 'POST', { identifier, password });
+}
+
+export async function signOut() {
+  return apiJson('/api/auth/logout', 'POST', {});
 }
 
 export async function checkAuth() {
@@ -38,4 +41,16 @@ export async function checkAuth() {
     console.log('Session check failed:', error);
     return null;
   }
+}
+
+export async function requestPasswordReset(email) {
+  return apiJson('/api/auth/password-reset/request', 'POST', { email });
+}
+
+export async function verifyPasswordResetOtp(otp) {
+  return apiJson('/api/auth/password-reset/verify', 'POST', { otp });
+}
+
+export async function completePasswordReset(password) {
+  return apiJson('/api/auth/password-reset/complete', 'POST', { password });
 }

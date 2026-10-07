@@ -1,0 +1,89 @@
+name: wego-prototype
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - .env.prototype
+    ports:
+      - "127.0.0.1:3306:3306"
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=30
+      - --performance-schema=OFF
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - prototype-db-data:/var/lib/mysql
+
+  redis:
+    image: redis:8.6.0-alpine
+    restart: unless-stopped
+    command: ["redis-server"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    mem_limit: 128m
+    expose:
+      - "6379"
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prototype
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      REDIS_URL: redis://redis:6379
+      UPLOAD_DIR: /server/uploads
+      SERVER_PUBLIC_URL: https://wegotocalstatela.org
+      SERVER_URL: https://wegotocalstatela.org/api
+      CLIENT_URL: https://wegotocalstatela.org,http://localhost:8081,http://localhost:3000
+      KEYCLOAK_ISSUER: https://placeholder.invalid/realms/wegoapp
+      KEYCLOAK_AUDIENCE: placeholder
+      GOOGLE_CLIENT_ID: placeholder
+      GOOGLE_CLIENT_SECRET: placeholder
+      GOOGLE_CALLBACK_URL: /auth/google/callback
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    volumes:
+      - prototype-uploads-data:/server/uploads
+
+  migrate:
+    image: amacneil/dbmate:latest
+    profiles: ["tools"]
+    env_file:
+      - .env.prototype
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/db/migrations:/db/migrations:ro,Z
+    command: ["up"]
+
+volumes:
+  prototype-db-data:
+  prototype-uploads-data:

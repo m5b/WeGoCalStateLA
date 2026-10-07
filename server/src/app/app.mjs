@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { createAPIRouter } from '../routes/index.mjs'
 import errorHandler from '../middlewares/errorHandler.mjs'
@@ -36,9 +37,22 @@ import { createUsernameService } from '../services/users/usernameGenerator.mjs'
 import {createJWTTokenService} from "../services/auth/jwt/jwtTokenService.mjs";
 import {createLoginService} from "../services/auth/login/loginService.mjs";
 import {createVOPRFRouter} from "../routes/auth/voprf.mjs";
+import { createResetTokenStore } from '../repositories/redis/resetTokenStore.mjs'
+import { createResetPasswordService } from '../services/auth/resetPassword/resetPasswordService.mjs'
+import { createResetPasswordRouter } from '../routes/auth/resetPassword.mjs'
+import { createAdminRouter } from '../routes/adminRoutes.mjs'
 
 export function createApp(db, redis, emailService){
     const app = express()
+    const allowedOrigins = (process.env.CLIENT_URL || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    app.use(cors({
+        origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+        credentials: true,
+    }))
+
     app.use(express.json())
     app.use(cookieParser())
     //launch up the store / repo
@@ -46,6 +60,7 @@ export function createApp(db, redis, emailService){
     const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
+    const resetTokenStore = createResetTokenStore({redis, resetTokenPrefix: redisKeysConfig.resetToken})
 
     const authRepo = createAuthRepo(db)
     const commentRepo = createCommentRepo(db)
@@ -66,7 +81,8 @@ export function createApp(db, redis, emailService){
     const googleAuthService = createGoogleAuthService(createOIDCService(
         {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
     ))
-    const loginService= createLoginService({authRepo, passwordService, jwtTokenService})
+    const loginService= createLoginService({authRepo, passwordService, jwtTokenService, voprfService})
+    const resetPasswordService = createResetPasswordService({resetTokenStore, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo)
@@ -77,7 +93,9 @@ export function createApp(db, redis, emailService){
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
     const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
-    const signupRouter = createSignupRouter({signupTokenService: signupTokenService, voprfService: voprfService, userService: userService, passwordService : passwordService})
+    const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})
+    const resetPasswordRouter = createResetPasswordRouter({voprfService, authRepo, emailService, resetPasswordService, passwordService, userService, jwtTokenService})
+    const adminRouter = createAdminRouter(userService)
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const commentRouter = createCommentRouter({commentService, userService})
@@ -89,7 +107,9 @@ export function createApp(db, redis, emailService){
         userRouter: userRouter,
         threadRouter: threadRouter,
         commentRouter: commentRouter,
-        voprfRouter
+        voprfRouter,
+        resetPasswordRouter,
+        adminRouter,
     })
     app.use('/api', router)
     app.use(errorHandler)

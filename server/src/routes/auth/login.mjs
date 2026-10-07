@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
     emailHashPasswordSchema,
     evalReqB64UhSchema,
+    identifierPasswordSchema,
 } from '../../validators/authValidators.mjs'
 import {cookieConfig, loginTokenCookieConfig} from '../../config/cookieConfig.mjs'
 import { jsend } from '../../util/jSend.mjs'
@@ -10,6 +11,19 @@ import {base64UrlStringToUint8Array} from "../../util/encoding.mjs";
 
 export function createLoginRouter({voprfService, loginTokenService, loginService}){
     const router = Router()
+
+    router.post('/logout', (req, res) => {
+        const { maxAge, ...clearCookieOptions } = cookieConfig
+        res.clearCookie('auth_tx', clearCookieOptions)
+        res.json(jsend.success(null))
+    })
+
+    router.post('/login', async (req, res) => {
+        const { identifier, password } = identifierPasswordSchema.parse(req.body)
+        const token = await loginService.authenticateUser(identifier, password)
+        res.cookie('auth_tx', token, cookieConfig)
+        res.json(jsend.success(null))
+    })
 
     router.post('/login/voprf', async (req, res) => {
         const { evalReqB64U } = evalReqB64UhSchema.parse(req.body)

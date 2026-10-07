@@ -136,4 +136,5 @@ credentials, or root access.
 - Unfinished Express/API and authentication experiments retained for future assessment
 
 Additional project context is available in [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md),
-and deployment details are in [deploy/README.md](deploy/README.md).
+deployment details are in [deploy/README.md](deploy/README.md), and backend/database team access
+is documented in [PROTOTYPE_SERVER.md](PROTOTYPE_SERVER.md).

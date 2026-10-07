@@ -15,17 +15,17 @@ import {
 import { router } from 'expo-router';
 import WebLayout from '../../components/WebLayout';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Sparkles, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Shield, CircleCheck as CheckCircle, GraduationCap } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import { useAuth } from '../../context/AuthContext';
-import { initiateGoogleLogin, checkAuth, loginWithEmail } from '../../services/authService';
+import { initiateGoogleLogin, checkAuth, loginWithIdentifier } from '../../services/authService';
 
 // Removed unused screenWidth from Dimensions
 
 export default function LoginScreen() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +48,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!identifier || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -57,11 +57,11 @@ export default function LoginScreen() {
     setErrorMessage('');
 
     try {
-      await loginWithEmail(email.trim(), password);
+      await loginWithIdentifier(identifier.trim(), password);
 
       const userData = await checkAuth();
 
-      if (userData && userData.userId) {
+      if (userData && userData.userUuid) {
         login(userData);
         router.push('/home_screen/home');
       } else {
@@ -72,10 +72,10 @@ export default function LoginScreen() {
         const messages = Object.values(err.data).join('\n');
         setErrorMessage(messages);
       } else if (err.status === 401) {
-        const msg = 'Invalid email or password.';
+        const msg = 'Incorrect username/email or password.';
         setErrorMessage(msg);
       } else if (err.status === 404) {
-        const msg = 'No account found with this email.';
+        const msg = 'No account found with that username or email.';
         setErrorMessage(msg);
       } else {
         const msg = 'An unexpected error occurred. Please try again.';
@@ -173,11 +173,10 @@ export default function LoginScreen() {
                 </View>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Email Address"
+                  placeholder="Username or Email"
                   placeholderTextColor="#9CA3AF"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  value={identifier}
+                  onChangeText={setIdentifier}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"
@@ -288,11 +287,10 @@ export default function LoginScreen() {
                 <Mail size={20} color={Colors.TEXT_SECONDARY} />
                 <TextInput
                   style={styles.mobileTextInput}
-                  placeholder="Email Address"
+                  placeholder="Username or Email"
                   placeholderTextColor={Colors.TEXT_SECONDARY}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  value={identifier}
+                  onChangeText={setIdentifier}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="next"

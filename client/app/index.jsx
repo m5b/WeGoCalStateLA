@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { CalendarDays, HeartHandshake, MessageCircle, ShieldCheck, Users } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 
@@ -33,7 +34,7 @@ export default function ProjectOverview() {
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.hero}>
           <Text style={styles.eyebrow}>PACIFIC CLINICS · CAL STATE LA COMMUNITY</Text>
-          <Text style={styles.title}>WeGoToCalStateLA</Text>
+          <Text style={styles.title}>WeGoCSULA</Text>
           <Text style={styles.subtitle}>
             Helping families and loved ones connect, share support, and find resources for the Cal State LA journey.
           </Text>
@@ -41,13 +42,23 @@ export default function ProjectOverview() {
             <View style={styles.statusDot} />
             <Text style={styles.statusText}>Currently in community evaluation</Text>
           </View>
+          <View style={styles.heroActions}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.85}
+              onPress={() => router.push('/community-preview-2026')}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>View community preview</Text>
+            </TouchableOpacity>
+          </View>
         </LinearGradient>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>THE PROJECT</Text>
           <Text style={styles.sectionTitle}>Support for the people behind every student</Text>
           <Text style={styles.body}>
-            WeGoToCalStateLA is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
+            WeGoCSULA is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
           </Text>
           <Text style={styles.body}>
             The current application is an early prototype. Feedback from families, students, and community partners will shape what it becomes.
@@ -75,10 +86,14 @@ export default function ProjectOverview() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>WeGoToCalStateLA · Prototype overview</Text>
+          <Text style={styles.footerText}>WeGo · Prototype overview</Text>
           {Platform.OS !== 'web' ? (
-            <TouchableOpacity style={styles.mobilePreviewButton}>
-              <Text style={styles.mobilePreviewText}>Evaluation access is provided separately</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => router.push('/community-preview-2026')}
+              style={styles.mobilePreviewButton}
+            >
+              <Text style={styles.mobilePreviewText}>Open community preview</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -97,6 +112,9 @@ const styles = StyleSheet.create({
   statusPill: { flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, marginTop: 28 },
   statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#fbbf24' },
   statusText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  heroActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 28 },
+  secondaryButton: { minWidth: 210, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderRadius: 10, paddingHorizontal: 22, paddingVertical: 13 },
+  secondaryButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   section: { width: '100%', maxWidth: 900, alignSelf: 'center', paddingHorizontal: 24, paddingTop: 64 },
   sectionLabel: { color: '#b45309', fontSize: 12, fontWeight: '800', letterSpacing: 1.5 },
   sectionTitle: { color: '#111827', fontSize: 34, lineHeight: 42, fontWeight: '850', marginTop: 10, marginBottom: 20 },
@@ -112,6 +130,6 @@ const styles = StyleSheet.create({
   noticeText: { color: '#92400e', fontSize: 14, lineHeight: 22 },
   footer: { alignItems: 'center', marginTop: 48, paddingHorizontal: 24 },
   footerText: { color: '#94a3b8', fontSize: 13 },
-  mobilePreviewButton: { marginTop: 16, padding: 12 },
-  mobilePreviewText: { color: '#64748b', fontSize: 13 },
+  mobilePreviewButton: { marginTop: 16, backgroundColor: Colors.PRIMARY, borderRadius: 10, paddingHorizontal: 18, paddingVertical: 12 },
+  mobilePreviewText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });

@@ -147,4 +147,50 @@ export const requireLoginToken= requireCookie(
     { signed: false, attachTo: 'loginToken', clearCookie: true }
 )
 
+export const requireResetOtpToken = requireCookie(
+    'reset_otp_tx',
+    async function (token) {
+        let decoded
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET)
+        } catch (err) {
+            throw new UnauthorizedError(
+                { "reset_otp_tx": 'Invalid Cookie' },
+                'Password reset session expired. Please start again.'
+            )
+        }
+        const { sub } = decoded
+        if (!sub) {
+            throw new UnauthorizedError(
+                { "reset_otp_tx": 'Invalid Cookie' },
+                'Password reset session expired. Please start again.'
+            )
+        }
+        return sub
+    },
+    { signed: false, attachTo: 'resetOtpToken', clearCookie: false }
+)
 
+export const requireResetToken = requireCookie(
+    'reset_tx',
+    async function (token) {
+        let decoded
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET)
+        } catch (err) {
+            throw new UnauthorizedError(
+                { "reset_tx": 'Invalid Cookie' },
+                'Password reset session expired. Please start again.'
+            )
+        }
+        const { sub } = decoded
+        if (!sub) {
+            throw new UnauthorizedError(
+                { "reset_tx": 'Invalid Cookie' },
+                'Password reset session expired. Please start again.'
+            )
+        }
+        return sub
+    },
+    { signed: false, attachTo: 'resetUserUuid', clearCookie: true }
+)

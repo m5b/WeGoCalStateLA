@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { getFeed, createThread, createReply, toggleLike, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, createReply, toggleLike, reportContent } from '../../services/threads';
 
 const ThreadsContext = createContext(null);
 
@@ -25,6 +25,15 @@ function reducer(state, action) {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId ? { ...t, replies: [...t.replies, reply] } : t
+        ),
+      };
+    }
+    case 'SET_THREAD_REPLIES': {
+      const { threadId, replies } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId ? { ...t, replies, repliesLoaded: true } : t
         ),
       };
     }
@@ -61,6 +70,15 @@ export function ThreadsProvider({ children }) {
     return created;
   };
   
+  const loadThreadDetail = async (threadId) => {
+    const detail = await getThreadDetail(threadId);
+    dispatch({
+      type: 'SET_THREAD_REPLIES',
+      payload: { threadId, replies: detail.replies },
+    });
+    return detail;
+  };
+
   const addReply = async (threadId, text) => {
     const created = await createReply(threadId, { text });
     dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created } });
@@ -82,7 +100,7 @@ export function ThreadsProvider({ children }) {
 
   const value = {
     state,
-    actions: { loadFeed, addThread, addReply, likeThread, reportThread },
+    actions: { loadFeed, loadThreadDetail, addThread, addReply, likeThread, reportThread },
   };
 
   return (

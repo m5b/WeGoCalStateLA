@@ -4,7 +4,7 @@ import {jsend} from "../util/jSend.mjs";
 import {commentSchema} from "../validators/commentsValidators.mjs";
 import {uuidSchema} from "../validators/authValidators.mjs";
 import buildCommentTree from "../util/commentTreeBuilder.mjs";
-import { reqAuth } from '../middlewares/reqAuth.mjs'
+import { requireAuth } from '../middlewares/requireAuth.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
 
 
@@ -13,7 +13,7 @@ export function createCommentRouter({userService, commentService}) {
     const router = Router()
     //tested
 
-    router.get('/me', reqAuth(userService), async (req, res) => {
+    router.get('/me', requireAuth(userService), async (req, res) => {
         const comments = await commentService.getByUserId(req.user.userId)
         const commentDTOs = comments.map((comment) => new CommentDto(comment))
         res.json(jsend.success({comments: commentDTOs}))
@@ -23,7 +23,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.post(
         '/me/thread/:threadUuid',
-        reqAuth(userService),
+        requireAuth(userService),
         async (req, res) => {
             const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
@@ -44,7 +44,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.post(
         '/me/thread/:threadUuid/comment/:parentCommentUuid',
-        reqAuth(userService),
+        requireAuth(userService),
         async (req, res) => {
             const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
@@ -66,7 +66,7 @@ export function createCommentRouter({userService, commentService}) {
         }
     )
     //tested
-    router.patch('/me/:commentUuid', reqAuth(userService), async (req, res) => {
+    router.patch('/me/:commentUuid', requireAuth(userService), async (req, res) => {
         const userId = req.user.userId
         const commentUuid = uuidSchema.parse(req.params.commentUuid)
         const payload = commentSchema.parse(req.body)
@@ -85,7 +85,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.delete(
         '/me/:commentUuid',
-        reqAuth(userService),
+        requireAuth(userService),
         async (req, res) => {
             const commentUuid = uuidSchema.parse(req.params.commentUuid)
             const userId = req.user.userId
@@ -105,7 +105,7 @@ export function createCommentRouter({userService, commentService}) {
     })
 
     //tested
-    router.get('/thread/:threadUuid',reqAuth(userService),  async (req, res) => {
+    router.get('/thread/:threadUuid',requireAuth(userService),  async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const {thread, comments} = await commentService.getByThreadUuid(threadUuid)
         const threadDto = new ThreadDto(thread)
@@ -117,7 +117,7 @@ export function createCommentRouter({userService, commentService}) {
         res.json(jsend.success({threadDto, comments: commentDtoTreeList}))
     })
 
-    router.get('/thread/:threadUuid/comment/:commentUuid', reqAuth(userService), async (req, res) => {
+    router.get('/thread/:threadUuid/comment/:commentUuid', requireAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const commentUuid = uuidSchema.parse(req.params.commentUuid)
         const { thread, comments } =

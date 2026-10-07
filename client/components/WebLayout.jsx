@@ -7,15 +7,17 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield } from 'lucide-react-native';
+import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
   const pathname = usePathname();
 
   const navigationItems = [
@@ -30,6 +32,22 @@ export default function WebLayout({ children }) {
     router.push(route);
     setSidebarOpen(false);
     setUserMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    setSignOutError('');
+    try {
+      await logout();
+      setUserMenuOpen(false);
+      setSidebarOpen(false);
+      router.replace('/authentication/login');
+    } catch {
+      setSignOutError('Unable to sign out. Please try again.');
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -51,9 +69,12 @@ export default function WebLayout({ children }) {
             onPress={() => router.push('/')}
           >
             <View style={styles.brandIcon}>
-              <Sparkles size={24} color={Colors.BRAND_GOLD} />
+              <Sparkles 
+                size={24} 
+                color={Colors.BRAND_GOLD} 
+              />
             </View>
-            <Text style={styles.brandText}>WeGoToCalStateLA</Text>
+            <Text style={styles.brandText}>WeGoCSULA</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -92,15 +113,59 @@ export default function WebLayout({ children }) {
             {userMenuOpen && (
               <View style={styles.userDropdown}>
                 <TouchableOpacity 
+                  accessibilityRole="button"
+                  activeOpacity={0.8}
                   style={styles.dropdownItem}
                   onPress={() => navigateToScreen('/profile')}
                 >
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
-                <View style={styles.previewNote}>
-                  <Text style={styles.previewNoteText}>Preview mode · Sign-in is coming later</Text>
-                </View>
+                {isAuthenticated && user?.isAdmin ? (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.8}
+                    style={styles.dropdownItem}
+                    onPress={() => navigateToScreen('/admin/users')}
+                  >
+                    <Shield size={16} color="#64748b" />
+                    <Text style={styles.dropdownText}>Manage Users</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {isAuthenticated ? (
+                  <>
+                    <View style={styles.dropdownDivider} />
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: isSigningOut, busy: isSigningOut }}
+                      activeOpacity={0.8}
+                      disabled={isSigningOut}
+                      onPress={handleSignOut}
+                      style={styles.dropdownItem}
+                    >
+                      <LogOut size={16} color="#64748b" />
+                      <Text style={styles.dropdownText}>{isSigningOut ? 'Signing out...' : 'Sign out'}</Text>
+                    </TouchableOpacity>
+                    {signOutError ? (
+                      <Text accessibilityRole="alert" style={styles.signOutError}>{signOutError}</Text>
+                    ) : null}
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.8}
+                    onPress={() => navigateToScreen('/authentication/login')}
+                    style={styles.dropdownItem}
+                  >
+                    <LogIn size={16} color="#64748b" />
+                    <Text style={styles.dropdownText}>Sign in</Text>
+                  </TouchableOpacity>
+                )}
+                {!isAuthenticated ? (
+                  <View style={styles.previewNote}>
+                    <Text style={styles.previewNoteText}>You are currently browsing in preview mode.</Text>
+                  </View>
+                ) : null}
               </View>
             )}
           </View>
@@ -117,10 +182,10 @@ export default function WebLayout({ children }) {
           />
           <View style={styles.sidebar}>
             <View style={styles.sidebarHeader}>
-              <View style={styles.sidebarBrand}>
-                <Sparkles size={24} color={Colors.BRAND_GOLD} />
-                <Text style={styles.sidebarBrandText}>WeGoToCalStateLA</Text>
-              </View>
+                <View style={styles.sidebarBrand}>
+                  <Text style={styles.sidebarBrandText}>WeGo</Text>
+                </View>
+
               <TouchableOpacity 
                 style={styles.sidebarClose}
                 onPress={() => setSidebarOpen(false)}
@@ -210,7 +275,8 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+    marginLeft: responsive({ xs: 0, lg: 72 }),
   },
   brandIcon: {
     width: 40,
@@ -256,6 +322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     position: 'relative',
+    zIndex: 101,
   },
   notificationButton: {
     padding: 8,
@@ -328,6 +395,13 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e2e8f0',
     marginVertical: 4,
+  },
+  signOutError: {
+    color: '#dc2626',
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    maxWidth: 240,
   },
   previewNote: {
     paddingHorizontal: 16,
@@ -443,6 +517,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: 99,
   },
 });
