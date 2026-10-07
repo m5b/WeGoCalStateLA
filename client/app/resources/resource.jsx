@@ -9,79 +9,45 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Brain, Heart, Briefcase, DollarSign, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { resourceCategories } from '../../constant/ResourceCategories';
 
 // removed unused screenWidth
 
-export default function ResourceScreen() {
-  const resourceCategories = [
-    {
-      id: 'mental',
-      title: 'Mental Health Resources',
-      description: 'Counseling, therapy, and mental health support services',
-      icon: Brain,
-      color: Colors.PRIMARY,
-      route: '/resources/mental_res',
-      count: '25+ services'
-    },
-    {
-      id: 'physical',
-      title: 'Physical Wellness',
-      description: 'Fitness, nutrition, and physical health resources',
-      icon: Heart,
-      color: Colors.ERROR,
-      route: '/resources/physical_res',
-      count: '18+ programs'
-    },
-    {
-      id: 'career',
-      title: 'Career Services',
-      description: 'Job search, career counseling, and professional development',
-      icon: Briefcase,
-      color: '#3B82F6',
-      route: '/resources/career_res',
-      count: '30+ resources'
-    },
-    {
-      id: 'financial',
-      title: 'Financial Resources',
-      description: 'Financial aid, budgeting, and money management support',
-      icon: DollarSign,
-      color: Colors.SECONDARY,
-      route: '/resources/financial_res',
-      count: '15+ services'
-    }
-  ];
+const emergencyContacts = [
+  { title: 'Crisis Text Line', detail: 'Text HOME to 741741', icon: MessageSquare },
+  { title: 'Suicide & Crisis Lifeline', detail: 'Call 988', icon: Phone },
+  { title: 'Campus Safety', detail: '(323) 343-3700', icon: Shield },
+];
 
-  const emergencyContacts = [
-    {
-      title: 'Crisis Text Line',
-      subtitle: 'Text HOME to 741741',
-      description: '24/7 crisis support via text message',
-      icon: MessageSquare,
-      action: () => {},
-      urgent: true
-    },
-    {
-      title: 'Suicide & Crisis Lifeline',
-      subtitle: 'Call 988',
-      description: 'National suicide prevention lifeline',
-      icon: Phone,
-      action: () => {},
-      urgent: true
-    },
-    {
-      title: 'Campus Safety',
-      subtitle: '(323) 343-3700',
-      description: 'Cal State LA emergency services',
-      icon: Shield,
-      action: () => {},
-      urgent: false
-    }
-  ];
+function EmergencyBar({ style }) {
+  return (
+    <View style={[styles.emergencyBar, style]}>
+      <View style={styles.emergencyBarLabel}>
+        <Text style={styles.emergencyBarLabelText}>Experiencing an emergency?</Text>
+      </View>
+      <View style={styles.emergencyBarItems}>
+        {emergencyContacts.map((contact, index) => (
+          <View key={contact.title} style={styles.emergencyBarItem}>
+            {index > 0 && width >= 640 && <Text style={styles.emergencyBarDivider}>|</Text>}
+            <contact.icon size={14} color={Colors.ERROR} />
+            <Text style={styles.emergencyBarText}>
+              <Text style={styles.emergencyBarTitle}>{contact.title}: </Text>
+              {contact.detail}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export default function ResourceScreen() {
+  
+
 
   // campusServices array removed (unused)
 
@@ -99,38 +65,18 @@ export default function ResourceScreen() {
             </View>
           </View>
 
-          {/* Emergency Contacts */}
-          <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Emergency Contacts</Text>
-            <View style={styles.webEmergencyGrid}>
-              {emergencyContacts.map((contact, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.webEmergencyCard}
-                  onPress={contact.action}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.webEmergencyIcon}>
-                    <contact.icon size={24} color={Colors.ERROR} />
-                  </View>
-                  <View style={styles.webEmergencyContent}>
-                    <Text style={styles.webEmergencyTitle}>{contact.title}</Text>
-                    <Text style={styles.webEmergencySubtitle}>{contact.subtitle}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                    {/* Emergency Contacts */}
+          <EmergencyBar style={styles.webEmergencyBar} />
 
           {/* Resource Categories */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Resource Categories</Text>
+            <Text style={styles.webSectionTitle}>Wellness Resources</Text>
             <View style={styles.webCategoriesGrid}>
               {resourceCategories.map((category) => (
                 <TouchableOpacity
                   key={category.id}
                   style={styles.webCategoryCard}
-                  onPress={() => router.push(category.route)}
+                  onPress={() => router.push(`/resources/${category.id}`)}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.webCategoryIcon, { backgroundColor: category.color + '20' }]}>
@@ -208,33 +154,15 @@ export default function ResourceScreen() {
           </View>
 
           {/* Emergency Contacts */}
-          <View style={styles.emergencySection}>
-            <Text style={styles.sectionTitle}>Emergency Contacts</Text>
-            {emergencyContacts.map((contact, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.emergencyCard}
-                onPress={contact.action}
-                activeOpacity={0.8}
-              >
-                <View style={styles.emergencyIconContainer}>
-                  <contact.icon size={24} color={Colors.ERROR} />
-                </View>
-                <View style={styles.emergencyContent}>
-                  <Text style={styles.emergencyTitle}>{contact.title}</Text>
-                  <Text style={styles.emergencySubtitle}>{contact.subtitle}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <EmergencyBar style={styles.mobileEmergencyBar} />
 
           {/* Resource Categories */}
-          <Text style={styles.sectionTitle}>Resource Categories</Text>
+          <Text style={styles.sectionTitle}>Wellness Resources</Text>
           {resourceCategories.map((category) => (
             <TouchableOpacity
               key={category.id}
               style={styles.categoryCard}
-              onPress={() => router.push(category.route)}
+              onPress={() => router.push(`/resources/${category.id}`)}
               activeOpacity={0.8}
             >
               <View style={[styles.categoryIconContainer, { backgroundColor: category.color + '20' }]}>
@@ -277,6 +205,62 @@ export default function ResourceScreen() {
 }
 
 const styles = StyleSheet.create({
+    emergencyBar: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  emergencyBarLabel: {
+    backgroundColor: Colors.ERROR,
+    justifyContent: 'center',
+    paddingHorizontal: width < 640 ? 8 : 12,
+    maxWidth: width < 640 ? 96 : undefined,
+  },
+  emergencyBarLabelText: {
+    color: Colors.WHITE,
+    fontSize: width < 640 ? 11 : 13,
+    fontWeight: '800',
+    textAlign: 'center'
+  },
+  emergencyBarItems: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 12,
+    rowGap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  emergencyBarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  emergencyBarDivider: {
+    color: '#fca5a5',
+    marginRight: 6,
+  },
+  emergencyBarText: {
+    flexShrink: 1,
+    fontSize: 13,
+    color: '#1e293b',
+  },
+  emergencyBarTitle: {
+    fontWeight: '700',
+  },
+  webEmergencyBar: {
+    marginHorizontal: width < 640 ? 16 : width < 1024 ? 24 : 32,
+    marginBottom: width < 640 ? 16 : width < 1024 ? 20 : 24,
+  },
+  mobileEmergencyBar: {
+    marginBottom: 24,
+  },
   // Web Styles
   /* duplicate webContainer removed */
   webHeroSection: {
