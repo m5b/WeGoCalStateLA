@@ -17,8 +17,6 @@ import { resourceCategories } from '../../constant/ResourceCategories';
 
 // removed unused screenWidth
 
-export default function ResourceScreen() {
-  
 const emergencyContacts = [
   { title: 'Crisis Text Line', detail: 'Text HOME to 741741', icon: MessageSquare },
   { title: 'Suicide & Crisis Lifeline', detail: 'Call 988', icon: Phone },
@@ -29,12 +27,12 @@ function EmergencyBar({ style }) {
   return (
     <View style={[styles.emergencyBar, style]}>
       <View style={styles.emergencyBarLabel}>
-        <Text style={styles.emergencyBarLabelText}>EMERGENCY</Text>
+        <Text style={styles.emergencyBarLabelText}>Experiencing an emergency?</Text>
       </View>
       <View style={styles.emergencyBarItems}>
         {emergencyContacts.map((contact, index) => (
           <View key={contact.title} style={styles.emergencyBarItem}>
-            {index > 0 && <Text style={styles.emergencyBarDivider}>|</Text>}
+            {index > 0 && width >= 640 && <Text style={styles.emergencyBarDivider}>|</Text>}
             <contact.icon size={14} color={Colors.ERROR} />
             <Text style={styles.emergencyBarText}>
               <Text style={styles.emergencyBarTitle}>{contact.title}: </Text>
@@ -46,6 +44,9 @@ function EmergencyBar({ style }) {
     </View>
   );
 }
+
+export default function ResourceScreen() {
+  
 
 
   // campusServices array removed (unused)
@@ -217,15 +218,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.ERROR,
     justifyContent: 'center',
     paddingHorizontal: width < 640 ? 8 : 12,
+    maxWidth: width < 640 ? 96 : undefined,
   },
   emergencyBarLabelText: {
     color: Colors.WHITE,
-    fontSize: width < 640 ? 10 : 12,
+    fontSize: width < 640 ? 11 : 13,
     fontWeight: '800',
-    letterSpacing: 1,
+    textAlign: 'center'
   },
   emergencyBarItems: {
-    flexshrink: 1,
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -239,6 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexShrink: 1,
   },
   emergencyBarDivider: {
     color: '#fca5a5',
