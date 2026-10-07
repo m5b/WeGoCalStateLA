@@ -1,37 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ShieldCheck, UserRound } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
+import { getProfile, updateProfile } from '../../services/userService';
 
-const PROFILE_KEY = 'wego-preview-profile-v1';
 const DEFAULT_PROFILE = {
-  alias: 'Community guest',
-  relationship: 'Family member or supporter',
-  interests: 'Campus events, family resources, and community connection',
+  alias: '',
+  relationship: '',
+  interests: '',
 };
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    try {
-      const stored = globalThis.localStorage?.getItem(PROFILE_KEY);
-      if (stored) setProfile(JSON.parse(stored));
-    } catch {
-      // Keep the preview defaults when browser storage is unavailable.
-    }
+    let isMounted = true;
+    getProfile()
+      .then((user) => {
+        if (!isMounted) return;
+        setProfile({
+          alias: user.alias || '',
+          relationship: user.relationship || '',
+          interests: user.interests || '',
+        });
+      })
+      .catch(() => {
+        if (isMounted) setErrorMessage('Could not load your profile. Please try again.');
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const save = () => {
+  const save = async () => {
+    setSaving(true);
+    setErrorMessage('');
     try {
-      globalThis.localStorage?.setItem(PROFILE_KEY, JSON.stringify(profile));
-    } catch {
-      // The preview still works without persistence.
+      const updated = await updateProfile(profile);
+      setProfile({
+        alias: updated.alias || '',
+        relationship: updated.relationship || '',
+        interests: updated.interests || '',
+      });
+      setSaved(true);
+    } catch (err) {
+      if (err.status === 400 && err.data) {
+        setErrorMessage(Object.values(err.data).join('\n'));
+      } else if (err.status === 401) {
+        setErrorMessage('Please sign in again to update your profile.');
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setSaving(false);
     }
-    setSaved(true);
   };
 
   const content = (
@@ -39,49 +70,61 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.header}>
           <View style={styles.avatar}><UserRound size={32} color={Colors.PRIMARY} /></View>
-          <Text style={styles.title}>Your preview profile</Text>
-          <Text style={styles.subtitle}>Explore a public alias without sharing identifying information.</Text>
+          <Text style={styles.title}>Your profile</Text>
+          <Text style={styles.subtitle}>Share a public alias without sharing identifying information.</Text>
         </LinearGradient>
 
         <View style={styles.notice}>
           <ShieldCheck size={24} color="#92400e" />
           <Text style={styles.noticeText}>
-            This evaluation profile stays in this browser. Authentication and student-sponsored account approval are not enabled yet.
+            Your profile is saved to your account and visible to the community by alias only.
           </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Community alias</Text>
-          <TextInput
-            value={profile.alias}
-            onChangeText={(alias) => { setSaved(false); setProfile({ ...profile, alias }); }}
-            style={styles.input}
-            maxLength={40}
-            placeholder="Choose a public alias"
-          />
+          {loading ? (
+            <ActivityIndicator color={Colors.PRIMARY} style={{ marginVertical: 24 }} />
+          ) : (
+            <>
+              {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-          <Text style={styles.label}>Connection to the community</Text>
-          <TextInput
-            value={profile.relationship}
-            onChangeText={(relationship) => { setSaved(false); setProfile({ ...profile, relationship }); }}
-            style={styles.input}
-            maxLength={80}
-            placeholder="Parent, sibling, loved one, supporter…"
-          />
+              <Text style={styles.label}>Community alias</Text>
+              <TextInput
+                value={profile.alias}
+                onChangeText={(alias) => { setSaved(false); setProfile({ ...profile, alias }); }}
+                style={styles.input}
+                maxLength={40}
+                placeholder="Choose a public alias"
+              />
 
-          <Text style={styles.label}>What are you interested in?</Text>
-          <TextInput
-            value={profile.interests}
-            onChangeText={(interests) => { setSaved(false); setProfile({ ...profile, interests }); }}
-            style={[styles.input, styles.multiline]}
-            multiline
-            maxLength={240}
-            placeholder="Resources, events, questions, or topics"
-          />
+              <Text style={styles.label}>Connection to the community</Text>
+              <TextInput
+                value={profile.relationship}
+                onChangeText={(relationship) => { setSaved(false); setProfile({ ...profile, relationship }); }}
+                style={styles.input}
+                maxLength={80}
+                placeholder="Parent, sibling, loved one, supporter…"
+              />
 
-          <TouchableOpacity style={styles.button} onPress={save}>
-            <Text style={styles.buttonText}>{saved ? 'Saved on this device' : 'Save preview profile'}</Text>
-          </TouchableOpacity>
+              <Text style={styles.label}>What are you interested in?</Text>
+              <TextInput
+                value={profile.interests}
+                onChangeText={(interests) => { setSaved(false); setProfile({ ...profile, interests }); }}
+                style={[styles.input, styles.multiline]}
+                multiline
+                maxLength={240}
+                placeholder="Resources, events, questions, or topics"
+              />
+
+              <TouchableOpacity style={styles.button} onPress={save} disabled={saving}>
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>{saved ? 'Saved' : 'Save profile'}</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -105,4 +148,5 @@ const styles = StyleSheet.create({
   multiline: { minHeight: 100, textAlignVertical: 'top' },
   button: { marginTop: 24, borderRadius: 10, backgroundColor: Colors.PRIMARY, paddingVertical: 14, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  errorText: { color: '#dc2626', fontSize: 14, marginBottom: 12 },
 });
