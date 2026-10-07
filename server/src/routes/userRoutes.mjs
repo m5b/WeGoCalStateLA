@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
     usernameSchema,
+    profileSchema,
 } from '../validators/userValidators.mjs'
 import UserDto from '../dtos/userDto.mjs'
 import { jsend } from '../util/jSend.mjs'
@@ -14,15 +15,12 @@ export function createUserRouter(userService){
         res.status(200).json(jsend.success({ user: new UserDto(req.user, {scope: "public"})}))
     })
 
-    // not enabled due to no field can be updated as for now
-    /*
-    router.patch('/me',  async (req, res) => {
-        const payload = userSchema.parse(req.body)
-        const user = await userService.patchByUserUuid(req.userUuid, payload)
-        const userDisplay = new UserDto(user, { scope: 'private' })
-        res.status(200).send(jsend.success({ user: userDisplay }))
+    router.patch('/me', requireAuth(userService), async (req, res) => {
+        const payload = profileSchema.parse(req.body)
+        const user = await userService.patchByUserId(req.user.userId, payload)
+        const userDisplay = new UserDto(user, { scope: 'public' })
+        res.status(200).json(jsend.success({ user: userDisplay }))
     })
-     */
 
     router.delete('/me', requireAuth(userService), async (req, res) => {
         const result = await userService.deleteByUserUuid(req.userUuid)
