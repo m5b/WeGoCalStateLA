@@ -31,6 +31,10 @@ export default function ThreadDetail() {
       .loadThreadDetail(thread.id)
       .catch((err) => console.warn("Failed to load replies", err))
       .finally(() => setLoadingReplies(false));
+      // Intentionally keyed on thread.id only: `thread` and `actions` are new
+      // object references every render, so including them would refetch on
+      // every state update instead of once per thread.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread?.id]);
 
   if (!thread) {

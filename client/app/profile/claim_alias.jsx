@@ -43,7 +43,7 @@ export default function ClaimAlias() {
             params: { alias },
       });
     }, 2000); 
-    } catch (err) {
+    } catch {
       setErrorMsg('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

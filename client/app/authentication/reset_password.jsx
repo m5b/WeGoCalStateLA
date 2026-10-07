@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView, KeyboardAvoidingView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import WebLayout from '../../components/WebLayout';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, GraduationCap, Mail, Lock, KeyRound, Eye, EyeOff } from 'lucide-react-native';
-import Colors from '../../constant/Colors';
+import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import {
   requestPasswordReset,
@@ -182,7 +182,7 @@ export default function ResetPasswordScreen() {
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity onPress={resendOtp} disabled={isLoading} style={{ marginTop: 16 }}>
-            <Text style={styles.linkText}>Didn't get a code? Resend</Text>
+            <Text style={styles.linkText}>Didn&apos;t get a code? Resend</Text>
           </TouchableOpacity>
         </>
       )}
