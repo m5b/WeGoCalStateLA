@@ -41,6 +41,8 @@ import { createResetTokenStore } from '../repositories/redis/resetTokenStore.mjs
 import { createResetPasswordService } from '../services/auth/resetPassword/resetPasswordService.mjs'
 import { createResetPasswordRouter } from '../routes/auth/resetPassword.mjs'
 import { createAdminRouter } from '../routes/adminRoutes.mjs'
+import { createAIRouter } from '../routes/aiRoutes.mjs'
+import { createEventExtractionService } from '../services/ai/eventExtractionService.mjs'
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -88,6 +90,8 @@ export function createApp(db, redis, emailService){
     const threadService = createThreadService(threadRepo)
     const commentService = createCommentService({commentRepo: commentRepo, threadService: threadService, userService,})
 
+    const eventExtractionService = createEventExtractionService()
+
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
@@ -99,6 +103,7 @@ export function createApp(db, redis, emailService){
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const commentRouter = createCommentRouter({commentService, userService})
+    const aiRouter = createAIRouter({userService, eventExtractionService})
     const router = createAPIRouter({
         emailOTPRouter: emailOTPRouter,
         googleAuthRouter: googleAuthRouter,
@@ -110,6 +115,7 @@ export function createApp(db, redis, emailService){
         voprfRouter,
         resetPasswordRouter,
         adminRouter,
+        aiRouter,
     })
     app.use('/api', router)
     app.use(errorHandler)
