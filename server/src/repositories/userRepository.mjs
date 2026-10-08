@@ -29,7 +29,7 @@ export function createUserRepo(db){
     }
     async function findByUserId(userId) {
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, is_admin,  created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, alias, relationship, interests, is_admin, created_at, updated_at from users where user_id = ? and deleted_at is NULL ',
             [userId]
         )
         return row[0] || null
@@ -37,7 +37,7 @@ export function createUserRepo(db){
 
     async function findByUserUuid(userUuid){
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, is_admin, created_at, updated_at from users where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL ',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, alias, relationship, interests, is_admin, created_at, updated_at from users where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL ',
             [userUuid]
         )
         return row[0] || null
@@ -45,7 +45,7 @@ export function createUserRepo(db){
 
     async function checkUserExistsByUserUuid(userUuid){
         const [rows] = await db.execute(
-            `SELECT EXISTS(SELECT 1 FROM users WHERE uuid_bin = UUID_TO_BIN(?)) AS user_exists`,
+            `SELECT EXISTS(SELECT 1 FROM users WHERE user_uuid = UUID_TO_BIN(?)) AS user_exists`,
             [userUuid]
         )
         return rows[0].user_exists === 1
@@ -53,7 +53,7 @@ export function createUserRepo(db){
 
     async function findByUsername(username) {
         const [row] = await db.execute(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username,  is_admin, created_at, updated_at from users where username = ? and deleted_at is NULL',
+            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid,  username, alias, relationship, interests, is_admin, created_at, updated_at from users where username = ? and deleted_at is NULL',
             [username]
         )
 
@@ -86,7 +86,7 @@ export function createUserRepo(db){
     //soft delete
     async function deleteByUserId(userId) {
         const [result] = await db.execute(
-            'Update users set deleted_at = NOW() ,  username = NULL,   where user_id = ? AND deleted_at IS NULL',
+            'Update users set deleted_at = NOW(), username = NULL where user_id = ? AND deleted_at IS NULL',
             [userId]
         )
         return result.affectedRows > 0
@@ -95,7 +95,7 @@ export function createUserRepo(db){
 
     async function deleteByUserUuid(userUuid) {
         const [result] = await db.execute(
-            'Update users set deleted_at = NOW() ,username = NULL,  where user_uuid = UUID_TO_BIN(?) AND deleted_at IS NULL',
+            'Update users set deleted_at = NOW(), username = NULL where user_uuid = UUID_TO_BIN(?) AND deleted_at IS NULL',
             [userUuid]
         )
         return result.affectedRows > 0
@@ -109,7 +109,3 @@ export function createUserRepo(db){
         return result.insertId
     }
 }
-
-
-
-
