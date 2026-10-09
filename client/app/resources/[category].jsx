@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight, Bookmark } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
@@ -108,13 +108,22 @@ export default function ResourceCategoryScreen() {
     <WebLayout>
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <TouchableOpacity
-            style={styles.backLink}
-            onPress={() => router.push('/resources/resource')}
-          >
-            <ArrowLeft size={18} color={Colors.PRIMARY} />
-            <Text style={styles.backLinkText}>All resources</Text>
-          </TouchableOpacity>
+        <View style={styles.topRow}>
+            <TouchableOpacity
+              style={styles.backLink}
+              onPress={() => router.push('/resources/resource')}
+            >
+              <ArrowLeft size={18} color={Colors.PRIMARY} />
+              <Text style={styles.backLinkText}>All resources</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.savedLink}
+              onPress={() => router.push('/resources/saved')}
+            >
+              <Bookmark size={20} color={Colors.PRIMARY} />
+              <Text style={styles.savedLinkText}>Saved Resources ({savedIds.length})</Text>
+            </TouchableOpacity>
+          </View>
 
             {category ? (
             <>
@@ -186,7 +195,30 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 8,
     paddingVertical: 8,
+  },
+    topRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
     marginBottom: 16,
+  },
+  savedLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY,
+    backgroundColor: 'white',
+  },
+  savedLinkText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
   },
   backLinkText: {
     fontSize: 16,
