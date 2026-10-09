@@ -37,7 +37,7 @@ export const resourceCategories = [
           location: 'Student Services Building, Room 2330',
           phone: '(323) 343-6260',
           website: 'https://www.calstatela.edu/financialaid',
-          action: 'call',
+          action: 'website',
         },
         {
           id: 'csula-emergency-grants',

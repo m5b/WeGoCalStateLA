@@ -5,12 +5,25 @@ import { Colors } from '../constant/Colors';
 
 const ACTION_LABELS = { call: 'Call', website: 'Visit website' };
 
+function callPhone(phone) {
+  const digits = phone.replace(/[^0-9]/g, '');
+  Linking.openURL(`tel:${digits}`);
+}
+
+function openWebsite(website) {
+  Linking.openURL(website);
+}
+
+// "https://www.211la.org" -> "211la.org", for showing a website as text.
+function shortUrl(website) {
+  return website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+}
+
 function openAction(resource) {
   if (resource.action === 'call') {
-    const digits = resource.phone.replace(/[^0-9]/g, '');
-    Linking.openURL(`tel:${digits}`);
+    callPhone(resource.phone);
   } else {
-    Linking.openURL(resource.website);
+    openWebsite(resource.website);
   }
 }
 
@@ -37,10 +50,25 @@ export default function ResourceCard({ resource, category, saved, onToggleSave }
           <Text style={styles.detailText}>{resource.location}</Text>
         </View>
         {resource.phone ? (
-          <View style={styles.detail}>
+          <TouchableOpacity
+            style={styles.detail}
+            onPress={() => callPhone(resource.phone)}
+            accessibilityRole="link"
+          >
             <Phone size={18} color={Colors.GRAY} />
-            <Text style={styles.detailText}>{resource.phone}</Text>
-          </View>
+            <Text style={[styles.detailText, styles.detailLink]}>{resource.phone}</Text>
+          </TouchableOpacity>
+        ) : null}
+        {/* When the main button is Call, still offer the website as a smaller link. */}
+        {resource.action === 'call' && resource.website ? (
+          <TouchableOpacity
+            style={styles.detail}
+            onPress={() => openWebsite(resource.website)}
+            accessibilityRole="link"
+          >
+            <Globe size={18} color={Colors.GRAY} />
+            <Text style={[styles.detailText, styles.detailLink]}>{shortUrl(resource.website)}</Text>
+          </TouchableOpacity>
         ) : null}
 
         <View style={styles.spacer} />
@@ -143,6 +171,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 15,
     color: '#475569',
+  },
+    detailLink: {
+    color: Colors.PRIMARY,
+    textDecorationLine: 'underline',
   },
   spacer: {
     flex: 1,

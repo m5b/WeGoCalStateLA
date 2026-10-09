@@ -5,6 +5,7 @@ import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight } 
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
+import ResourceCard from '../../components/ResourceCard';
 
 const placeholderResource = {
   name: 'Resource name',
@@ -15,7 +16,8 @@ const placeholderResource = {
 };
 const placeholderResources = [placeholderResource, placeholderResource, placeholderResource];
 
-function ResourceCard({ resource }) {
+// Shown for categories that have no real resources yet.
+function PlaceholderCard({ resource }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{resource.name}</Text>
@@ -94,6 +96,8 @@ function CategoryEvents({ category }) {
 export default function ResourceCategoryScreen() {
   const { category: categoryId } = useLocalSearchParams();
   const category = resourceCategories.find((item) => item.id === categoryId);
+  const resources = category?.resources ?? [];
+  const hasResources = resources.length > 0;
 
   return (
     <WebLayout>
@@ -107,7 +111,7 @@ export default function ResourceCategoryScreen() {
             <Text style={styles.backLinkText}>All resources</Text>
           </TouchableOpacity>
 
-                    {category ? (
+            {category ? (
             <>
               <View style={styles.header}>
                 <View style={[styles.headerIcon, { backgroundColor: category.color + '20' }]}>
@@ -117,18 +121,34 @@ export default function ResourceCategoryScreen() {
                 <Text style={styles.headerDescription}>{category.description}</Text>
               </View>
 
-              <View style={styles.notice}>
-                <Info size={18} color={Colors.SECONDARY} />
-                <Text style={styles.noticeText}>
-                  Resources for this category are coming soon. The cards below show how each one will appear.
-                </Text>
-              </View>
+              {hasResources ? (
+                <View style={styles.grid}>
+                  {resources.map((resource) => (
+                    <ResourceCard
+                      key={resource.id}
+                      resource={resource}
+                      category={category}
+                      saved={false}
+                      onToggleSave={() => {}}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <>
+                  <View style={styles.notice}>
+                    <Info size={18} color={Colors.SECONDARY} />
+                    <Text style={styles.noticeText}>
+                      Resources for this category are coming soon. The cards below show how each one will appear.
+                    </Text>
+                  </View>
 
-              <View style={styles.grid}>
-                {placeholderResources.map((resource, index) => (
-                  <ResourceCard key={index} resource={resource} />
-                ))}
-              </View>
+                  <View style={styles.grid}>
+                    {placeholderResources.map((resource, index) => (
+                      <PlaceholderCard key={index} resource={resource} />
+                    ))}
+                  </View>
+                </>
+              )}
 
               <CategoryEvents category={category} />
             </>
