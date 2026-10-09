@@ -252,8 +252,8 @@ export default function CreateEventScreen() {
             textAlignVertical="top"
           />
 
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
+          <View style={styles.dateTimeRow}>
+            <View style={styles.dateTimeField}>
               <Text style={styles.label}>Date</Text>
               <View style={styles.iconInput}>
                 
@@ -265,8 +265,7 @@ export default function CreateEventScreen() {
                         />
               </View>
             </View>
-            <View style={{ width: 12 }} />
-            <View style={{ flex: 1 }}>
+            <View style={styles.dateTimeField}>
               <Text style={styles.label}>Time</Text>
               <View style={styles.iconInput}>
                 <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
@@ -418,6 +417,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
+  dateTimeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  dateTimeField: { flex: 1, minWidth: 200 },
   autofillButton: { backgroundColor: Colors.PRIMARY, borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 12 },
   autofillButtonText: { color: Colors.WHITE, fontWeight: '700', fontSize: 15 },
   autofillHint: { color: Colors.TEXT_MUTED, fontSize: 13, marginBottom: 12 },
