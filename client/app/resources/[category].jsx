@@ -7,6 +7,7 @@ import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
 import ResourceCard from '../../components/ResourceCard';
 import ProviderFilter, { filterByProvider } from '../../components/ProviderFilter';
+import { useSavedResources } from '../../hooks/useSavedResources';
 
 const placeholderResource = {
   name: 'Resource name',
@@ -100,6 +101,7 @@ export default function ResourceCategoryScreen() {
   const resources = category?.resources ?? [];
   const hasResources = resources.length > 0;
   const [provider, setProvider] = useState('all');
+  const { savedIds, toggleSaved } = useSavedResources();
   const visibleResources = filterByProvider(resources, provider);
 
   return (
@@ -133,8 +135,8 @@ export default function ResourceCategoryScreen() {
                         key={resource.id}
                         resource={resource}
                         category={category}
-                        saved={false}
-                        onToggleSave={() => {}}
+                        saved={savedIds.includes(resource.id)}
+                        onToggleSave={toggleSaved}
                       />
                     ))}
                   </View>
