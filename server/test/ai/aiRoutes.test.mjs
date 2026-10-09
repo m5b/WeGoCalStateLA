@@ -8,7 +8,7 @@ import errorHandler from '../../src/middlewares/errorHandler.mjs'
 import { AppError } from '../../src/errors/appError.mjs'
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDCsAAAAASUVORK5CYII=', 'base64')
-const event = { title: 'Campus workshop', description: '', date: '2026-10-20', time: '2:30 PM', location: 'Room 101' }
+const event = { eventStatus: 'likely_event', eventStatusReason: 'A named workshop with date, start time, and location.', title: 'Campus workshop', description: '', date: '2026-10-20', time: '2:30 PM', location: 'Room 101' }
 const token = jwt.sign({}, process.env.JWT_SECRET || 'hello', {
     issuer: process.env.JWT_ISSUER || 'wegoapp', audience: 'access', subject: 'test-user', expiresIn: '5m',
 })

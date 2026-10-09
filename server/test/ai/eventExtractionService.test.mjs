@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createEventExtractionService } from '../../src/services/ai/eventExtractionService.mjs'
 
 const image = { buffer: Buffer.from('flyer'), mimetype: 'image/png' }
-const fields = { title: 'Campus workshop', description: '', date: '2026-10-20', time: '2:30 PM', location: 'Room 101' }
+const fields = { eventStatus: 'likely_event', eventStatusReason: 'A named workshop with date, start time, and location.', title: 'Campus workshop', description: '', date: '2026-10-20', time: '2:30 PM', location: 'Room 101' }
 
 afterEach(() => {
     vi.unstubAllEnvs()
@@ -33,8 +33,15 @@ describe('event flyer extraction', () => {
     })
 
     it('preserves empty fields without inventing missing information', async () => {
-        const empty = Object.fromEntries(Object.keys(fields).map((key) => [key, '']))
+        const empty = { ...Object.fromEntries(['title', 'description', 'date', 'time', 'location'].map((key) => [key, ''])), eventStatus: 'uncertain', eventStatusReason: '' }
         await expect(setup(JSON.stringify(empty)).service.extractEvent(image)).resolves.toEqual(empty)
+    })
+
+    it.each(['likely_event', 'uncertain', 'not_event'])('returns %s classification in the same single request', async (eventStatus) => {
+        const result = { ...fields, eventStatus }
+        const { service, generateContent } = setup(JSON.stringify(result))
+        await expect(service.extractEvent(image)).resolves.toEqual(result)
+        expect(generateContent).toHaveBeenCalledTimes(1)
     })
 
     it('does not call Gemini without a configured key', async () => {
@@ -50,6 +57,9 @@ describe('event flyer extraction', () => {
         JSON.stringify({ ...fields, date: '10/20/2026' }),
         JSON.stringify({ ...fields, time: '14:30' }),
         JSON.stringify({ ...fields, extra: 'unexpected' }),
+        JSON.stringify({ ...fields, eventStatus: 'unknown' }),
+        JSON.stringify({ ...fields, eventStatusReason: 'x'.repeat(241) }),
+        JSON.stringify({ ...fields, eventStatus: undefined }),
     ])('rejects invalid model output: %s', async (text) => {
         await expect(setup(text).service.extractEvent(image)).rejects.toMatchObject({ statusCode: 502, code: 'AI_INVALID_RESPONSE' })
     })
