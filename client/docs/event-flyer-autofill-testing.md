@@ -57,9 +57,10 @@ web uses browser controls and does not import the native picker.
 9. **AI date:** Verify an extracted date such as 2026-10-24 is selected in the browser
    calendar. Click the date field, pick another day, and confirm the new selection sticks.
    Storage remains YYYY-MM-DD even if the browser displays a localized date.
-10. **Any minute:** Verify 2:15 PM displays as hour 2, minute 15, PM. Manually choose
-    1:05 PM and 12:45 AM as well. No value should be rounded to a half hour.
-    With an empty time, Hour is a disabled placeholder; only 1 through 12 are selectable.
+10. **Preset times:** The web time dropdown offers all 96 times at 15-minute
+    intervals, from 12:00 AM through 11:45 PM. Select time is a disabled placeholder.
+    Manually choose 1:15 PM and 12:45 AM. AI-populated 2:15 PM is selected normally;
+    an exact time between presets, such as 2:17 PM, remains visible without rounding.
 11. **Second flyer and duplicate clicks:** Choose another flyer after extraction and
     run again. The second image should be used. Rapid repeated clicks during a request
     must produce only one POST. While reading, Gallery, Camera, the fields, and Create
@@ -89,8 +90,9 @@ web uses browser controls and does not import the native picker.
   the existing image should remain. JPEG, PNG, and WebP have the existing 5 MiB limit.
 - Replace a Gallery image by pasting an image, then replace the pasted image using
   Gallery. In each case Autofill should use the currently selected image.
-- Check the disabled Hour placeholder, manual 1:05 PM and 12:45 AM, and AI-populated
-  2:15 PM (displayed as 2 | 15 | PM). Minute options retain all values 00 through 59.
+- Check the disabled Select time placeholder, quarter-hour presets, manual 1:15 PM
+  and 12:45 AM, and AI-populated 2:15 PM. An AI-populated time between presets, such
+  as 2:17 PM, should appear as an additional exact current-value option.
 
 ## Checks already performed
 
