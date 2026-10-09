@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   Modal,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +20,7 @@ import { createEvent } from '../../services/events';
 import { createThread } from '../../services/threads';
 import DateTimeInput from '../../components/DateTimeInput';
 import { extractEventFromFlyer } from '../../services/ai';
+import usePastedImage from '../../hooks/usePastedImage';
 
 export default function CreateEventScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -41,8 +43,17 @@ export default function CreateEventScreen() {
     return () => { mounted.current = false; };
   }, []);
 
+  const cancelPendingPaste = usePastedImage({
+    disabled: isBusy,
+    onImage: (asset) => {
+      if (!extractionInFlight.current && !loading && !pendingExtraction) selectImage(asset);
+    },
+    onError: (text) => setAiNotice({ kind: 'error', text }),
+  });
+
   function selectImage(asset) {
     if (!asset?.uri) return;
+    cancelPendingPaste();
     setImageUri(asset.uri);
     setImageAsset(asset);
     setAiNotice(null);
@@ -182,7 +193,7 @@ export default function CreateEventScreen() {
 
           <TouchableOpacity disabled={isBusy} style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
             {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.coverImage} />
+              <Image source={{ uri: imageUri }} style={styles.coverImage} resizeMode="contain" />
             ) : (
               <View style={styles.imagePlaceholderInner}>
                 <ImageIcon size={40} color={Colors.GRAY} />
@@ -201,6 +212,10 @@ export default function CreateEventScreen() {
               <Text style={styles.pickerButtonText}>Camera</Text>
             </TouchableOpacity>
           </View>
+
+          {Platform.OS === 'web' && (
+            <Text style={styles.autofillHint}>You can also paste an image with Ctrl+V</Text>
+          )}
 
           <TouchableOpacity
             accessibilityRole="button" accessibilityState={{ disabled: !imageUri || isBusy, busy: isExtracting }}
@@ -355,7 +370,9 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     width: '100%',
-    height: 200,
+    height: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: Colors.GRAY_200,
     overflow: 'hidden',
