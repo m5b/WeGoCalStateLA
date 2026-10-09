@@ -13,6 +13,9 @@ POST /api/ai/extract-event
 - Model: gemini-3.5-flash-lite, using the official @google/genai SDK on the backend.
 - Key: process.env.GEMINI_API_KEY only. Never place it in EXPO_PUBLIC_* settings.
 - One valid extraction makes one inline-image Gemini request, with SDK retries disabled.
+- The same Gemini response includes eventStatus (likely_event, uncertain, or not_event)
+  and a concise eventStatusReason. Classification considers event/activity and attendance
+  indicators, not just an organization name, promotion, or date. There is no numeric confidence.
 - Missing, unreadable, or ambiguous information stays empty. A date without a stated
   year stays empty rather than inferring the current year. Time is the stated start time.
 
@@ -22,6 +25,8 @@ Example success response (illustrative):
 {
   "status": "success",
   "data": {
+    "eventStatus": "likely_event",
+    "eventStatusReason": "A named workshop with a date, start time, and location.",
     "title": "Campus workshop",
     "description": "",
     "date": "2026-10-20",
