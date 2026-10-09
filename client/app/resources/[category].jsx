@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight } from 'lucide-react-native';
@@ -6,6 +6,7 @@ import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
 import ResourceCard from '../../components/ResourceCard';
+import ProviderFilter, { filterByProvider } from '../../components/ProviderFilter';
 
 const placeholderResource = {
   name: 'Resource name',
@@ -98,6 +99,8 @@ export default function ResourceCategoryScreen() {
   const category = resourceCategories.find((item) => item.id === categoryId);
   const resources = category?.resources ?? [];
   const hasResources = resources.length > 0;
+  const [provider, setProvider] = useState('all');
+  const visibleResources = filterByProvider(resources, provider);
 
   return (
     <WebLayout>
@@ -121,18 +124,21 @@ export default function ResourceCategoryScreen() {
                 <Text style={styles.headerDescription}>{category.description}</Text>
               </View>
 
-              {hasResources ? (
-                <View style={styles.grid}>
-                  {resources.map((resource) => (
-                    <ResourceCard
-                      key={resource.id}
-                      resource={resource}
-                      category={category}
-                      saved={false}
-                      onToggleSave={() => {}}
-                    />
-                  ))}
-                </View>
+                            {hasResources ? (
+                <>
+                  <ProviderFilter resources={resources} value={provider} onChange={setProvider} />
+                  <View style={styles.grid}>
+                    {visibleResources.map((resource) => (
+                      <ResourceCard
+                        key={resource.id}
+                        resource={resource}
+                        category={category}
+                        saved={false}
+                        onToggleSave={() => {}}
+                      />
+                    ))}
+                  </View>
+                </>
               ) : (
                 <>
                   <View style={styles.notice}>
