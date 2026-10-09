@@ -35,3 +35,12 @@ export async function apiJson(path, method, body) {
   });
   return handleResponse(res);
 }
+
+export async function apiForm(path, body) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    body,
+  });
+  return handleResponse(res);
+}
