@@ -1,7 +1,7 @@
-# Event flyer extraction: backend checkpoint
+# Event flyer extraction
 
-Stages 2 and 3 add an authenticated backend endpoint. Frontend autofill is intentionally
-not connected at this checkpoint. Extraction never saves an event or changes the database.
+The authenticated backend endpoint supplies Autofill from Flyer in the Create Event
+form. Extraction never saves an event or changes the database.
 
 ## Endpoint
 
@@ -115,13 +115,16 @@ Do not set Content-Type manually: the browser must supply the multipart boundary
 If you get 401, use the API origin where the auth_tx cookie was issued and log in there.
 A Gemini 429 means wait/check your Google API quota; there is no automatic retry.
 
-## Next frontend stages and current limits
+## Frontend behavior and current limits
 
-After reviewing this backend checkpoint, add the frontend multipart service and
-Autofill from Flyer button, preserving nonempty manually entered fields when AI
-returns an empty result. Keep Create Event a separate manual action.
-The web time dropdown currently only lists half-hour times; it needs to display
-other extracted times without rounding or losing them.
+Gallery, Camera, and web image paste share the same selected-image and multipart
+extraction path. Selecting or pasting an image does not call Gemini. Autofill from
+Flyer requires an explicit click and preserves manually entered values when the
+corresponding extracted field is empty. Non-event results require confirmation before
+applying fields. Create Event remains a separate manual action.
+
+The web time dropdown lists 15-minute presets. An exact AI-populated time between
+presets remains visible as an additional current-value option without rounding.
 
 AI can still misread an image despite the extraction instructions and output validation.
 Users must review every result. Image signature checks are not a full image decoder;

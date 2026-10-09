@@ -1,8 +1,10 @@
-# Stage 4/5 manual test checkpoint
+# Event flyer autofill testing
 
-The Stage 4/5 implementation is split into logical commits. Stage 6 final validation
-and pushing remain pending. Manual browser testing was reported successful after
-the image preview, web paste, and time-placeholder refinements.
+The implementation is split into logical commits. Stage 6 validation has run;
+feature checks pass, while the broader pre-existing backend suite remains red.
+Manual browser testing was reported successful before the final preset-time change.
+The updated preset dropdown was verified with focused component checks and a web build.
+Nothing has been pushed.
 Local infrastructure changes are unrelated and must stay out of the AI feature commits.
 
 ## Run the current code
@@ -97,18 +99,41 @@ web uses browser controls and does not import the native picker.
 ## Checks already performed
 
 - 36 focused backend tests passed (fake model responses, no Gemini quota).
-- 38 focused React component/service checks passed in an isolated temporary harness:
+- 39 focused React component/service checks passed in an isolated temporary harness:
   manual creation, Gallery/Camera paths, authenticated multipart upload, one-request
   guard, missing-field preservation, classification warnings/confirmation, date and
   arbitrary minute display, second flyer, image validation, and API/network failures.
   Added coverage verifies bounded contain preview properties for four image shapes,
   PNG/JPEG/WebP clipboard item fixtures, unchanged upload bytes, no automatic
   extraction, text-paste default behavior, invalid clipboard data, image replacement,
-  listener cleanup, canceled pending reads, and the disabled Hour placeholder.
+  listener cleanup, canceled pending reads, the disabled time placeholder, 96 quarter-hour
+  presets, and exact AI times between presets.
 - Android/iOS picker interactions and Camera were simulated; no real device UI was inspected.
 - No live Gemini call was made in these checks. Your Stage 3 live extraction test passed
   before the classification contract was added; verify the new classification with real images.
 - Browser automation was unavailable. The user reported successful manual browser
-  testing after the UI refinements. Full lint/build/final validation are deferred to Stage 6.
+  testing after the UI refinements. Native hardware and the final preset dropdown
+  were not inspected in a live browser by the agent.
 
-Stage 6 final validation and pushing remain deferred at the user's request.
+## Stage 6 validation results
+
+- Complete AI backend suite: 36 tests passed in 2 files. These tests verify one
+  inline-image model request and that the real SDK does not retry HTTP 503.
+- Complete default backend suite: 162 passed, 123 failed across 30 files (285 tests),
+  after providing temporary non-secret test settings and adding the timestamp missing
+  from the shared test-user fixture. No production database configuration was changed.
+- Pre-feature baseline (8910b2c3), with equivalent test settings and timestamp fixture:
+  123 passed, 121 failed, plus one OAuth suite that failed during initialization.
+  Older DTO, auth, profile, thread, and comment tests need separate maintenance.
+  The default setup also reuses worker databases between files, making seeded-count
+  assertions depend on test scheduling. The full backend suite is not green.
+- npm run lint: passed with no reported lint warnings or errors.
+- npm run build:web: passed and exported client/dist (ignored by Git).
+- 39 focused frontend checks passed with mocked responses; no live model call was made.
+- Reviewed feature changes: no migration, repository, or event-persistence changes.
+  Extraction only fills the form; Create Event still requires a separate manual click.
+- Secret scan found no actual provider key in tracked files, the feature commits, or
+  the web export. The development environment file remains ignored and untracked;
+  provider credentials remain backend-only.
+- Both protected Compose files and all local nginx changes remain outside the commits.
+- No push was performed. Broader backend failures prevent claiming an all-green release.
