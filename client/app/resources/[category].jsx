@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight, Bookmark } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
+import ResourceCard from '../../components/ResourceCard';
+import ProviderFilter, { filterByProvider } from '../../components/ProviderFilter';
+import { useSavedResources } from '../../hooks/useSavedResources';
 
 const placeholderResource = {
   name: 'Resource name',
@@ -15,7 +18,8 @@ const placeholderResource = {
 };
 const placeholderResources = [placeholderResource, placeholderResource, placeholderResource];
 
-function ResourceCard({ resource }) {
+// Shown for categories that have no real resources yet.
+function PlaceholderCard({ resource }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{resource.name}</Text>
@@ -94,20 +98,34 @@ function CategoryEvents({ category }) {
 export default function ResourceCategoryScreen() {
   const { category: categoryId } = useLocalSearchParams();
   const category = resourceCategories.find((item) => item.id === categoryId);
+  const resources = category?.resources ?? [];
+  const hasResources = resources.length > 0;
+  const [provider, setProvider] = useState('all');
+  const { savedIds, toggleSaved } = useSavedResources();
+  const visibleResources = filterByProvider(resources, provider);
 
   return (
     <WebLayout>
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <TouchableOpacity
-            style={styles.backLink}
-            onPress={() => router.push('/resources/resource')}
-          >
-            <ArrowLeft size={18} color={Colors.PRIMARY} />
-            <Text style={styles.backLinkText}>All resources</Text>
-          </TouchableOpacity>
+        <View style={styles.topRow}>
+            <TouchableOpacity
+              style={styles.backLink}
+              onPress={() => router.push('/resources/resource')}
+            >
+              <ArrowLeft size={18} color={Colors.PRIMARY} />
+              <Text style={styles.backLinkText}>All resources</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.savedLink}
+              onPress={() => router.push('/resources/saved')}
+            >
+              <Bookmark size={20} color={Colors.PRIMARY} />
+              <Text style={styles.savedLinkText}>Saved Resources ({savedIds.length})</Text>
+            </TouchableOpacity>
+          </View>
 
-                    {category ? (
+            {category ? (
             <>
               <View style={styles.header}>
                 <View style={[styles.headerIcon, { backgroundColor: category.color + '20' }]}>
@@ -117,18 +135,37 @@ export default function ResourceCategoryScreen() {
                 <Text style={styles.headerDescription}>{category.description}</Text>
               </View>
 
-              <View style={styles.notice}>
-                <Info size={18} color={Colors.SECONDARY} />
-                <Text style={styles.noticeText}>
-                  Resources for this category are coming soon. The cards below show how each one will appear.
-                </Text>
-              </View>
+                            {hasResources ? (
+                <>
+                  <ProviderFilter resources={resources} value={provider} onChange={setProvider} />
+                  <View style={styles.grid}>
+                    {visibleResources.map((resource) => (
+                      <ResourceCard
+                        key={resource.id}
+                        resource={resource}
+                        category={category}
+                        saved={savedIds.includes(resource.id)}
+                        onToggleSave={toggleSaved}
+                      />
+                    ))}
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.notice}>
+                    <Info size={18} color={Colors.SECONDARY} />
+                    <Text style={styles.noticeText}>
+                      Resources for this category are coming soon. The cards below show how each one will appear.
+                    </Text>
+                  </View>
 
-              <View style={styles.grid}>
-                {placeholderResources.map((resource, index) => (
-                  <ResourceCard key={index} resource={resource} />
-                ))}
-              </View>
+                  <View style={styles.grid}>
+                    {placeholderResources.map((resource, index) => (
+                      <PlaceholderCard key={index} resource={resource} />
+                    ))}
+                  </View>
+                </>
+              )}
 
               <CategoryEvents category={category} />
             </>
@@ -158,7 +195,30 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 8,
     paddingVertical: 8,
+  },
+    topRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
     marginBottom: 16,
+  },
+  savedLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY,
+    backgroundColor: 'white',
+  },
+  savedLinkText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
   },
   backLinkText: {
     fontSize: 16,

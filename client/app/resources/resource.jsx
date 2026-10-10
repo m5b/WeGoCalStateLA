@@ -9,11 +9,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Phone, MessageSquare, Shield, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Phone, MessageSquare, Shield, ChevronRight, Bookmark } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { isWeb, width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
 import { resourceCategories } from '../../constant/ResourceCategories';
+import { useSavedResources } from '../../hooks/useSavedResources';
 
 // removed unused screenWidth
 
@@ -46,6 +47,7 @@ function EmergencyBar({ style }) {
 }
 
 export default function ResourceScreen() {
+const { savedIds } = useSavedResources();
   
 
 
@@ -70,7 +72,16 @@ export default function ResourceScreen() {
 
           {/* Resource Categories */}
           <View style={styles.webSection}>
-            <Text style={styles.webSectionTitle}>Wellness Resources</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.webSectionTitle, styles.sectionHeaderTitle]}>Wellness Resources</Text>
+              <TouchableOpacity
+                style={styles.savedLink}
+                onPress={() => router.push('/resources/saved')}
+              >
+                <Bookmark size={20} color={Colors.PRIMARY} />
+                <Text style={styles.savedLinkText}>Saved Resources ({savedIds.length})</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.webCategoriesGrid}>
               {resourceCategories.map((category) => (
                 <TouchableOpacity
@@ -157,7 +168,16 @@ export default function ResourceScreen() {
           <EmergencyBar style={styles.mobileEmergencyBar} />
 
           {/* Resource Categories */}
-          <Text style={styles.sectionTitle}>Wellness Resources</Text>
+            <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, styles.sectionHeaderTitle]}>Wellness Resources</Text>
+            <TouchableOpacity
+              style={styles.savedLink}
+              onPress={() => router.push('/resources/saved')}
+            >
+              <Bookmark size={20} color={Colors.PRIMARY} />
+              <Text style={styles.savedLinkText}>Saved Resources ({savedIds.length})</Text>
+            </TouchableOpacity>
+          </View>
           {resourceCategories.map((category) => (
             <TouchableOpacity
               key={category.id}
@@ -205,6 +225,33 @@ export default function ResourceScreen() {
 }
 
 const styles = StyleSheet.create({
+    sectionHeaderRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginBottom: 24,
+  },
+  sectionHeaderTitle: {
+    marginBottom: 0,
+  },
+  savedLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY,
+    backgroundColor: 'white',
+  },
+  savedLinkText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+  },
     emergencyBar: {
     flexDirection: 'row',
     alignItems: 'stretch',
