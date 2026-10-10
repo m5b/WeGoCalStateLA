@@ -1,4 +1,10 @@
-import { getEvents } from "./events";
+import { apiGet, apiJson } from "./api";
+import { getEvents, getEvent } from "./events";
+
+// Matches a real backend event UUID (vs. mock thread/event ids like "1" or
+// "event-1"), so getThreadByEventId below can tell a real event from a mock
+// one and fetch real data only for the real ones.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // v2 adds thread categories; bumping the key re-seeds preview data so the
 // FAQ and event threads show up for browsers that stored v1 data.
@@ -164,7 +170,57 @@ export async function getFeed() {
   }));
 }
 
+// Shapes a real /api/comments/thread/:threadUuid response into the same
+// thread shape the mock data above uses, so screens built against the mock
+// (replies[].author/text, etc.) work unchanged for real events too.
+function mapRealComment(dto) {
+  return {
+    id: dto.commentUuid,
+    author: dto.username,
+    text: dto.content,
+    createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
+  };
+}
+
+async function getRealThreadDetail(threadUuid) {
+  const res = await apiGet(`/api/comments/thread/${threadUuid}`);
+  const seen = new Set();
+  const topLevelReplies = res.data.comments
+    .filter((c) => c.parentCommentUuid == null)
+    .filter((c) => {
+      // the server's tree builder currently lists top-level comments twice;
+      // de-dupe defensively here until that's fixed server-side
+      if (seen.has(c.commentUuid)) return false;
+      seen.add(c.commentUuid);
+      return true;
+    })
+    .map(mapRealComment);
+
+  const dto = res.data.threadDto;
+  return {
+    id: dto.threadUuid,
+    author: dto.author,
+    caption: dto.body,
+    text: dto.body,
+    likes: 0,
+    imageUri: null,
+    date: "",
+    time: "",
+    location: "",
+    category: "events",
+    createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
+    replies: topLevelReplies,
+}
+
 export async function getThreadByEventId(eventId) {
+  // Real events have a UUID id and carry their own linked real thread id
+  // (see eventDto.threadId on the backend) -- fetch that thread for real.
+  if (UUID_RE.test(String(eventId))) {
+    const event = await getEvent(eventId);
+    if (!event?.threadId) return null;
+    return getRealThreadDetail(event.threadId);
+  }
+  // Mock events (seeded demo data) still use the local mock thread list.
   const threads = await getFeed();
   return threads.find((t) => String(t.eventId) === String(eventId)) ?? null;
 }
@@ -192,6 +248,12 @@ export async function createThread(data) {
 }
 
 export async function createReply(threadId, { text, imageUri = null }) {
+  // Real threads (linked to a real event) post through the real API;
+  // mock/demo threads keep using the local in-memory + localStorage version.
+  if (UUID_RE.test(String(threadId))) {
+    const response = await apiJson(`/api/comments/me/thread/${threadId}`, 'POST', { content: text });
+    return mapRealComment(response.data.comment);
+  }
   await delay();
   await ensureThreads();
   const thread = THREADS.find((t) => String(t.id) === String(threadId));
