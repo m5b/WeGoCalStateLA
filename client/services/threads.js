@@ -210,6 +210,7 @@ async function getRealThreadDetail(threadUuid) {
     category: "events",
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
     replies: topLevelReplies,
+  };
 }
 
 export async function getThreadByEventId(eventId) {
