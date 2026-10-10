@@ -12,9 +12,11 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CalendarDays, Clock, MapPin, MessageCircle } from "lucide-react-native";
 import WebLayout from "../../components/WebLayout";
+import ReplyImagePicker from "../../components/ReplyImagePicker";
 import { Colors } from "../../constant/Colors";
 import { getEvent } from "../../services/events";
-import { createReply, getThreadByEventId } from "../../services/threads";
+import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
+import { confirmAction } from "../../utils/confirmAction";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -29,6 +31,7 @@ export default function EventDetails() {
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
+  const [replyImage, setReplyImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,18 +82,36 @@ export default function EventDetails() {
 
   const submitReply = async () => {
     const text = replyText.trim();
-    if (!text || !thread) return;
+    if ((!text && !replyImage) || !thread) return;
     try {
-      const reply = await createReply(thread.id, { text });
+      const reply = await createReply(thread.id, { text, imageUri: replyImage });
       setThread((current) => ({
         ...current,
         replies: [...(current.replies ?? []), reply],
       }));
       setReplyText("");
+      setReplyImage(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
     }
   };
+
+  const confirmDeleteReply = (replyId) =>
+    confirmAction({
+      title: "Delete reply",
+      message: "Delete this reply? This can't be undone.",
+      onConfirm: async () => {
+        try {
+          await deleteReply(thread.id, replyId);
+          setThread((current) => ({
+            ...current,
+            replies: (current.replies ?? []).filter((r) => r.id !== replyId),
+          }));
+        } catch (error) {
+          console.warn("Failed to delete reply", error);
+        }
+      },
+    });
 
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
@@ -176,13 +197,24 @@ export default function EventDetails() {
               ) : (
                 thread.replies.map((reply) => (
                   <View key={String(reply.id)} style={styles.replyCard}>
-                    <Text style={styles.replyAuthor}>Anonymous</Text>
-                    <Text style={styles.replyText}>{reply.text}</Text>
+                    <View style={styles.replyHeader}>
+                      <Text style={styles.replyAuthor}>Anonymous</Text>
+                      <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
+                        <Text style={styles.replyDelete}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {!!reply.text && (
+                      <Text style={styles.replyText}>{reply.text}</Text>
+                    )}
+                    {reply.imageUri ? (
+                      <Image source={{ uri: reply.imageUri }} style={styles.replyImage} />
+                    ) : null}
                   </View>
                 ))
               )}
 
               <View style={styles.replyBox}>
+                <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
                   placeholder="Write a reply..."
                   placeholderTextColor={Colors.TEXT_MUTED}
@@ -351,9 +383,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.BORDER,
   },
+  replyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  replyDelete: {
+    color: Colors.ERROR,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   replyAuthor: {
     color: Colors.TEXT,
     fontWeight: "700",
+  },
+  replyImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginTop: 8,
+    backgroundColor: Colors.GRAY_200,
   },
   replyText: {
     color: Colors.TEXT,

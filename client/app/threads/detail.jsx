@@ -12,13 +12,20 @@ import {
 import { useThreads } from "./threadStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../../constant/Colors";
+import { formatTimestamp } from "../../utils/formatTimestamp";
+import { THREAD_CATEGORIES } from "../../services/threads";
+import ReplyImagePicker from "../../components/ReplyImagePicker";
+import { confirmAction } from "../../utils/confirmAction";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
   const [text, setText] = useState("");
+  const [replyImage, setReplyImage] = useState(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
+
+  const [deleting, setDeleting] = useState(false);
 
   const thread =
     state.threads.find((t) => String(t.id) === String(threadId)) ??
@@ -45,10 +52,43 @@ export default function ThreadDetail() {
     );
   }
 
+  const categoryLabel = THREAD_CATEGORIES.find(
+    (c) => c.key === (thread.category ?? "general")
+  )?.label;
+
+  const performDelete = async () => {
+    setDeleting(true);
+    try {
+      await actions.removeThread(thread.id);
+      router.back();
+    } catch (err) {
+      console.warn("Failed to delete thread", err);
+      setDeleting(false);
+    }
+  };
+
+  const confirmDelete = () =>
+    confirmAction({
+      title: "Delete thread",
+      message: "Delete this thread? This can't be undone.",
+      onConfirm: performDelete,
+    });
+
+  const confirmDeleteReply = (replyId) =>
+    confirmAction({
+      title: "Delete reply",
+      message: "Delete this reply? This can't be undone.",
+      onConfirm: () =>
+        actions
+          .removeReply(thread.id, replyId)
+          .catch((err) => console.warn("Failed to delete reply", err)),
+    });
+
   const submit = async () => {
-    if (!text.trim()) return;
-    await actions.addReply(thread.id, text.trim());
+    if (!text.trim() && !replyImage) return;
+    await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
     setText("");
+    setReplyImage(null);
   };
 
   return (
@@ -58,7 +98,11 @@ export default function ThreadDetail() {
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Thread</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
+          <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
+            {deleting ? "Deleting..." : "Delete"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -68,9 +112,23 @@ export default function ThreadDetail() {
               <Image source={{ uri: thread.imageUri }} style={styles.image} />
             ) : null}
 
+            {categoryLabel ? (
+              <Text style={styles.categoryTag}>{categoryLabel}</Text>
+            ) : null}
+
             {!!thread.caption && (
               <Text style={styles.threadCaption}>{thread.caption}</Text>
             )}
+
+            {!!thread.text && thread.text !== thread.caption && (
+              <Text style={styles.threadBody}>{thread.text}</Text>
+            )}
+
+            {thread.createdAt ? (
+              <Text style={styles.timestamp}>
+                {formatTimestamp(thread.createdAt)}
+              </Text>
+            ) : null}
 
             <View style={styles.metaRow}>
               {thread.date ? (
@@ -99,8 +157,23 @@ export default function ThreadDetail() {
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <View style={styles.replyCard}>
-            <Text style={styles.replyAuthor}>{item.author || "Anonymous"}</Text>
-            <Text style={styles.replyText}>{item.text}</Text>
+            <View style={styles.replyHeader}>
+              <Text style={styles.replyAuthor}>{item.author || "Anonymous"}</Text>
+              <View style={styles.replyMeta}>
+                {item.createdAt ? (
+                  <Text style={styles.replyTimestamp}>
+                    {formatTimestamp(item.createdAt)}
+                  </Text>
+                ) : null}
+                <TouchableOpacity onPress={() => confirmDeleteReply(item.id)}>
+                  <Text style={styles.replyDelete}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}
+            {item.imageUri ? (
+              <Image source={{ uri: item.imageUri }} style={styles.replyImage} />
+            ) : null}
           </View>
         )}
         ListFooterComponent={
@@ -108,10 +181,13 @@ export default function ThreadDetail() {
             <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
           ) : null
         }
-        contentContainerStyle={{ paddingBottom: 120 }}
+        // Leaves room for the reply box pinned to the bottom, which grows when
+        // an image preview is attached.
+        contentContainerStyle={{ paddingBottom: replyImage ? 300 : 180 }}
       />
       
       <View style={styles.replyBox}>
+        <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
           placeholder="Write a reply..."
           placeholderTextColor={Colors.TEXT_MUTED}
@@ -145,6 +221,10 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
     fontWeight: "600",
   },
+  deleteText: {
+    color: Colors.ERROR,
+    fontWeight: "600",
+  },
   title: {
     color: Colors.TEXT,
     fontSize: 20,
@@ -162,11 +242,33 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
+  categoryTag: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.PRIMARY,
+    color: Colors.WHITE,
+    fontSize: 12,
+    fontWeight: "700",
+    overflow: "hidden",
+  },
+  threadBody: {
+    color: Colors.WHITE,
+    fontSize: 15,
+    marginTop: 6,
+  },
   threadCaption: {
     color: Colors.WHITE,
     fontSize: 18,
     fontWeight: "700",
     marginTop: 10,
+  },
+  timestamp: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+    marginTop: 4,
   },
   metaRow: {
     flexDirection: "row",
@@ -189,6 +291,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.BORDER,
   },
+  replyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  replyMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  replyDelete: {
+    color: Colors.ERROR,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  replyTimestamp: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+  },
   replyAuthor: {
     color: Colors.TEXT,                
     fontWeight: "700",
@@ -196,6 +317,13 @@ const styles = StyleSheet.create({
   replyText: {
     color: Colors.TEXT,                  
     marginTop: 4,
+  },
+  replyImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginTop: 8,
+    backgroundColor: Colors.GRAY_200,
   },
   replyBox: {
     position: "absolute",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   View,
@@ -8,9 +8,11 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
+import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
+import { formatTimestamp } from "../../utils/formatTimestamp";
 
 function ThreadItem({ item, onPress, onLike }) {
   const title =
@@ -28,6 +30,10 @@ function ThreadItem({ item, onPress, onLike }) {
       ) : null}
 
       <Text style={styles.title}>{title}</Text>
+
+      {item.createdAt ? (
+        <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
+      ) : null}
 
       <View style={styles.metaRow}>
         {item.date ? (
@@ -62,6 +68,16 @@ function ThreadItem({ item, onPress, onLike }) {
 export default function ThreadFeed() {
   const { state, actions } = useThreads();
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const [category, setCategory] = useState(
+    THREAD_CATEGORIES.some((c) => c.key === params.category)
+      ? params.category
+      : "general"
+  );
+
+  const visibleThreads = state.threads
+    .filter((t) => (t.category ?? "general") === category)
+    .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 
   if (state.loading && !state.threads.length) {
     return (
@@ -80,16 +96,36 @@ export default function ThreadFeed() {
         </View>
         <TouchableOpacity
           style={styles.newButton}
-          onPress={() => router.push("/threads/composer")}
+          onPress={() =>
+            router.push({ pathname: "/threads/composer", params: { category } })
+          }
         >
           <Text style={styles.newButtonText}>+ Start a conversation</Text>
         </TouchableOpacity>
       </View>
 
+      <View style={styles.tabRow}>
+        {THREAD_CATEGORIES.map((c) => {
+          const selected = category === c.key;
+          const count = state.threads.filter(
+            (t) => (t.category ?? "general") === c.key
+          ).length;
+          return (
+            <TouchableOpacity
+              key={c.key}
+              onPress={() => setCategory(c.key)}
+              style={[styles.tab, selected && styles.tabSelected]}
+            >
+              <Text style={[styles.tabText, selected && styles.tabTextSelected]}>
+                {c.label} ({count})
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       <FlatList
-        data={[...state.threads].sort(
-          (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
-        )}
+        data={visibleThreads}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <ThreadItem
@@ -107,7 +143,7 @@ export default function ThreadFeed() {
         ListEmptyComponent={() => (
           <View style={{ padding: 16 }}>
             <Text style={{ color: Colors.TEXT_MUTED }}>
-              No threads yet. Be the first to post!
+              No threads in this category yet. Be the first to post!
             </Text>
           </View>
         )}
@@ -146,6 +182,31 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
+  tabRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 4,
+  },
+  tab: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.WHITE,
+  },
+  tabSelected: {
+    backgroundColor: Colors.PRIMARY,
+    borderColor: Colors.PRIMARY,
+  },
+  tabText: {
+    color: Colors.TEXT,
+    fontWeight: "600",
+  },
+  tabTextSelected: {
+    color: Colors.WHITE,
+  },
   card: {
     backgroundColor: Colors.GRAY_900,
     borderRadius: 16,
@@ -169,6 +230,11 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     fontSize: 16,
     fontWeight: "700",
+  },
+  timestamp: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+    marginTop: 4,
   },
   metaRow: {
     flexDirection: "row",
