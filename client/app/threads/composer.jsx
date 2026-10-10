@@ -10,16 +10,20 @@ import {
   StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
+import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 
 export default function Composer() {
   const { actions } = useThreads();
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState("");
+  const [category, setCategory] = useState(null);
+  const [error, setError] = useState("");
 
   async function pickFrom(kind) {
     try {
@@ -55,20 +59,27 @@ export default function Composer() {
 
   async function submit() {
     if (!imageUri && !caption.trim()) {
-      Alert.alert("Add something", "Please add a photo or a caption.");
+      setError("Please add a photo or a caption.");
       return;
     }
+    if (!category) {
+      setError("Please choose a tag for your thread.");
+      return;
+    }
+    setError("");
 
     await actions.addThread({
       caption,
       imageUri,
+      category,
       createdAt: Date.now(),
     });
 
     setImageUri(null);
     setCaption("");
+    setCategory(null);
 
-    router.replace("/threads/feed");
+    router.replace({ pathname: "/threads/feed", params: { category } });
   }
 
   return (
@@ -81,7 +92,14 @@ export default function Composer() {
       }}
     >
       <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.replace("/threads/feed")}>
+        <TouchableOpacity
+          onPress={() =>
+            router.replace({
+              pathname: "/threads/feed",
+              params: params.category ? { category: params.category } : {},
+            })
+          }
+        >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Start a conversation</Text>
@@ -123,6 +141,34 @@ export default function Composer() {
           style={styles.inputMultiline}
           multiline
         />
+
+        <Text style={styles.tagLabel}>Tag (required)</Text>
+        <View style={styles.tagRow}>
+          {THREAD_CATEGORIES.map((c) => {
+            const selected = category === c.key;
+            return (
+              <TouchableOpacity
+                key={c.key}
+                onPress={() => {
+                  setCategory(c.key);
+                  setError("");
+                }}
+                style={[styles.tagChip, selected && styles.tagChipSelected]}
+              >
+                <Text
+                  style={[
+                    styles.tagChipText,
+                    selected && styles.tagChipTextSelected,
+                  ]}
+                >
+                  {c.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <TouchableOpacity style={styles.postButton} onPress={submit}>
           <Text style={styles.postButtonText}>Share with the community</Text>
@@ -203,6 +249,40 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.BORDER,
+  },
+  tagLabel: {
+    marginTop: 14,
+    color: Colors.TEXT,
+    fontWeight: "600",
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  tagChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.WHITE,
+  },
+  tagChipSelected: {
+    backgroundColor: Colors.PRIMARY,
+    borderColor: Colors.PRIMARY,
+  },
+  tagChipText: {
+    color: Colors.TEXT,
+    fontWeight: "600",
+  },
+  tagChipTextSelected: {
+    color: Colors.WHITE,
+  },
+  errorText: {
+    color: Colors.ERROR,
+    marginTop: 10,
   },
   postButton: {
     marginTop: 16,

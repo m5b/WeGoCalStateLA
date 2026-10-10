@@ -15,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { createEvent } from '../../services/events';
-import { createThread } from '../../services/threads';
+import { buildEventThread, createThread } from '../../services/threads';
 import DateTimeInput from '../../components/DateTimeInput';
 
 export default function CreateEventScreen() {
@@ -77,13 +77,7 @@ export default function CreateEventScreen() {
       });
 
       await createThread({
-        caption: `${createdEvent.title} — Event Discussion`,
-        imageUri: createdEvent.imageUri,
-        date: createdEvent.date,
-        time: createdEvent.time,
-        location: createdEvent.location,
-        eventId: createdEvent.id,
-        type: 'event',
+        ...buildEventThread(createdEvent),
         createdAt: Date.now(),
       });
 
