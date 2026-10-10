@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { getFeed, getThreadDetail, createThread, createReply, toggleLike, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
 
 const ThreadsContext = createContext(null);
 
@@ -19,12 +19,28 @@ function reducer(state, action) {
       return { ...state, loading: false, error: action.error };
     case 'ADD_THREAD':
       return { ...state, threads: [action.payload, ...state.threads] };
+    case 'DELETE_THREAD':
+      return {
+        ...state,
+        threads: state.threads.filter((t) => t.id !== action.payload),
+      };
     case 'ADD_REPLY': {
       const { threadId, reply } = action.payload;
       return {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId ? { ...t, replies: [...t.replies, reply] } : t
+        ),
+      };
+    }
+    case 'DELETE_REPLY': {
+      const { threadId, replyId } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId
+            ? { ...t, replies: t.replies.filter((r) => r.id !== replyId) }
+            : t
         ),
       };
     }
@@ -79,10 +95,20 @@ export function ThreadsProvider({ children }) {
     return detail;
   };
 
-  const addReply = async (threadId, text) => {
-    const created = await createReply(threadId, { text });
+  const addReply = async (threadId, { text, imageUri }) => {
+    const created = await createReply(threadId, { text, imageUri });
     dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created } });
     return created;
+  };
+
+  const removeReply = async (threadId, replyId) => {
+    await deleteReply(threadId, replyId);
+    dispatch({ type: 'DELETE_REPLY', payload: { threadId, replyId } });
+  };
+
+  const removeThread = async (threadId) => {
+    await deleteThread(threadId);
+    dispatch({ type: 'DELETE_THREAD', payload: threadId });
   };
 
   const likeThread = async (threadId) => {
@@ -100,7 +126,7 @@ export function ThreadsProvider({ children }) {
 
   const value = {
     state,
-    actions: { loadFeed, loadThreadDetail, addThread, addReply, likeThread, reportThread },
+    actions: { loadFeed, loadThreadDetail, addThread, addReply, removeReply, removeThread, likeThread, reportThread },
   };
 
   return (
