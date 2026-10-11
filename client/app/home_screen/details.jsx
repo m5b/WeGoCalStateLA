@@ -138,6 +138,9 @@ export default function EventDetails() {
 
             <View style={styles.eventBody}>
               <Text style={styles.eventTitle}>{title}</Text>
+              {event.author ? (
+                <Text style={styles.postedBy}>Posted by {event.author}</Text>
+              ) : null}
 
               <View style={styles.metaGrid}>
                 {event.date ? (
@@ -198,7 +201,7 @@ export default function EventDetails() {
                 thread.replies.map((reply) => (
                   <View key={String(reply.id)} style={styles.replyCard}>
                     <View style={styles.replyHeader}>
-                      <Text style={styles.replyAuthor}>Anonymous</Text>
+                      <Text style={styles.replyAuthor}>{reply.author || "Anonymous"}</Text>
                       <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
                         <Text style={styles.replyDelete}>Delete</Text>
                       </TouchableOpacity>
@@ -301,6 +304,12 @@ const styles = StyleSheet.create({
     color: EVENT_TEXT_COLOR,
     fontSize: 28,
     fontWeight: "800",
+    marginBottom: 16,
+  },
+  postedBy: {
+    color: EVENT_TEXT_COLOR,
+    opacity: 0.7,
+    fontSize: 13,
     marginBottom: 16,
   },
   metaGrid: {

@@ -59,7 +59,7 @@ function getEventTitle(event) {
 }
 
 // ------- Event Card -------
-function EventCard({ title, date, location, description, onPress, imageUrl, compact = false }) {
+function EventCard({ title, date, location, description, author, onPress, imageUrl, compact = false }) {
   return (
     <TouchableOpacity
       activeOpacity={0.95}
@@ -85,6 +85,7 @@ function EventCard({ title, date, location, description, onPress, imageUrl, comp
         <View style={eventStyles.leftAccent} />
         <View style={[eventStyles.inner, compact && eventStyles.compactInner]}>
           <Text style={[eventStyles.title, compact && eventStyles.compactTitle]}>{title}</Text>
+          {author ? <Text style={eventStyles.author}>by {author}</Text> : null}
           {date ? <Text style={[eventStyles.date, compact && eventStyles.compactDate]}>{date}</Text> : null}
           {location ? (
             <Text style={[eventStyles.location, compact && eventStyles.compactLocation]}>
@@ -139,6 +140,7 @@ export default function EventsScreen() {
                 location: event.location || '',
                 description: event.description || (event.text && event.text !== title ? event.text : ''),
                 imageUrl: event.imageUri || null,
+                author: event.author || '',
                 eventDate,
               };
             })
@@ -240,6 +242,7 @@ export default function EventsScreen() {
                         location={event.location}
                         description={event.description}
                         imageUrl={event.imageUrl}
+                        author={event.author}
                         onPress={() =>
                           router.push({
                             pathname: '/home_screen/details',
@@ -295,6 +298,7 @@ export default function EventsScreen() {
                     location={event.location}
                     description={event.description}
                     imageUrl={event.imageUrl}
+                    author={event.author}
                     compact
                     onPress={() =>
                       router.push({
@@ -365,6 +369,12 @@ const eventStyles = StyleSheet.create({
   compactTitle: {
     fontSize: 13,
     marginBottom: 3,
+  },
+  author: {
+    color: EVENT_TEXT_COLOR,
+    opacity: 0.7,
+    fontSize: 12,
+    marginBottom: 4,
   },
   date: {
     color: EVENT_TEXT_COLOR,
