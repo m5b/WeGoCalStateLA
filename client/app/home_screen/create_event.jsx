@@ -15,7 +15,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { createEvent } from '../../services/events';
-import { buildEventThread, createThread } from '../../services/threads';
 import DateTimeInput from '../../components/DateTimeInput';
 
 export default function CreateEventScreen() {
@@ -66,20 +65,18 @@ export default function CreateEventScreen() {
     }
     setLoading(true);
     try {
-      const createdEvent = await createEvent({
+      // The backend creates the linked community post automatically, so no
+      // separate createThread call is needed here.
+      await createEvent({
         title: title.trim(),
         description: description.trim(),
         imageUri,
         date: date.trim(),
         time: time.trim(),
         location: location.trim(),
-        createdAt: Date.now(),
       });
 
-      await createThread({
-        ...buildEventThread(createdEvent),
-        createdAt: Date.now(),
-      });
+      
 
       router.replace('/home_screen/events');
     } catch (_e) {

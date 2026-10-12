@@ -15,6 +15,8 @@ async function handleResponse(res) {
   const err = new Error(body.message || 'Request failed');
   err.status = res.status;
   err.data = body.data || null;
+  // Validation errors come back under "error", not "data" -- check both.
+  err.data = body.data || body.error || null;
   throw err;
 }
 
@@ -32,6 +34,17 @@ export async function apiJson(path, method, body) {
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(body),
+  });
+  return handleResponse(res);
+}
+
+// For file uploads: send a FormData body with no Content-Type header, so
+// fetch sets the correct multipart boundary itself.
+export async function apiForm(path, method, formData) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    credentials: 'include',
+    body: formData,
   });
   return handleResponse(res);
 }
