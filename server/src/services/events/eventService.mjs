@@ -65,6 +65,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
         const thread = await threadService.postByUserId(userId, {
             title: `${title} — Event`,
             content: description || title,
+            category: 'events',
         })
 
         const eventUuid = uuidv4()

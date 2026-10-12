@@ -1,5 +1,5 @@
-const DEFINE_PUBLIC_FIELDS = ['threadUuid','userUuid', 'body','title', 'author', "createdAt","updatedAt","status"]
-const PUBLIC_FIELDS = ['threadUuid','userUuid', 'content','title', 'username', 'createdAt',"updatedAt","status"]
+const DEFINE_PUBLIC_FIELDS = ['threadUuid','userUuid', 'body','title', 'author', "createdAt","updatedAt","status", "category"]
+const PUBLIC_FIELDS = ['threadUuid','userUuid', 'content','title', 'username', 'createdAt',"updatedAt","status", "category"]
 export default class ThreadDto {
     constructor(thread) {
         for (let i = 0; i < DEFINE_PUBLIC_FIELDS.length; i++) {
