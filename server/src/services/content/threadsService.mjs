@@ -56,12 +56,13 @@ export function createThreadService(threadRepo) {
     }
 
     async function postByUserId(userId, payload) {
-        const { title, content } = payload
+        const { title, content, category } = payload
         const insertId = await threadRepo.insertThread({
             userId: userId,
             threadUuid: uuidv4(),
             title: title,
             content: content,
+            category: category,
         })
         const thread = await getByThreadId(insertId)
         return thread

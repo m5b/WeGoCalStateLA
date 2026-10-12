@@ -25,6 +25,7 @@ export function createThreadRepo(db){
                     WHEN t.deleted_at IS NULL THEN t.title
                     ELSE NULL
                     END AS title,
+                    t.category AS category,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
                     ELSE NULL 
@@ -94,10 +95,10 @@ export function createThreadRepo(db){
         return row
     }
 
-    async function insertThread({ userId, threadUuid, title, content }) {
+    async function insertThread({ userId, threadUuid, title, content, category = 'general' }) {
         const [result] = await db.execute(
-            'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,UUID_TO_BIN(?), ?, ?)',
-            [userId, threadUuid, title, content]
+            'INSERT into threads (user_id, thread_uuid, title, content, category) VALUES (?,UUID_TO_BIN(?), ?, ?, ?)',
+            [userId, threadUuid, title, content, category]
         )
 
         return result.insertId
