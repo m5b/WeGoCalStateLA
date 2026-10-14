@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,6 +27,29 @@ export default function CreateEventScreen() {
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showCoverChoices, setShowCoverChoices] = useState(false);
+  const [selectedCover, setSelectedCover] = useState(null);
+
+  const sampleCovers = [
+    {
+      name: 'Campus Sunset',
+      source: {
+        uri: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
+      },
+    },
+    {
+      name: 'Student Life',
+      source: {
+        uri: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
+      },
+    },
+    {
+      name: 'Library Study',
+      source: {
+        uri: 'https://images.unsplash.com/photo-1507835151720-f08b4b36714d?auto=format&fit=crop&w=1200&q=80',
+      },
+    },
+  ];
 
   async function pickFrom(kind) {
     try {
@@ -102,8 +127,8 @@ export default function CreateEventScreen() {
         <View style={styles.card}>
 
           <TouchableOpacity style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.coverImage} />
+            {imageUri || selectedCover ? (
+              <Image source={imageUri ? { uri: imageUri } : selectedCover} style={styles.coverImage} />
             ) : (
               <View style={styles.imagePlaceholderInner}>
                 <ImageIcon size={40} color={Colors.GRAY} />
@@ -121,7 +146,49 @@ export default function CreateEventScreen() {
               <Camera size={18} color={Colors.SECONDARY} />
               <Text style={styles.pickerButtonText}>Camera</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.pickerButton, styles.coverButton]} onPress={() => setShowCoverChoices(true)}>
+              <Images size={18} color={Colors.SECONDARY} />
+              <Text style={styles.pickerButtonText}>Choose a cover</Text>
+            </TouchableOpacity>
           </View>
+
+          <Modal
+            visible={showCoverChoices}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowCoverChoices(false)}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={styles.modalCard}>
+                <Text style={styles.label}>Choose a cover image</Text>
+
+                <FlatList
+                  data={sampleCovers}
+                  keyExtractor={(item) => item.name}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.sampleOption}
+                      onPress={() => {
+                        setSelectedCover(item.source);
+                        setImageUri(null);
+                        setShowCoverChoices(false);
+                      }}
+                    >
+                      <Image source={item.source} style={styles.sampleImage} />
+                      <Text style={styles.sampleName}>{item.name}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setshowCoverChoices(false)}
+                >
+                  <Text style={styles.pickerButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <Text style={styles.label}>Event Title</Text>
           <TextInput
@@ -277,6 +344,9 @@ const styles = StyleSheet.create({
   cameraButton: {
     backgroundColor: Colors.WARNING,
   },
+  coverButton: {
+    backgroundColor: Colors.PRIMARY,
+  },
   pickerButtonText: {
     color: Colors.SECONDARY,
     fontWeight: '700',
@@ -336,5 +406,34 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY,
     fontWeight: '700',
     fontSize: 16,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  modalCard: {
+    maxHeight: '80%',
+    backgroundColor: Colors.WHITE,
+    borderRadius: 16,
+    padding: 16,
+  },
+  sampleOption: {
+    marginBottom: 12,
+  },
+  sampleImage: {
+    width: '100%',
+    height: 140,
+    borderRadius: 12,
+  },
+  sampleName: {
+    marginTop: 6,
+    color: Colors.TEXT,
+  },
+  cancelButton: {
+    alignItems: 'center',
+    padding: 12,
   },
 });
