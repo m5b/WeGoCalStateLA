@@ -31,14 +31,15 @@ export function createThreadRepo(db){
                     ELSE NULL 
                     END AS content,
                 CASE
-                    WHEN u.deleted_at IS NULL
+                    WHEN t.user_id IS NOT NULL AND u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
                     ELSE NULL
                     END AS user_uuid,
                 CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.username
-                    ELSE NULL
+                    WHEN t.deleted_at IS NOT NULL THEN NULL
+                    WHEN t.user_id IS NULL THEN 'Anonymous'
+                    WHEN u.deleted_at IS NOT NULL THEN NULL
+                    ELSE u.username
                     END AS username
             FROM
                 threads t
