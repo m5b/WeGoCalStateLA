@@ -39,7 +39,7 @@ export function createCommentRepo(db){
                 -- user 
                 c.user_id AS user_id,
                 CASE
-                    WWHEN c.user_id IS NOT NULL AND u.deleted_at IS NULL
+                    WHEN c.user_id IS NOT NULL AND u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
                     ELSE NULL
                     END AS user_uuid,
@@ -115,10 +115,13 @@ export function createCommentRepo(db){
     }
 
     async function findByThreadUuid(threadUuid) {
+        // Deleted replies are left out entirely -- see deleteByCommentUuid
+        // below, which soft-deletes by setting deleted_at.
         const [row] = await db.execute(
             getPublicSelect() +
             `
                 WHERE t.thread_uuid = UUID_TO_BIN(?)
+                    AND c.deleted_at IS NULL
                 ORDER BY c.created_at ASC
             `,
                 [threadUuid]
