@@ -10,12 +10,12 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
-import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Clock } from 'lucide-react-native';
+import { ImageIcon, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { createEvent } from '../../services/events';
 import DateTimeInput from '../../components/DateTimeInput';
+import WebLayout from '../../components/WebLayout';
 
 export default function CreateEventScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -76,10 +76,11 @@ export default function CreateEventScreen() {
         location: location.trim(),
       });
 
-      
+
 
       router.replace('/home_screen/events');
-    } catch (_e) {
+    } catch (error) {
+      console.error('Create event failed:', error);
       Alert.alert('Error', 'Failed to create event.');
     } finally {
       setLoading(false);
@@ -87,113 +88,128 @@ export default function CreateEventScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={[Colors.PRIMARY, Colors.DARK_BLUE]} style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace('/home_screen/events')} style={styles.backButton}>
-            <ArrowLeft size={24} color={Colors.SECONDARY} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Event</Text>
-          <View style={{ width: 40 }} />
-        </View>
-      </LinearGradient>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.card}>
-
-          <TouchableOpacity style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.coverImage} />
-            ) : (
-              <View style={styles.imagePlaceholderInner}>
-                <ImageIcon size={40} color={Colors.GRAY} />
-                <Text style={styles.imagePlaceholderText}>Add a cover image</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.row}>
-            <TouchableOpacity style={[styles.pickerButton, styles.galleryButton]} onPress={() => pickFrom('library')}>
-              <Images size={18} color={Colors.SECONDARY} />
-              <Text style={styles.pickerButtonText}>Gallery</Text>
+    <WebLayout>
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => router.replace('/home_screen/events')}
+            >
+              <Text style={styles.backText}>← Back</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.pickerButton, styles.cameraButton]} onPress={() => pickFrom('camera')}>
-              <Camera size={18} color={Colors.SECONDARY} />
-              <Text style={styles.pickerButtonText}>Camera</Text>
-            </TouchableOpacity>
+
+            <Text style={styles.headerTitle}>Create Event</Text>
+
+            <View style={{ width: 40 }} />
           </View>
 
-          <Text style={styles.label}>Event Title</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter event title"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={title}
-            onChangeText={setTitle}
-          />
+          <View style={styles.card}>
 
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.inputMultiline]}
-            placeholder="What's this event about?"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            textAlignVertical="top"
-          />
+            <TouchableOpacity style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.coverImage} />
+              ) : (
+                <View style={styles.imagePlaceholderInner}>
+                  <ImageIcon size={40} color={Colors.GRAY} />
+                  <Text style={styles.imagePlaceholderText}>Add a cover image</Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Date</Text>
-              <View style={styles.iconInput}>
-                
-                <DateTimeInput
-                        type="date"
-                        value={date}
-                        onChange={setDate}
-                        />
-              </View>
+            <View style={styles.row}>
+              <TouchableOpacity
+                style={[styles.pickerButton, styles.galleryButton]}
+                onPress={() => pickFrom('library')}
+              >
+                <Images size={18} color={Colors.WHITE} />
+                <Text style={styles.pickerButtonText}>Gallery</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.pickerButton, styles.cameraButton]}
+                onPress={() => pickFrom('camera')}
+              >
+                <Camera size={18} color={Colors.BLACK} />
+                <Text style={[styles.pickerButtonText, { color: Colors.BLACK }]}>
+                  Camera
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View style={{ width: 12 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Time</Text>
-              <View style={styles.iconInput}>
-                <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
-                <DateTimeInput
-                      type="time"
-                      value={time}
-                      onChange={setTime}
-                      />
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.iconInput}>
-            <MapPin size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+            <Text style={styles.label}>Event Title</Text>
             <TextInput
-              style={styles.iconInputField}
-              placeholder="Enter location"
+              style={styles.input}
+              placeholder="Enter event title"
               placeholderTextColor={Colors.TEXT_MUTED}
-              value={location}
-              onChangeText={setLocation}
+              value={title}
+              onChangeText={setTitle}
             />
+
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.inputMultiline]}
+              placeholder="What's this event about?"
+              placeholderTextColor={Colors.TEXT_MUTED}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Date</Text>
+                <View style={styles.iconInput}>
+
+                  <DateTimeInput
+                    type="date"
+                    value={date}
+                    onChange={setDate}
+                  />
+                </View>
+              </View>
+              <View style={{ width: 12 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Time</Text>
+                <View style={styles.iconInput}>
+                  <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+                  <DateTimeInput
+                    type="time"
+                    value={time}
+                    onChange={setTime}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.label}>Location</Text>
+            <View style={styles.iconInput}>
+              <MapPin size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+              <TextInput
+                style={styles.iconInputField}
+                placeholder="Enter location"
+                placeholderTextColor={Colors.TEXT_MUTED}
+                value={location}
+                onChangeText={setLocation}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              <Text style={styles.submitButtonText}>
+                {loading ? 'Creating...' : 'Create Event'}
+              </Text>
+            </TouchableOpacity>
+
           </View>
-
-          <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.submitButtonText}>
-              {loading ? 'Creating...' : 'Create Event'}
-            </Text>
-          </TouchableOpacity>
-
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </WebLayout>
   );
 }
 
@@ -202,37 +218,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.LIGHT_GRAY,
   },
-  header: {
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  backButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.SECONDARY + '20',
+  backText: {
+    color: Colors.PRIMARY,
+    fontWeight: '600',
   },
   headerTitle: {
+    color: Colors.TEXT,
     fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.SECONDARY,
+    fontWeight: '800',
   },
   content: {
     padding: 16,
     paddingBottom: 40,
+    maxWidth: 760,
+    alignSelf: 'center',
+    width: '100%',
   },
   card: {
     backgroundColor: Colors.WHITE,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.BORDER,
-    borderStyle: 'dashed',
+    padding: 14,
   },
   imagePlaceholder: {
     width: '100%',
@@ -275,10 +288,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
   },
   cameraButton: {
-    backgroundColor: Colors.WARNING,
+    backgroundColor: Colors.BRAND_GOLD,
   },
   pickerButtonText: {
-    color: Colors.SECONDARY,
+    color: Colors.WHITE,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -323,7 +336,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,
   },
   submitButton: {
-    backgroundColor: Colors.SECONDARY,
+    backgroundColor: Colors.PRIMARY,
     borderRadius: 999,
     paddingVertical: 14,
     alignItems: 'center',
@@ -333,7 +346,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: Colors.PRIMARY,
+    color: Colors.WHITE,
     fontWeight: '700',
     fontSize: 16,
   },

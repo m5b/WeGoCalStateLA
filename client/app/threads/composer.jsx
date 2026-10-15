@@ -126,11 +126,13 @@ export default function Composer() {
             <Text style={styles.buttonText}>Gallery</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: Colors.SECONDARY }]}
-            onPress={() => pickFrom("camera")}
-          >
-            <Text style={styles.buttonText}>Camera</Text>
-          </TouchableOpacity>
+  style={[styles.button, { backgroundColor: Colors.BRAND_GOLD }]}
+  onPress={() => pickFrom("camera")}
+>
+  <Text style={[styles.buttonText, { color: Colors.BLACK }]}>
+    Camera
+  </Text>
+</TouchableOpacity>
         </View>
 
         <TextInput
