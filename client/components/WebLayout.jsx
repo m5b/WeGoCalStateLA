@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
+import { House as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';

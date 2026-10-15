@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   createButton: {
-    backgroundColor: Colors.SECONDARY,
+    backgroundColor: Colors.BRAND_GOLD,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
