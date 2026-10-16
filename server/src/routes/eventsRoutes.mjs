@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { requireAuth } from '../middlewares/requireAuth.mjs'
-import { eventPostSchema } from '../validators/eventsValidators.mjs'
+import { eventPatchSchema, eventPostSchema } from '../validators/eventsValidators.mjs'
 import { uuidSchema } from '../validators/authValidators.mjs'
 import { jsend } from '../util/jSend.mjs'
 
@@ -31,6 +31,15 @@ export function createEventsRouter({userService, eventService}) {
     router.post('/me', requireAuth(userService), upload.single('image'), async (req, res) => {
         const payload = eventPostSchema.parse(req.body)
         const event = await eventService.postByUserId(req.user.userId, payload, req.file)
+        res.json(jsend.success({ event }))
+    })
+
+    // Edits an event the logged-in user created. Image is optional; if sent
+    // it replaces the current cover image.
+    router.patch('/me/:eventUuid', requireAuth(userService), upload.single('image'), async (req, res) => {
+        const eventUuid = uuidSchema.parse(req.params.eventUuid)
+        const payload = eventPatchSchema.parse(req.body)
+        const event = await eventService.patchByEventUuid(req.user.userId, eventUuid, payload, req.file)
         res.json(jsend.success({ event }))
     })
 

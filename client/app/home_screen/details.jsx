@@ -17,6 +17,7 @@ import { Colors } from "../../constant/Colors";
 import { getEvent } from "../../services/events";
 import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
 import { confirmAction } from "../../utils/confirmAction";
+import { useAuth } from "../../context/AuthContext";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -28,6 +29,7 @@ function getEventTitle(event) {
 export default function EventDetails() {
   const { eventId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
@@ -113,6 +115,7 @@ export default function EventDetails() {
       },
     });
 
+  const isAuthor = !!user?.userUuid && user.userUuid === event.authorUuid;
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
 
@@ -124,7 +127,21 @@ export default function EventDetails() {
             <Text style={styles.backText}>{"\u2190"} Back to Events</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Event Details</Text>
-          <View style={{ width: 72 }} />
+          {isAuthor ? (
+            <TouchableOpacity
+              style={{ width: 72, alignItems: "flex-end" }}
+              onPress={() =>
+                router.push({
+                  pathname: "/home_screen/create_event",
+                  params: { eventId: event.id },
+                })
+              }
+            >
+              <Text style={styles.backText}>Edit</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 72 }} />
+          )}
         </View>
 
         <ScrollView

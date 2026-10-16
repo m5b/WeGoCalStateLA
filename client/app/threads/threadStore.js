@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { getFeed, getThreadDetail, createThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
 
 const ThreadsContext = createContext(null);
 
@@ -19,6 +19,18 @@ function reducer(state, action) {
       return { ...state, loading: false, error: action.error };
     case 'ADD_THREAD':
       return { ...state, threads: [action.payload, ...state.threads] };
+    case 'UPDATE_THREAD': {
+      const updated = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          // Keep the already-loaded replies; the PATCH response has none.
+          t.id === updated.id
+            ? { ...updated, replies: t.replies, repliesLoaded: t.repliesLoaded }
+            : t
+        ),
+      };
+    }
     case 'DELETE_THREAD':
       return {
         ...state,
@@ -86,6 +98,12 @@ export function ThreadsProvider({ children }) {
     return created;
   };
   
+  const editThread = async (threadId, data) => {
+    const updated = await updateThread(threadId, data);
+    dispatch({ type: 'UPDATE_THREAD', payload: updated });
+    return updated;
+  };
+
   const loadThreadDetail = async (threadId) => {
     const detail = await getThreadDetail(threadId);
     dispatch({
@@ -126,7 +144,7 @@ export function ThreadsProvider({ children }) {
 
   const value = {
     state,
-    actions: { loadFeed, loadThreadDetail, addThread, addReply, removeReply, removeThread, likeThread, reportThread },
+    actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, removeReply, removeThread, likeThread, reportThread },
   };
 
   return (

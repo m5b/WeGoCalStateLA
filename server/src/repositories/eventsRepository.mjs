@@ -11,6 +11,8 @@ const BASE_SELECT = `
         e.photo_url,
         e.created_at,
         e.updated_at,
+        e.created_by_user_id,
+        e.thread_id,
         u.username as author_username,
         u.alias as author_alias,
         BIN_TO_UUID(u.user_uuid) as author_uuid,
@@ -27,6 +29,7 @@ export function createEventsRepo(db) {
         findByEventUuid,
         findByUserId,
         insertEvent,
+        updateByEventUuid,
     }
 
     async function findAll() {
@@ -58,5 +61,18 @@ export function createEventsRepo(db) {
             [eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl]
         )
         return result.insertId
+    }
+
+    // fields uses db column names; only the event's creator can update it.
+    async function updateByEventUuid({eventUuid, userId, fields}) {
+        const columns = Object.keys(fields)
+        if (columns.length === 0) return true
+        const setClause = columns.map((column) => `${column} = ?`).join(', ')
+        const [result] = await db.execute(
+            `UPDATE events SET ${setClause}, updated_at = NOW()
+             WHERE event_uuid = UUID_TO_BIN(?) AND created_by_user_id = ? AND deleted_at IS NULL`,
+            [...columns.map((column) => fields[column]), eventUuid, userId]
+        )
+        return result.affectedRows > 0
     }
 }
