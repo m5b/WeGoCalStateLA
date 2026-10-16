@@ -34,7 +34,7 @@ export default function ProjectOverview() {
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.hero}>
           <Text style={styles.eyebrow}>PACIFIC CLINICS · CAL STATE LA COMMUNITY</Text>
-          <Text style={styles.title}>WeGoCSULA</Text>
+          <Text style={styles.title}>WeGoToCSULA</Text>
           <Text style={styles.subtitle}>
             Helping families and loved ones connect, share support, and find resources for the Cal State LA journey.
           </Text>
@@ -58,7 +58,7 @@ export default function ProjectOverview() {
           <Text style={styles.sectionLabel}>THE PROJECT</Text>
           <Text style={styles.sectionTitle}>Support for the people behind every student</Text>
           <Text style={styles.body}>
-            WeGoCSULA is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
+            WeGoToCSULA is a university initiative sponsored by Pacific Clinics and supported by private philanthropy. The project is exploring how a digital community can help families, caregivers, and trusted supporters feel connected to the university community and to one another.
           </Text>
           <Text style={styles.body}>
             The current application is an early prototype. Feedback from families, students, and community partners will shape what it becomes.

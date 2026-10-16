@@ -74,7 +74,7 @@ export default function WebLayout({ children }) {
                 color={Colors.BRAND_GOLD} 
               />
             </View>
-            <Text style={styles.brandText}>WeGoCSULA</Text>
+            <Text style={styles.brandText}>WeGoToCSULA</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
