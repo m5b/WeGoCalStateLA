@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
+import FlexibleImage from "../../components/FlexibleImage";
 
 function ThreadItem({ item, onPress, onLike }) {
   const title =
@@ -23,10 +23,7 @@ function ThreadItem({ item, onPress, onLike }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
       {item.imageUri ? (
-        <Image
-          source={{ uri: item.imageUri }}
-          style={styles.image}
-        />
+        <FlexibleImage uri={item.imageUri} style={styles.image} />
       ) : null}
 
       <Text style={styles.title}>{title}</Text>
@@ -221,7 +218,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 220,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
     marginBottom: 10,
