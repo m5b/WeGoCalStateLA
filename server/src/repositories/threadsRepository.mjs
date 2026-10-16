@@ -48,8 +48,11 @@ export function createThreadRepo(db){
         `
     }
     async function findAll() {
+        // Deleted threads are left out of the feed entirely -- see
+        // deleteByThreadUuid below, which soft-deletes by setting
+        // deleted_at rather than removing the row.
         const [row] = await db.query(
-            getPublicSelect()
+            getPublicSelect() + ' WHERE t.deleted_at IS NULL'
         )
         return row
     }
