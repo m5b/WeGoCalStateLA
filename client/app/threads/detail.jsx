@@ -16,11 +16,13 @@ import { formatTimestamp } from "../../utils/formatTimestamp";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import { confirmAction } from "../../utils/confirmAction";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -51,6 +53,8 @@ export default function ThreadDetail() {
       </View>
     );
   }
+
+  const isAuthor = !!user?.userUuid && user.userUuid === thread.authorUuid;
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
@@ -98,11 +102,25 @@ export default function ThreadDetail() {
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Thread</Text>
-        <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
-          <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
-            {deleting ? "Deleting..." : "Delete"}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {isAuthor ? (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/threads/composer",
+                  params: { threadId: thread.id },
+                })
+              }
+            >
+              <Text style={styles.editText}>Edit</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
+            <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -218,6 +236,15 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   backText: {
+    color: Colors.PRIMARY,
+    fontWeight: "600",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  editText: {
     color: Colors.PRIMARY,
     fontWeight: "600",
   },

@@ -50,6 +50,7 @@ function mapThread(dto) {
   return {
     id: dto.threadUuid,
     author: dto.author,
+    authorUuid: dto.userUuid,
     caption: dto.title,
     text: dto.body,
     likes: 0, // no reactions backend yet -- see toggleLike below
@@ -131,6 +132,16 @@ export async function createThread(data) {
   // Note: data.imageUri is intentionally not sent -- the real threads table
   // has no image column yet, so a photo attached in the composer currently
   // isn't persisted.
+  return mapThread(res.data.thread);
+}
+
+export async function updateThread(threadId, data) {
+  const content = data.caption || data.text || "";
+  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
+    title: deriveTitle(content),
+    content,
+    category: data.category || "general",
+  });
   return mapThread(res.data.thread);
 }
 

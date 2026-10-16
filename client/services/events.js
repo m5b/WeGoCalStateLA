@@ -36,22 +36,41 @@ async function uriToBlob(imageUri) {
   return response.blob();
 }
 
-// Creates an event (and, server-side, its linked community post) in one
-// call. Sends multipart/form-data so the image can go along as raw bytes.
-export async function createEvent(data) {
+function buildEventForm(data) {
   const formData = new FormData();
   formData.append('title', data.title || data.caption || '');
   formData.append('description', data.description || data.text || '');
   formData.append('date', data.date || '');
   formData.append('time', data.time || '');
   formData.append('location', data.location || '');
+  return formData;
+}
 
-  if (data.imageUri) {
-    const blob = await uriToBlob(data.imageUri);
-    const extension = (blob.type && blob.type.split('/')[1]) || 'jpg';
-    formData.append('image', blob, `cover.${extension}`);
-  }
+async function appendImage(formData, imageUri) {
+  const blob = await uriToBlob(imageUri);
+  const extension = (blob.type && blob.type.split('/')[1]) || 'jpg';
+  formData.append('image', blob, `cover.${extension}`);
+}
+
+// Creates an event (and, server-side, its linked community post) in one
+// call. Sends multipart/form-data so the image can go along as raw bytes.
+export async function createEvent(data) {
+  const formData = buildEventForm(data);
+  if (data.imageUri) await appendImage(formData, data.imageUri);
 
   const res = await apiForm('/api/events/me', 'POST', formData);
+  return mapEvent(res.data.event);
+}
+
+// Edits an event the signed-in user created (the server also updates its
+// linked community post). Only uploads an image when a new one was picked,
+// i.e. not the already-hosted cover passed back in as existingImageUri.
+export async function updateEvent(eventId, data) {
+  const formData = buildEventForm(data);
+  if (data.imageUri && data.imageUri !== data.existingImageUri) {
+    await appendImage(formData, data.imageUri);
+  }
+
+  const res = await apiForm(`/api/events/me/${eventId}`, 'PATCH', formData);
   return mapEvent(res.data.event);
 }

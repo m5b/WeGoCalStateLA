@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,14 +16,30 @@ import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 
 export default function Composer() {
-  const { actions } = useThreads();
+  const { state, actions } = useThreads();
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  // Opened with ?threadId=... from the thread detail screen -> edit mode.
+  const editingThread = params.threadId
+    ? state.threads.find((t) => String(t.id) === String(params.threadId))
+    : null;
+  const isEditing = !!params.threadId;
 
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState(null);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Prefill once the thread is available (the feed may still be loading
+  // when this screen opens).
+  useEffect(() => {
+    if (!editingThread) return;
+    setCaption(editingThread.text || editingThread.caption || "");
+    setCategory(editingThread.category || "general");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingThread?.id]);
 
   async function pickFrom(kind) {
     try {
@@ -68,12 +84,31 @@ export default function Composer() {
     }
     setError("");
 
-    await actions.addThread({
-      caption,
-      imageUri,
-      category,
-      createdAt: Date.now(),
-    });
+    if (isEditing) {
+      setSaving(true);
+      try {
+        await actions.editThread(params.threadId, { caption, category });
+        router.back();
+      } catch (e) {
+        console.warn("Failed to update thread", e);
+        setError("Couldn't save your changes. Please try again.");
+        setSaving(false);
+      }
+      return;
+    }
+
+    try {
+      await actions.addThread({
+        caption,
+        imageUri,
+        category,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      console.warn("Failed to create thread", e);
+      setError(e.message || "Couldn't post your thread. Please try again.");
+      return;
+    }
 
     setImageUri(null);
     setCaption("");
@@ -94,20 +129,25 @@ export default function Composer() {
       <View style={styles.topRow}>
         <TouchableOpacity
           onPress={() =>
-            router.replace({
-              pathname: "/threads/feed",
-              params: params.category ? { category: params.category } : {},
-            })
+            isEditing
+              ? router.back()
+              : router.replace({
+                  pathname: "/threads/feed",
+                  params: params.category ? { category: params.category } : {},
+                })
           }
         >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Start a conversation</Text>
+        <Text style={styles.title}>
+          {isEditing ? "Edit thread" : "Start a conversation"}
+        </Text>
         <View style={{ width: 40 }} /> 
       </View>
 
       <View style={styles.card}>
-        {imageUri ? (
+        {/* Threads don't store images yet, so there's nothing to edit here. */}
+        {isEditing ? null : imageUri ? (
           <Image
             source={{ uri: imageUri }}
             style={styles.image}
@@ -118,22 +158,24 @@ export default function Composer() {
           </View>
         )}
 
-        <View style={styles.row}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
-            onPress={() => pickFrom("library")}
-          >
-            <Text style={styles.buttonText}>Gallery</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-  style={[styles.button, { backgroundColor: Colors.BRAND_GOLD }]}
-  onPress={() => pickFrom("camera")}
->
-  <Text style={[styles.buttonText, { color: Colors.BLACK }]}>
-    Camera
-  </Text>
-</TouchableOpacity>
-        </View>
+        {isEditing ? null : (
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
+              onPress={() => pickFrom("library")}
+            >
+              <Text style={styles.buttonText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+    style={[styles.button, { backgroundColor: Colors.BRAND_GOLD }]}
+    onPress={() => pickFrom("camera")}
+  >
+    <Text style={[styles.buttonText, { color: Colors.BLACK }]}>
+      Camera
+    </Text>
+  </TouchableOpacity>
+          </View>
+        )}
 
         <TextInput
           placeholder="Share a question, resource, or encouraging thought…"
@@ -172,8 +214,18 @@ export default function Composer() {
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <TouchableOpacity style={styles.postButton} onPress={submit}>
-          <Text style={styles.postButtonText}>Share with the community</Text>
+        <TouchableOpacity
+          style={[styles.postButton, saving && { opacity: 0.5 }]}
+          onPress={submit}
+          disabled={saving}
+        >
+          <Text style={styles.postButtonText}>
+            {isEditing
+              ? saving
+                ? "Saving..."
+                : "Save changes"
+              : "Share with the community"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

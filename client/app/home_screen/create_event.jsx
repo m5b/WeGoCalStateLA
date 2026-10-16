@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,32 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageIcon, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
-import { createEvent } from '../../services/events';
+import { createEvent, getEvent, updateEvent } from '../../services/events';
 import DateTimeInput from '../../components/DateTimeInput';
 import WebLayout from '../../components/WebLayout';
 
+// The server returns times like "3:00 PM", but the web time picker's
+// values are 24-hour "15:00".
+function toPickerTime(time) {
+  if (Platform.OS !== 'web') return time;
+  const match = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(time || '');
+  if (!match) return time;
+  let hours = Number(match[1]) % 12;
+  if (match[3].toUpperCase() === 'PM') hours += 12;
+  return `${String(hours).padStart(2, '0')}:${match[2]}`;
+}
+
+// Opened with ?eventId=... from the event details screen -> edit mode.
 export default function CreateEventScreen() {
+  const { eventId } = useLocalSearchParams();
+  const isEditing = !!eventId;
+  const [existingImageUri, setExistingImageUri] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -25,6 +41,29 @@ export default function CreateEventScreen() {
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!eventId) return;
+    getEvent(eventId)
+      .then((event) => {
+        setTitle(event.title || '');
+        setDescription(event.description || '');
+        setDate(event.date || '');
+        setTime(toPickerTime(event.time || ''));
+        setLocation(event.location || '');
+        setImageUri(event.imageUri || null);
+        setExistingImageUri(event.imageUri || null);
+      })
+      .catch((error) => {
+        console.warn('Failed to load event for editing', error);
+        Alert.alert('Error', 'Could not load this event.');
+      });
+  }, [eventId]);
+
+  const goBack = () =>
+    isEditing
+      ? router.replace({ pathname: '/home_screen/details', params: { eventId } })
+      : router.replace('/home_screen/events');
 
   async function pickFrom(kind) {
     try {
@@ -64,6 +103,26 @@ export default function CreateEventScreen() {
       return;
     }
     setLoading(true);
+    if (isEditing) {
+      try {
+        await updateEvent(eventId, {
+          title: title.trim(),
+          description: description.trim(),
+          imageUri,
+          existingImageUri,
+          date: date.trim(),
+          time: time.trim(),
+          location: location.trim(),
+        });
+        goBack();
+      } catch (error) {
+        console.error('Update event failed:', error);
+        Alert.alert('Error', 'Failed to save changes.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     try {
       // The backend creates the linked community post automatically, so no
       // separate createThread call is needed here.
@@ -95,13 +154,13 @@ export default function CreateEventScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => router.replace('/home_screen/events')}
-            >
+            <TouchableOpacity onPress={goBack}>
               <Text style={styles.backText}>← Back</Text>
             </TouchableOpacity>
 
-            <Text style={styles.headerTitle}>Create Event</Text>
+            <Text style={styles.headerTitle}>
+              {isEditing ? 'Edit Event' : 'Create Event'}
+            </Text>
 
             <View style={{ width: 40 }} />
           </View>
@@ -202,7 +261,9 @@ export default function CreateEventScreen() {
               disabled={loading}
             >
               <Text style={styles.submitButtonText}>
-                {loading ? 'Creating...' : 'Create Event'}
+                {isEditing
+                  ? loading ? 'Saving...' : 'Save Changes'
+                  : loading ? 'Creating...' : 'Create Event'}
               </Text>
             </TouchableOpacity>
 
