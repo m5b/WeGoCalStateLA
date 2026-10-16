@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { CalendarDays, Clock, MapPin, MessageCircle } from "lucide-react-native";
 import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
+import FlexibleImage from "../../components/FlexibleImage";
 import { Colors } from "../../constant/Colors";
 import { getEvent } from "../../services/events";
 import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
@@ -150,7 +150,7 @@ export default function EventDetails() {
         >
           <View style={styles.eventCard}>
             {event.imageUri ? (
-              <Image source={{ uri: event.imageUri }} style={styles.heroImage} />
+              <FlexibleImage uri={event.imageUri} style={styles.heroImage} maxHeight={640} />
             ) : null}
 
             <View style={styles.eventBody}>
@@ -227,7 +227,7 @@ export default function EventDetails() {
                       <Text style={styles.replyText}>{reply.text}</Text>
                     )}
                     {reply.imageUri ? (
-                      <Image source={{ uri: reply.imageUri }} style={styles.replyImage} />
+                      <FlexibleImage uri={reply.imageUri} style={styles.replyImage} />
                     ) : null}
                   </View>
                 ))
@@ -310,9 +310,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-    height: 320,
     backgroundColor: Colors.GRAY_200,
-    resizeMode: "cover",
   },
   eventBody: {
     padding: 22,
@@ -425,7 +423,6 @@ const styles = StyleSheet.create({
   },
   replyImage: {
     width: "100%",
-    height: 200,
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,

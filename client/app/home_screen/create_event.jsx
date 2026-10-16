@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -17,6 +16,7 @@ import { Colors } from '../../constant/Colors';
 import { createEvent, getEvent, updateEvent } from '../../services/events';
 import DateTimeInput from '../../components/DateTimeInput';
 import WebLayout from '../../components/WebLayout';
+import FlexibleImage from '../../components/FlexibleImage';
 
 // The server returns times like "3:00 PM", but the web time picker's
 // values are 24-hour "15:00".
@@ -73,7 +73,7 @@ export default function CreateEventScreen() {
           Alert.alert('Permission needed', 'Camera access is required.');
           return;
         }
-        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
+        const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -83,7 +83,6 @@ export default function CreateEventScreen() {
         }
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
@@ -167,9 +166,13 @@ export default function CreateEventScreen() {
 
           <View style={styles.card}>
 
-            <TouchableOpacity style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={[styles.imagePlaceholder, !imageUri && styles.imagePlaceholderEmpty]}
+              onPress={() => pickFrom('library')}
+              activeOpacity={0.8}
+            >
               {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.coverImage} />
+                <FlexibleImage uri={imageUri} style={styles.coverImage} />
               ) : (
                 <View style={styles.imagePlaceholderInner}>
                   <ImageIcon size={40} color={Colors.GRAY} />
@@ -310,11 +313,13 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     width: '100%',
-    height: 200,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_200,
     overflow: 'hidden',
     marginBottom: 12,
+  },
+  imagePlaceholderEmpty: {
+    height: 200,
   },
   imagePlaceholderInner: {
     flex: 1,
@@ -328,7 +333,6 @@ const styles = StyleSheet.create({
   },
   coverImage: {
     width: '100%',
-    height: '100%',
   },
   row: {
     flexDirection: 'row',

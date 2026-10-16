@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   ScrollView,
   Alert,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
+import FlexibleImage from "../../components/FlexibleImage";
 
 export default function Composer() {
   const { state, actions } = useThreads();
@@ -50,7 +50,6 @@ export default function Composer() {
           return;
         }
         const result = await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
@@ -62,7 +61,6 @@ export default function Composer() {
         }
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
@@ -147,15 +145,17 @@ export default function Composer() {
 
       <View style={styles.card}>
         {/* Threads don't store images yet, so there's nothing to edit here. */}
-        {isEditing ? null : imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            style={styles.image}
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={{ color: Colors.TEXT_MUTED }}>No image selected</Text>
-          </View>
+        {isEditing ? null : (
+          // Tap the preview (or the empty box) to pick a photo from the library.
+          <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
+            {imageUri ? (
+              <FlexibleImage uri={imageUri} style={styles.image} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         )}
 
         {isEditing ? null : (
@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 220,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_200,
   },

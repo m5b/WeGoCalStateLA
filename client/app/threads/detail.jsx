@@ -6,7 +6,6 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
 } from "react-native";
 import { useThreads } from "./threadStore";
@@ -15,6 +14,7 @@ import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
 import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
+import FlexibleImage from "../../components/FlexibleImage";
 import { confirmAction } from "../../utils/confirmAction";
 
 export default function ThreadDetail() {
@@ -126,7 +126,7 @@ export default function ThreadDetail() {
         ListHeaderComponent={
           <View style={styles.threadCard}>
             {thread.imageUri ? (
-              <Image source={{ uri: thread.imageUri }} style={styles.image} />
+              <FlexibleImage uri={thread.imageUri} style={styles.image} />
             ) : null}
 
             {categoryLabel ? (
@@ -189,7 +189,7 @@ export default function ThreadDetail() {
             </View>
             {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}
             {item.imageUri ? (
-              <Image source={{ uri: item.imageUri }} style={styles.replyImage} />
+              <FlexibleImage uri={item.imageUri} style={styles.replyImage} />
             ) : null}
           </View>
         )}
@@ -264,7 +264,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 220,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
@@ -346,7 +345,6 @@ const styles = StyleSheet.create({
   },
   replyImage: {
     width: "100%",
-    height: 200,
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,
