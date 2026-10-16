@@ -8,6 +8,7 @@ export function createThreadRepo(db){
         insertThread,
         updateByThreadId,
         updateByThreadUuid,
+        updateAnyByThreadUuid,
         deleteByThreadId,
         deleteByThreadUuid
     }
@@ -130,6 +131,15 @@ export function createThreadRepo(db){
 
     }
 
+    // No user_id check: lets anyone edit any (non-deleted) thread.
+    async function updateAnyByThreadUuid({threadUuid, sqlQuery, dataList}) {
+        dataList.push(threadUuid)
+        const [result] = await db.query(
+            sqlQuery + ' where thread_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            dataList
+        )
+        return result.affectedRows > 0
+    }
 
     async function deleteByThreadId({threadId, userId}) {
         const [result] = await db.execute(

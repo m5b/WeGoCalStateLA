@@ -13,16 +13,14 @@ import { useThreads } from "./threadStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
-import { THREAD_CATEGORIES } from "../../services/threads";
+import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import { confirmAction } from "../../utils/confirmAction";
-import { useAuth } from "../../context/AuthContext";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -54,7 +52,8 @@ export default function ThreadDetail() {
     );
   }
 
-  const isAuthor = !!user?.userUuid && user.userUuid === thread.authorUuid;
+  // Anyone can edit any real thread for now; FAQ placeholders aren't stored.
+  const canEdit = isRealThread(thread.id);
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
@@ -103,7 +102,7 @@ export default function ThreadDetail() {
         </TouchableOpacity>
         <Text style={styles.title}>Thread</Text>
         <View style={styles.headerActions}>
-          {isAuthor ? (
+          {canEdit ? (
             <TouchableOpacity
               onPress={() =>
                 router.push({
