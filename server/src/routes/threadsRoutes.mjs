@@ -61,6 +61,16 @@ export function createThreadRouter({userService, threadService}){
     })
 
 
+    // Public: anyone can edit any thread, signed in or not. Temporary, to
+    // keep things simple -- the author-only PATCH /me/:threadUuid above is
+    // still available.
+    router.patch('/:threadUuid', async (req, res) => {
+        const threadUuid = uuidSchema.parse(req.params.threadUuid)
+        const payload = threadPatchSchema.parse(req.body)
+        const thread = await threadService.patchAnyByThreadUuid({ threadUuid, payload })
+        res.send(jsend.success({ thread: new ThreadDto(thread) }))
+    })
+
     //tested
     // Public: anyone can view a single thread without being signed in.
     router.get('/:threadUuid', async (req, res) => {

@@ -88,6 +88,12 @@ function deriveTitle(text) {
   return (trimmed || "Community post").padEnd(20, ".");
 }
 
+// True for threads stored on the server (and so editable), false for the
+// static FAQ placeholders.
+export function isRealThread(threadId) {
+  return UUID_RE.test(String(threadId));
+}
+
 export async function getFeed() {
   const res = await apiGet("/api/threads");
   const real = res.data.threads.map(mapThread);
@@ -137,7 +143,8 @@ export async function createThread(data) {
 
 export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
-  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
+  // Anyone can edit any thread for now (see PATCH /api/threads/:threadUuid).
+  const res = await apiJson(`/api/threads/${threadId}`, "PATCH", {
     title: deriveTitle(content),
     content,
     category: data.category || "general",
