@@ -89,7 +89,7 @@ export default function ThreadFeed() {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.screenTitle}>Community conversations</Text>
-          <Text style={styles.previewText}>Preview data is stored only in this browser. Do not share private information.</Text>
+          <Text style={styles.previewText}>Posts are visible to everyone, even without an account. Do not share private information.</Text>
         </View>
         <TouchableOpacity
           style={styles.newButton}

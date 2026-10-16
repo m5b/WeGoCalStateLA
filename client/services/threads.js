@@ -51,7 +51,10 @@ function mapThread(dto) {
     id: dto.threadUuid,
     author: dto.author,
     authorUuid: dto.userUuid,
-    caption: dto.title,
+    // Shows the real post content, not dto.title -- the server requires a
+    // 20+ character title (see deriveTitle below), so title often has
+    // trailing dots padding it out and was never meant to be displayed.
+    caption: dto.body,
     text: dto.body,
     likes: 0, // no reactions backend yet -- see toggleLike below
     imageUri: null, // threads don't support image attachments yet
