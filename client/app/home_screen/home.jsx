@@ -17,10 +17,12 @@ import {
   User,
   Clock,
   MessageSquare,
+  LogIn,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { useAuth } from '../../context/AuthContext';
 
 const quickActions = [
   {
@@ -49,8 +51,8 @@ const quickActions = [
   },
   {
     id: 'profile',
-    title: 'Preview Profile',
-    subtitle: 'Explore how a community alias could work',
+    title: 'Your Profile',
+    subtitle: 'Manage your community alias and interests',
     icon: User,
     color: Colors.PRIMARY,
     route: 'profile',
@@ -58,7 +60,11 @@ const quickActions = [
 ];
 
 export default function HomeScreen() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
+  const visibleQuickActions = quickActions.filter(
+    (action) => action.id !== 'profile' || (!isLoading && isAuthenticated)
+  );
 
   const navigateToScreen = (screen) => {
     switch (screen) {
@@ -253,7 +259,7 @@ export default function HomeScreen() {
           <View style={webStyles.webSection}>
             <Text style={webStyles.webSectionTitle}>Quick Actions</Text>
             <View style={webStyles.webQuickActionsGrid}>
-              {quickActions.map((action) => (
+              {visibleQuickActions.map((action) => (
                 <TouchableOpacity
                   key={action.id}
                   style={webStyles.webActionCard}
@@ -344,7 +350,7 @@ export default function HomeScreen() {
           {/* Quick Actions */}
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
-            {quickActions.map((action) => (
+            {visibleQuickActions.map((action) => (
               <TouchableOpacity
                 key={action.id}
                 style={styles.actionCard}
@@ -422,15 +428,24 @@ export default function HomeScreen() {
                 navigateToScreen('resources');
               }}
             />
-            <TabButton
-              icon={User}
-              label="Profile"
-              isActive={activeTab === 'profile'}
-              onPress={() => {
-                setActiveTab('profile');
-                navigateToScreen('profile');
-              }}
-            />
+            {!isLoading && (isAuthenticated ? (
+              <TabButton
+                icon={User}
+                label="Profile"
+                isActive={activeTab === 'profile'}
+                onPress={() => {
+                  setActiveTab('profile');
+                  navigateToScreen('profile');
+                }}
+              />
+            ) : (
+              <TabButton
+                icon={LogIn}
+                label="Sign in"
+                isActive={false}
+                onPress={() => router.push('/authentication/login')}
+              />
+            ))}
           </View>
         </LinearGradient>
       </View>
