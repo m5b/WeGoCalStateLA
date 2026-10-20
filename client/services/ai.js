@@ -42,7 +42,7 @@ export async function extractEventFromFlyer(imageUri, asset = {}) {
   // Fetch supplies the multipart boundary; the existing API helper sends session cookies.
   let response;
   try {
-    response = await apiForm('/api/ai/extract-event', body);
+    response = await apiForm('/api/ai/extract-event', 'POST', body);
   } catch (error) {
     if (error.status) throw error;
     throw new Error('Unable to reach the server. Check your connection and try again.');

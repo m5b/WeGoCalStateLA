@@ -36,11 +36,13 @@ export async function apiJson(path, method, body) {
   return handleResponse(res);
 }
 
-export async function apiForm(path, body) {
+// For file uploads: send a FormData body with no Content-Type header, so
+// fetch sets the correct multipart boundary itself.
+export async function apiForm(path, method, formData) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
+    method,
     credentials: 'include',
-    body,
+    body: formData,
   });
   return handleResponse(res);
 }
