@@ -54,7 +54,10 @@ function mapThread(dto) {
     // Shows the real post content, not dto.title -- the server requires a
     // 20+ character title (see deriveTitle below), so title often has
     // trailing dots padding it out and was never meant to be displayed.
-    caption: dto.body,
+    // FAQs are the exception: their title is the question (shown as the
+    // heading) and their body is the answer.
+    caption: dto.category === "faq" ? dto.title : dto.body,
+    text: dto.body,
     text: dto.body,
     likes: 0, // no reactions backend yet -- see toggleLike below
     imageUri: null, // threads don't support image attachments yet
@@ -99,8 +102,7 @@ export function isRealThread(threadId) {
 
 export async function getFeed() {
   const res = await apiGet("/api/threads");
-  const real = res.data.threads.map(mapThread);
-  return [...real, ...FAQ_THREADS];
+  return res.data.threads.map(mapThread);
 }
 
 export async function getThreadDetail(threadId) {
@@ -128,7 +130,13 @@ export async function getThreadDetail(threadId) {
 export async function getThreadByEventId(eventId) {
   const event = await getEvent(eventId);
   if (!event?.threadId) return null;
-  return getThreadDetail(event.threadId);
+  try {
+    return await getThreadDetail(event.threadId);
+  } catch {
+    // The event's linked community post was deleted (the server now 404s
+    // deleted threads) -- the event page should still load without it.
+    return null;
+  }
 }
 
 export async function createThread(data) {
