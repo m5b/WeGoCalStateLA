@@ -62,6 +62,7 @@ export function createThreadRepo(db){
             `
             WHERE
               t.thread_id = ?
+              AND t.deleted_at IS NULL
             `,
             [threadId]
         )
@@ -73,7 +74,8 @@ export function createThreadRepo(db){
             getPublicSelect() +
             `
             WHERE
-              t.thread_uuid = UUID_TO_BIN(?)`,
+              t.thread_uuid = UUID_TO_BIN(?)
+              AND t.deleted_at IS NULL`,
             [threadUuid]
         )
         return row[0] || null

@@ -117,14 +117,20 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
         if (existing.thread_id && (title !== undefined || description !== undefined)) {
             const newTitle = title ?? existing.event_title
             const newDescription = description ?? existing.event_description
-            await threadService.patchByThreadId({
-                userId,
-                threadId: existing.thread_id,
-                payload: {
-                    title: `${newTitle} — Event`,
-                    content: newDescription || newTitle,
-                },
-            })
+            try {
+                await threadService.patchByThreadId({
+                    userId,
+                    threadId: existing.thread_id,
+                    payload: {
+                        title: `${newTitle} — Event`,
+                        content: newDescription || newTitle,
+                    },
+                })
+            } catch (err) {
+                // The linked community post was deleted -- the event edit
+                // itself should still save. Anything else is a real error.
+                if (!(err instanceof UnauthorizedError)) throw err
+            }
         }
 
         return await getByEventUuid(eventUuid)

@@ -99,6 +99,13 @@ export function createThreadService(threadRepo) {
 
     // Edits a thread regardless of who wrote it.
     async function patchAnyByThreadUuid({threadUuid, payload}) {
+        // FAQ posts are curated content: anyone can edit regular threads
+        // for now, but not the FAQs. (Also throws NotFound if the thread
+        // has been deleted.)
+        const existing = await getByThreadUuid(threadUuid)
+        if (existing.category === 'faq') {
+            throw new UnauthorizedError(null, "FAQ posts can only be edited by their author")
+        }
         const { sqlQuery, dataList } = buildPatchQuery(
             'threads',
             dbMapper.toDb(payload)

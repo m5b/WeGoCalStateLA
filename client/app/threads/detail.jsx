@@ -53,7 +53,7 @@ export default function ThreadDetail() {
   }
 
   // Anyone can edit any real thread for now; FAQ placeholders aren't stored.
-  const canEdit = isRealThread(thread.id);
+  const canEdit = isRealThread(thread.id) && thread.category !== "faq";
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
