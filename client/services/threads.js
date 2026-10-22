@@ -1,5 +1,6 @@
-import { apiGet, apiJson } from "./api";
+import { apiGet, apiJson, apiForm } from "./api";
 import { getEvent } from "./events";
+import { prepareImageBlob } from "../utils/imageData";
 
 export const THREAD_CATEGORIES = [
   { key: "general", label: "General" },
@@ -7,43 +8,8 @@ export const THREAD_CATEGORIES = [
   { key: "faq", label: "FAQs" },
 ];
 
-// Checks for a real backend UUID (every real thread/event has one) vs. the
-// faq-N ids used by the static placeholder content below.
+// Checks for a well-formed thread id (the server's uuid format).
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Static FAQ content -- not stored on the server, since there's no
-// FAQ-authoring feature yet. Replace with real content once that exists.
-const FAQ_THREADS = [
-  {
-    id: "faq-1",
-    author: "WeGo Community Team",
-    caption: "How do I find important dates like registration and financial-aid deadlines?",
-    text: "Check the Cal State LA academic calendar and the Events tab here for upcoming deadlines and reminders.",
-  },
-  {
-    id: "faq-2",
-    author: "WeGo Community Team",
-    caption: "Where can my student get mental health or wellness support on campus?",
-    text: "The Student Health Center and counseling services offer free support. See the Events tab for wellness workshops.",
-  },
-  {
-    id: "faq-3",
-    author: "WeGo Community Team",
-    caption: "Can family members attend campus events?",
-    text: "Many events are open to families. Check each event's details for who can attend.",
-  },
-].map((faq, i) => ({
-  likes: 0,
-  imageUri: null,
-  date: "",
-  time: "",
-  location: "",
-  category: "faq",
-  createdAt: Date.now() - 1000 * 60 * 60 * 24 * (i + 1),
-  replies: [],
-  repliesLoaded: true,
-  ...faq,
-}));
 
 // Maps a real thread (from GET /api/threads) to the shape the UI uses.
 function mapThread(dto) {
@@ -58,9 +24,8 @@ function mapThread(dto) {
     // heading) and their body is the answer.
     caption: dto.category === "faq" ? dto.title : dto.body,
     text: dto.body,
-    text: dto.body,
     likes: 0, // no reactions backend yet -- see toggleLike below
-    imageUri: null, // threads don't support image attachments yet
+    imageUri: dto.photoUrl || null,
     date: "",
     time: "",
     location: "",
@@ -78,6 +43,7 @@ function mapComment(dto) {
     id: dto.commentUuid,
     author: dto.username,
     text: dto.content,
+    imageUri: dto.photoUrl || null,
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
   };
 }
@@ -94,8 +60,7 @@ function deriveTitle(text) {
   return (trimmed || "Community post").padEnd(20, ".");
 }
 
-// True for threads stored on the server (and so editable), false for the
-// static FAQ placeholders.
+// True for a well-formed thread id (the server's uuid format).
 export function isRealThread(threadId) {
   return UUID_RE.test(String(threadId));
 }
@@ -107,8 +72,7 @@ export async function getFeed() {
 
 export async function getThreadDetail(threadId) {
   if (!UUID_RE.test(String(threadId))) {
-    // FAQ (or any other non-real) id -- nothing to fetch.
-    throw new Error("Not a real thread");
+    throw new Error("Not a valid thread id");
   }
   const res = await apiGet(`/api/comments/thread/${threadId}`);
   const seen = new Set();
@@ -139,16 +103,28 @@ export async function getThreadByEventId(eventId) {
   }
 }
 
+// Reads a local image URI (from the picker) as a Blob, shrinking big photos
+// first (see prepareImageBlob), so it can be attached to the upload's FormData.
+async function uriToBlob(imageUri) {
+  return prepareImageBlob(imageUri);
+}
+
+async function appendImageIfAny(formData, imageUri) {
+  if (!imageUri) return;
+  const blob = await uriToBlob(imageUri);
+  const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+  formData.append("image", blob, `photo.${extension}`);
+}
+
 export async function createThread(data) {
   const content = data.caption || data.text || "";
-  const res = await apiJson("/api/threads/me", "POST", {
-    title: deriveTitle(content),
-    content,
-    category: data.category || "general",
-  });
-  // Note: data.imageUri is intentionally not sent -- the real threads table
-  // has no image column yet, so a photo attached in the composer currently
-  // isn't persisted.
+  const formData = new FormData();
+  formData.append("title", deriveTitle(content));
+  formData.append("content", content);
+  formData.append("category", data.category || "general");
+  await appendImageIfAny(formData, data.imageUri);
+
+  const res = await apiForm("/api/threads/me", "POST", formData);
   return mapThread(res.data.thread);
 }
 
@@ -163,10 +139,12 @@ export async function updateThread(threadId, data) {
   return mapThread(res.data.thread);
 }
 
-export async function createReply(threadId, { text }) {
-  const res = await apiJson(`/api/comments/me/thread/${threadId}`, "POST", {
-    content: text,
-  });
+export async function createReply(threadId, { text, imageUri }) {
+  const formData = new FormData();
+  formData.append("content", text);
+  await appendImageIfAny(formData, imageUri);
+
+  const res = await apiForm(`/api/comments/me/thread/${threadId}`, "POST", formData);
   return mapComment(res.data.comment);
 }
 
