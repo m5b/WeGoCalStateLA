@@ -45,6 +45,8 @@ import { createEventsRepo } from '../repositories/eventsRepository.mjs'
 import { createEventService } from '../services/events/eventService.mjs'
 import { createEventsRouter } from '../routes/eventsRoutes.mjs'
 import { uploadBuffer, UPLOAD_ROOT } from '../lib/localStorage.mjs'
+import { createAIRouter } from '../routes/aiRoutes.mjs'
+import { createEventExtractionService } from '../services/ai/eventExtractionService.mjs'
 
 export function createApp(db, redis, emailService){
     const app = express()
@@ -96,6 +98,7 @@ export function createApp(db, redis, emailService){
     const threadService = createThreadService(threadRepo)
     const commentService = createCommentService({commentRepo: commentRepo, threadService: threadService, userService,})
     const eventService = createEventService({eventRepo: eventsRepo, threadService, uploadBuffer})
+    const eventExtractionService = createEventExtractionService()
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
     const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
@@ -107,6 +110,7 @@ export function createApp(db, redis, emailService){
     const userRouter = createUserRouter(userService)
     const threadRouter = createThreadRouter({userService, threadService})
     const eventsRouter = createEventsRouter({userService, eventService})
+    const aiRouter = createAIRouter({userService, eventExtractionService})
     const commentRouter = createCommentRouter({commentService, userService})
     const router = createAPIRouter({
         emailOTPRouter: emailOTPRouter,
@@ -120,6 +124,7 @@ export function createApp(db, redis, emailService){
         resetPasswordRouter,
         adminRouter,
         eventsRouter,
+        aiRouter,
     })
     app.use('/api', router)
     app.use(errorHandler)

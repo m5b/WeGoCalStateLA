@@ -22,6 +22,7 @@ export async function createRandomUser() {
     const email = faker.internet.email()
     const user = {
         userUuid: faker.string.uuid(),
+        createdAt: new Date(),
         username,
         displayName: username,
         email,
