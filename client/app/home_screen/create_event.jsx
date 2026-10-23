@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -11,18 +10,22 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { ImageIcon, ArrowLeft, Camera, Images, MapPin, Clock } from 'lucide-react-native';
+import { ImageIcon, Camera, Images, MapPin, Clock } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
-import { createEvent } from '../../services/events';
-import { createThread } from '../../services/threads';
+import { createEvent, getEvent, updateEvent } from '../../services/events';
 import DateTimeInput from '../../components/DateTimeInput';
+import WebLayout from '../../components/WebLayout';
+import FlexibleImage from '../../components/FlexibleImage';
 import { extractEventFromFlyer } from '../../services/ai';
 import usePastedImage from '../../hooks/usePastedImage';
 
+// Opened with ?eventId=... from the event details screen -> edit mode.
 export default function CreateEventScreen() {
+  const { eventId } = useLocalSearchParams();
+  const isEditing = !!eventId;
+  const [existingImageUri, setExistingImageUri] = useState(null);
   const [imageUri, setImageUri] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -30,13 +33,15 @@ export default function CreateEventScreen() {
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(Boolean(eventId));
+
   const [imageAsset, setImageAsset] = useState(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [aiNotice, setAiNotice] = useState(null);
   const [pendingExtraction, setPendingExtraction] = useState(null);
   const extractionInFlight = useRef(false);
   const mounted = useRef(true);
-  const isBusy = loading || isExtracting || Boolean(pendingExtraction);
+  const isBusy = loading || isLoadingEvent || isExtracting || Boolean(pendingExtraction);
 
   useEffect(() => {
     mounted.current = true;
@@ -46,7 +51,7 @@ export default function CreateEventScreen() {
   const cancelPendingPaste = usePastedImage({
     disabled: isBusy,
     onImage: (asset) => {
-      if (!extractionInFlight.current && !loading && !pendingExtraction) selectImage(asset);
+      if (!extractionInFlight.current && !loading && !isLoadingEvent && !pendingExtraction) selectImage(asset);
     },
     onError: (text) => setAiNotice({ kind: 'error', text }),
   });
@@ -69,18 +74,18 @@ export default function CreateEventScreen() {
     }
     const reason = result.eventStatusReason.trim();
     if (result.eventStatus === 'likely_event') {
-      setAiNotice({ kind: 'info', text: 'Event details extracted. Please review them before creating the event.' });
+      setAiNotice({ kind: 'info', text: 'Event details extracted. Please review them before saving the event.' });
     } else {
       const message = result.eventStatus === 'not_event'
         ? 'You chose to review an image that may not be an event flyer.'
         : 'This image may not be an event flyer.';
-      setAiNotice({ kind: 'warning', text: [message, reason, 'Verify all extracted information before creating the event.'].filter(Boolean).join(' ') });
+      setAiNotice({ kind: 'warning', text: [message, reason, 'Verify all extracted information before saving the event.'].filter(Boolean).join(' ') });
     }
   }
 
   async function handleAutofill() {
     // A ref guards repeated taps before React has rendered the loading state.
-    if (extractionInFlight.current || loading || pendingExtraction || !imageUri) return;
+    if (extractionInFlight.current || loading || isLoadingEvent || pendingExtraction || !imageUri) return;
     extractionInFlight.current = true;
     setIsExtracting(true);
     setAiNotice(null);
@@ -104,9 +109,38 @@ export default function CreateEventScreen() {
     }
   }
 
+  useEffect(() => {
+    if (!eventId) return;
+    let active = true;
+    setIsLoadingEvent(true);
+    getEvent(eventId)
+      .then((event) => {
+        if (!active) return;
+        setTitle(event.title || '');
+        setDescription(event.description || '');
+        setDate(event.date || '');
+        setTime(event.time || '');
+        setLocation(event.location || '');
+        setImageUri(event.imageUri || null);
+        setExistingImageUri(event.imageUri || null);
+        setImageAsset(null);
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.warn('Failed to load event for editing', error);
+        Alert.alert('Error', 'Could not load this event.');
+      })
+      .finally(() => { if (active) setIsLoadingEvent(false); });
+    return () => { active = false; };
+  }, [eventId]);
+
+  const goBack = () =>
+    isEditing
+      ? router.replace({ pathname: '/home_screen/details', params: { eventId } })
+      : router.replace('/home_screen/events');
 
   async function pickFrom(kind) {
-    if (extractionInFlight.current || loading) return;
+    if (extractionInFlight.current || loading || isLoadingEvent) return;
     try {
       if (kind === 'camera') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -114,7 +148,7 @@ export default function CreateEventScreen() {
           Alert.alert('Permission needed', 'Camera access is required.');
           return;
         }
-        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
+        const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
         if (!result.canceled) selectImage(result.assets[0]);
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -124,7 +158,6 @@ export default function CreateEventScreen() {
         }
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) selectImage(result.assets[0]);
@@ -136,7 +169,7 @@ export default function CreateEventScreen() {
   }
 
   async function handleSubmit() {
-    if (extractionInFlight.current || loading || pendingExtraction) return;
+    if (extractionInFlight.current || loading || isLoadingEvent || pendingExtraction) return;
     if (!title.trim()) {
       Alert.alert('Missing title', 'Please enter an event title.');
       return;
@@ -146,30 +179,41 @@ export default function CreateEventScreen() {
       return;
     }
     setLoading(true);
+    if (isEditing) {
+      try {
+        await updateEvent(eventId, {
+          title: title.trim(),
+          description: description.trim(),
+          imageUri,
+          existingImageUri,
+          date: date.trim(),
+          time: time.trim(),
+          location: location.trim(),
+        });
+        goBack();
+      } catch (error) {
+        console.error('Update event failed:', error);
+        Alert.alert('Error', 'Failed to save changes.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     try {
-      const createdEvent = await createEvent({
+      // The backend creates the linked community post automatically, so no
+      // separate createThread call is needed here.
+      await createEvent({
         title: title.trim(),
         description: description.trim(),
         imageUri,
         date: date.trim(),
         time: time.trim(),
         location: location.trim(),
-        createdAt: Date.now(),
-      });
-
-      await createThread({
-        caption: `${createdEvent.title} — Event Discussion`,
-        imageUri: createdEvent.imageUri,
-        date: createdEvent.date,
-        time: createdEvent.time,
-        location: createdEvent.location,
-        eventId: createdEvent.id,
-        type: 'event',
-        createdAt: Date.now(),
       });
 
       router.replace('/home_screen/events');
-    } catch (_e) {
+    } catch (error) {
+      console.error('Create event failed:', error);
       Alert.alert('Error', 'Failed to create event.');
     } finally {
       setLoading(false);
@@ -177,133 +221,163 @@ export default function CreateEventScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={[Colors.PRIMARY, Colors.DARK_BLUE]} style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace('/home_screen/events')} style={styles.backButton}>
-            <ArrowLeft size={24} color={Colors.SECONDARY} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Event</Text>
-          <View style={{ width: 40 }} />
-        </View>
-      </LinearGradient>
+    <WebLayout>
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={goBack}>
+              <Text style={styles.backText}>← Back</Text>
+            </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.card}>
+            <Text style={styles.headerTitle}>
+              {isEditing ? 'Edit Event' : 'Create Event'}
+            </Text>
 
-          <TouchableOpacity disabled={isBusy} style={styles.imagePlaceholder} onPress={() => pickFrom('library')} activeOpacity={0.8}>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.coverImage} resizeMode="contain" />
-            ) : (
-              <View style={styles.imagePlaceholderInner}>
-                <ImageIcon size={40} color={Colors.GRAY} />
-                <Text style={styles.imagePlaceholderText}>Add a cover image</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <View style={styles.card}>
+
+            <TouchableOpacity
+              disabled={isBusy}
+              style={[styles.imagePlaceholder, !imageUri && styles.imagePlaceholderEmpty]}
+              onPress={() => pickFrom('library')}
+              activeOpacity={0.8}
+            >
+              {imageUri ? (
+                <FlexibleImage uri={imageUri} maxHeight={240} style={styles.coverImage} />
+              ) : (
+                <View style={styles.imagePlaceholderInner}>
+                  <ImageIcon size={40} color={Colors.GRAY} />
+                  <Text style={styles.imagePlaceholderText}>Add a cover image</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.row}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={isBusy}
+                style={[styles.pickerButton, styles.galleryButton, isBusy && styles.submitButtonDisabled]}
+                onPress={() => pickFrom('library')}
+              >
+                <Images size={18} color={Colors.WHITE} />
+                <Text style={styles.pickerButtonText}>Gallery</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                accessibilityRole="button"
+                disabled={isBusy}
+                style={[styles.pickerButton, styles.cameraButton, isBusy && styles.submitButtonDisabled]}
+                onPress={() => pickFrom('camera')}
+              >
+                <Camera size={18} color={Colors.BLACK} />
+                <Text style={[styles.pickerButtonText, { color: Colors.BLACK }]}>
+                  Camera
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {Platform.OS === 'web' && (
+              <Text style={styles.autofillHint}>You can also paste an image with Ctrl+V</Text>
+            )}
+
+            <TouchableOpacity
+              accessibilityRole="button" accessibilityState={{ disabled: !imageUri || isBusy, busy: isExtracting }}
+              style={[styles.autofillButton, (!imageUri || isBusy) && styles.submitButtonDisabled]}
+              onPress={handleAutofill} disabled={!imageUri || isBusy}>
+              <Text style={styles.autofillButtonText}>{isExtracting ? 'Reading flyer...' : 'Autofill from Flyer'}</Text>
+            </TouchableOpacity>
+            {!imageUri && <Text style={styles.autofillHint}>Select a flyer with Gallery or Camera to autofill details.</Text>}
+            {aiNotice && (
+              <View style={[styles.notice, aiNotice.kind === 'warning' && styles.warningNotice, aiNotice.kind === 'error' && styles.errorNotice]}>
+                <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.noticeText}>{aiNotice.text}</Text>
               </View>
             )}
-          </TouchableOpacity>
 
-          <View style={styles.row}>
-            <TouchableOpacity disabled={isBusy} accessibilityRole="button" style={[styles.pickerButton, styles.galleryButton, isBusy && styles.submitButtonDisabled]} onPress={() => pickFrom('library')}>
-              <Images size={18} color={Colors.SECONDARY} />
-              <Text style={styles.pickerButtonText}>Gallery</Text>
-            </TouchableOpacity>
-            <TouchableOpacity disabled={isBusy} accessibilityRole="button" style={[styles.pickerButton, styles.cameraButton, isBusy && styles.submitButtonDisabled]} onPress={() => pickFrom('camera')}>
-              <Camera size={18} color={Colors.SECONDARY} />
-              <Text style={styles.pickerButtonText}>Camera</Text>
-            </TouchableOpacity>
-          </View>
-
-          {Platform.OS === 'web' && (
-            <Text style={styles.autofillHint}>You can also paste an image with Ctrl+V</Text>
-          )}
-
-          <TouchableOpacity
-            accessibilityRole="button" accessibilityState={{ disabled: !imageUri || isBusy, busy: isExtracting }}
-            style={[styles.autofillButton, (!imageUri || isBusy) && styles.submitButtonDisabled]}
-            onPress={handleAutofill} disabled={!imageUri || isBusy}>
-            <Text style={styles.autofillButtonText}>{isExtracting ? 'Reading flyer...' : 'Autofill from Flyer'}</Text>
-          </TouchableOpacity>
-          {!imageUri && <Text style={styles.autofillHint}>Select a flyer with Gallery or Camera to autofill details.</Text>}
-          {aiNotice && (
-            <View style={[styles.notice, aiNotice.kind === 'warning' && styles.warningNotice, aiNotice.kind === 'error' && styles.errorNotice]}>
-              <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.noticeText}>{aiNotice.text}</Text>
-            </View>
-          )}
-
-          <Text style={styles.label}>Event Title</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter event title"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={title}
-            editable={!isBusy}
-            onChangeText={setTitle}
-          />
-
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.inputMultiline]}
-            placeholder="What's this event about?"
-            placeholderTextColor={Colors.TEXT_MUTED}
-            value={description}
-            editable={!isBusy}
-            onChangeText={setDescription}
-            multiline
-            textAlignVertical="top"
-          />
-
-          <View style={styles.dateTimeRow}>
-            <View style={styles.dateTimeField}>
-              <Text style={styles.label}>Date</Text>
-              <View style={styles.iconInput}>
-                
-                <DateTimeInput
-                        type="date"
-                        value={date}
-                        onChange={setDate}
-                        disabled={isBusy}
-                        />
-              </View>
-            </View>
-            <View style={styles.dateTimeField}>
-              <Text style={styles.label}>Time</Text>
-              <View style={styles.iconInput}>
-                <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
-                <DateTimeInput
-                      type="time"
-                      value={time}
-                      onChange={setTime}
-                      disabled={isBusy}
-                      />
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.iconInput}>
-            <MapPin size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+            <Text style={styles.label}>Event Title</Text>
             <TextInput
-              style={styles.iconInputField}
-              placeholder="Enter location"
+              style={styles.input}
+              placeholder="Enter event title"
               placeholderTextColor={Colors.TEXT_MUTED}
-              value={location}
+              value={title}
               editable={!isBusy}
-              onChangeText={setLocation}
+              maxLength={255}
+              onChangeText={setTitle}
             />
+
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.inputMultiline]}
+              placeholder="What's this event about?"
+              placeholderTextColor={Colors.TEXT_MUTED}
+              value={description}
+              editable={!isBusy}
+              maxLength={5000}
+              onChangeText={setDescription}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Date</Text>
+                <View style={styles.iconInput}>
+
+                  <DateTimeInput
+                    type="date"
+                    value={date}
+                    onChange={setDate}
+                    disabled={isBusy}
+                  />
+                </View>
+              </View>
+              <View style={{ width: 12 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Time</Text>
+                <View style={styles.iconInput}>
+                  <Clock size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+                  <DateTimeInput
+                    type="time"
+                    value={time}
+                    onChange={setTime}
+                    disabled={isBusy}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.label}>Location</Text>
+            <View style={styles.iconInput}>
+              <MapPin size={16} color={Colors.TEXT_MUTED} style={styles.inputIcon} />
+              <TextInput
+                style={styles.iconInputField}
+                placeholder="Enter location"
+                placeholderTextColor={Colors.TEXT_MUTED}
+                value={location}
+                editable={!isBusy}
+                maxLength={500}
+                onChangeText={setLocation}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButton, isBusy && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={isBusy}
+            >
+              <Text style={styles.submitButtonText}>
+                {isEditing
+                  ? loading ? 'Saving...' : 'Save Changes'
+                  : loading ? 'Creating...' : 'Create Event'}
+              </Text>
+            </TouchableOpacity>
+
           </View>
-
-          <TouchableOpacity
-            style={[styles.submitButton, isBusy && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={isBusy}
-          >
-            <Text style={styles.submitButtonText}>
-              {loading ? 'Creating...' : 'Create Event'}
-            </Text>
-          </TouchableOpacity>
-
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
       <Modal visible={Boolean(pendingExtraction)} transparent animationType="fade"
         onRequestClose={() => {
           setPendingExtraction(null);
@@ -326,7 +400,7 @@ export default function CreateEventScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </WebLayout>
   );
 }
 
@@ -335,47 +409,44 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.LIGHT_GRAY,
   },
-  header: {
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  backButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.SECONDARY + '20',
+  backText: {
+    color: Colors.PRIMARY,
+    fontWeight: '600',
   },
   headerTitle: {
+    color: Colors.TEXT,
     fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.SECONDARY,
+    fontWeight: '800',
   },
   content: {
     padding: 16,
     paddingBottom: 40,
+    maxWidth: 760,
+    alignSelf: 'center',
+    width: '100%',
   },
   card: {
     backgroundColor: Colors.WHITE,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.BORDER,
-    borderStyle: 'dashed',
+    padding: 14,
   },
   imagePlaceholder: {
     width: '100%',
-    height: 240,
-    alignItems: 'center',
-    justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: Colors.GRAY_200,
     overflow: 'hidden',
     marginBottom: 12,
+  },
+  imagePlaceholderEmpty: {
+    height: 200,
   },
   imagePlaceholderInner: {
     flex: 1,
@@ -389,7 +460,6 @@ const styles = StyleSheet.create({
   },
   coverImage: {
     width: '100%',
-    height: '100%',
   },
   row: {
     flexDirection: 'row',
@@ -410,15 +480,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
   },
   cameraButton: {
-    backgroundColor: Colors.WARNING,
+    backgroundColor: Colors.BRAND_GOLD,
   },
   pickerButtonText: {
-    color: Colors.SECONDARY,
+    color: Colors.WHITE,
     fontWeight: '700',
     fontSize: 15,
   },
-  dateTimeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  dateTimeField: { flex: 1, minWidth: 200 },
   autofillButton: { backgroundColor: Colors.PRIMARY, borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 12 },
   autofillButtonText: { color: Colors.WHITE, fontWeight: '700', fontSize: 15 },
   autofillHint: { color: Colors.TEXT_MUTED, fontSize: 13, marginBottom: 12 },
@@ -473,7 +541,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,
   },
   submitButton: {
-    backgroundColor: Colors.SECONDARY,
+    backgroundColor: Colors.PRIMARY,
     borderRadius: 999,
     paddingVertical: 14,
     alignItems: 'center',
@@ -483,7 +551,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: Colors.PRIMARY,
+    color: Colors.WHITE,
     fontWeight: '700',
     fontSize: 16,
   },

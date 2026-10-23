@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,9 +11,13 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CalendarDays, Clock, MapPin, MessageCircle } from "lucide-react-native";
 import WebLayout from "../../components/WebLayout";
+import ReplyImagePicker from "../../components/ReplyImagePicker";
+import FlexibleImage from "../../components/FlexibleImage";
 import { Colors } from "../../constant/Colors";
 import { getEvent } from "../../services/events";
-import { createReply, getThreadByEventId } from "../../services/threads";
+import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
+import { confirmAction } from "../../utils/confirmAction";
+import { useAuth } from "../../context/AuthContext";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -26,9 +29,11 @@ function getEventTitle(event) {
 export default function EventDetails() {
   const { eventId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
+  const [replyImage, setReplyImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,19 +84,38 @@ export default function EventDetails() {
 
   const submitReply = async () => {
     const text = replyText.trim();
-    if (!text || !thread) return;
+    if ((!text && !replyImage) || !thread) return;
     try {
-      const reply = await createReply(thread.id, { text });
+      const reply = await createReply(thread.id, { text, imageUri: replyImage });
       setThread((current) => ({
         ...current,
         replies: [...(current.replies ?? []), reply],
       }));
       setReplyText("");
+      setReplyImage(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
     }
   };
 
+  const confirmDeleteReply = (replyId) =>
+    confirmAction({
+      title: "Delete reply",
+      message: "Delete this reply? This can't be undone.",
+      onConfirm: async () => {
+        try {
+          await deleteReply(thread.id, replyId);
+          setThread((current) => ({
+            ...current,
+            replies: (current.replies ?? []).filter((r) => r.id !== replyId),
+          }));
+        } catch (error) {
+          console.warn("Failed to delete reply", error);
+        }
+      },
+    });
+
+  const isAuthor = !!user?.userUuid && user.userUuid === event.authorUuid;
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
 
@@ -103,7 +127,21 @@ export default function EventDetails() {
             <Text style={styles.backText}>{"\u2190"} Back to Events</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Event Details</Text>
-          <View style={{ width: 72 }} />
+          {isAuthor ? (
+            <TouchableOpacity
+              style={{ width: 72, alignItems: "flex-end" }}
+              onPress={() =>
+                router.push({
+                  pathname: "/home_screen/create_event",
+                  params: { eventId: event.id },
+                })
+              }
+            >
+              <Text style={styles.backText}>Edit</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 72 }} />
+          )}
         </View>
 
         <ScrollView
@@ -112,11 +150,14 @@ export default function EventDetails() {
         >
           <View style={styles.eventCard}>
             {event.imageUri ? (
-              <Image source={{ uri: event.imageUri }} style={styles.heroImage} />
+              <FlexibleImage uri={event.imageUri} style={styles.heroImage} maxHeight={640} />
             ) : null}
 
             <View style={styles.eventBody}>
               <Text style={styles.eventTitle}>{title}</Text>
+              {event.author ? (
+                <Text style={styles.postedBy}>Posted by {event.author}</Text>
+              ) : null}
 
               <View style={styles.metaGrid}>
                 {event.date ? (
@@ -176,13 +217,24 @@ export default function EventDetails() {
               ) : (
                 thread.replies.map((reply) => (
                   <View key={String(reply.id)} style={styles.replyCard}>
-                    <Text style={styles.replyAuthor}>Anonymous</Text>
-                    <Text style={styles.replyText}>{reply.text}</Text>
+                    <View style={styles.replyHeader}>
+                      <Text style={styles.replyAuthor}>{reply.author || "Anonymous"}</Text>
+                      <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
+                        <Text style={styles.replyDelete}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {!!reply.text && (
+                      <Text style={styles.replyText}>{reply.text}</Text>
+                    )}
+                    {reply.imageUri ? (
+                      <FlexibleImage uri={reply.imageUri} style={styles.replyImage} />
+                    ) : null}
                   </View>
                 ))
               )}
 
               <View style={styles.replyBox}>
+                <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
                   placeholder="Write a reply..."
                   placeholderTextColor={Colors.TEXT_MUTED}
@@ -258,9 +310,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-    height: 320,
     backgroundColor: Colors.GRAY_200,
-    resizeMode: "cover",
   },
   eventBody: {
     padding: 22,
@@ -269,6 +319,12 @@ const styles = StyleSheet.create({
     color: EVENT_TEXT_COLOR,
     fontSize: 28,
     fontWeight: "800",
+    marginBottom: 16,
+  },
+  postedBy: {
+    color: EVENT_TEXT_COLOR,
+    opacity: 0.7,
+    fontSize: 13,
     marginBottom: 16,
   },
   metaGrid: {
@@ -351,9 +407,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.BORDER,
   },
+  replyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  replyDelete: {
+    color: Colors.ERROR,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   replyAuthor: {
     color: Colors.TEXT,
     fontWeight: "700",
+  },
+  replyImage: {
+    width: "100%",
+    borderRadius: 10,
+    marginTop: 8,
+    backgroundColor: Colors.GRAY_200,
   },
   replyText: {
     color: Colors.TEXT,

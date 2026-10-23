@@ -39,19 +39,20 @@ export function createCommentRepo(db){
                 -- user 
                 c.user_id AS user_id,
                 CASE
-                    WHEN u.deleted_at IS NULL
+                    WHEN c.user_id IS NOT NULL AND u.deleted_at IS NULL
                         AND c.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
                     ELSE NULL
                     END AS user_uuid,
                 CASE
-                    WHEN u.deleted_at IS NULL
-                        AND c.deleted_at IS NULL THEN u.username
-                    ELSE NULL
+                    WHEN c.deleted_at IS NOT NULL THEN NULL
+                    WHEN c.user_id IS NULL THEN 'Anonymous'
+                    WHEN u.deleted_at IS NOT NULL THEN NULL
+                    ELSE u.username
                     END AS username
             FROM
                 comments c
                     JOIN threads t ON c.thread_id = t.thread_id
-                    JOIN users u ON c.user_id = u.user_id
+                    LEFT JOIN users u ON c.user_id = u.user_id
                     LEFT JOIN comments p ON p.comment_id = c.parent_comment_id
         `
     }
@@ -114,10 +115,13 @@ export function createCommentRepo(db){
     }
 
     async function findByThreadUuid(threadUuid) {
+        // Deleted replies are left out entirely -- see deleteByCommentUuid
+        // below, which soft-deletes by setting deleted_at.
         const [row] = await db.execute(
             getPublicSelect() +
             `
                 WHERE t.thread_uuid = UUID_TO_BIN(?)
+                    AND c.deleted_at IS NULL
                 ORDER BY c.created_at ASC
             `,
                 [threadUuid]

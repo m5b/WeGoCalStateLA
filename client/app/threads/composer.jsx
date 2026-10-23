@@ -1,25 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
-  Image,
   ScrollView,
   Alert,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
+import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
+import FlexibleImage from "../../components/FlexibleImage";
 
 export default function Composer() {
-  const { actions } = useThreads();
+  const { state, actions } = useThreads();
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  // Opened with ?threadId=... from the thread detail screen -> edit mode.
+  const editingThread = params.threadId
+    ? state.threads.find((t) => String(t.id) === String(params.threadId))
+    : null;
+  const isEditing = !!params.threadId;
 
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState("");
+  const [category, setCategory] = useState(null);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Prefill once the thread is available (the feed may still be loading
+  // when this screen opens).
+  useEffect(() => {
+    if (!editingThread) return;
+    setCaption(editingThread.text || editingThread.caption || "");
+    setCategory(editingThread.category || "general");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingThread?.id]);
 
   async function pickFrom(kind) {
     try {
@@ -30,7 +50,6 @@ export default function Composer() {
           return;
         }
         const result = await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
@@ -42,7 +61,6 @@ export default function Composer() {
         }
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
           quality: 0.8,
         });
         if (!result.canceled) setImageUri(result.assets[0]?.uri);
@@ -55,20 +73,46 @@ export default function Composer() {
 
   async function submit() {
     if (!imageUri && !caption.trim()) {
-      Alert.alert("Add something", "Please add a photo or a caption.");
+      setError("Please add a photo or a caption.");
+      return;
+    }
+    if (!category) {
+      setError("Please choose a tag for your thread.");
+      return;
+    }
+    setError("");
+
+    if (isEditing) {
+      setSaving(true);
+      try {
+        await actions.editThread(params.threadId, { caption, category });
+        router.back();
+      } catch (e) {
+        console.warn("Failed to update thread", e);
+        setError("Couldn't save your changes. Please try again.");
+        setSaving(false);
+      }
       return;
     }
 
-    await actions.addThread({
-      caption,
-      imageUri,
-      createdAt: Date.now(),
-    });
+    try {
+      await actions.addThread({
+        caption,
+        imageUri,
+        category,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      console.warn("Failed to create thread", e);
+      setError(e.message || "Couldn't post your thread. Please try again.");
+      return;
+    }
 
     setImageUri(null);
     setCaption("");
+    setCategory(null);
 
-    router.replace("/threads/feed");
+    router.replace({ pathname: "/threads/feed", params: { category } });
   }
 
   return (
@@ -81,39 +125,57 @@ export default function Composer() {
       }}
     >
       <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.replace("/threads/feed")}>
+        <TouchableOpacity
+          onPress={() =>
+            isEditing
+              ? router.back()
+              : router.replace({
+                  pathname: "/threads/feed",
+                  params: params.category ? { category: params.category } : {},
+                })
+          }
+        >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Start a conversation</Text>
+        <Text style={styles.title}>
+          {isEditing ? "Edit thread" : "Start a conversation"}
+        </Text>
         <View style={{ width: 40 }} /> 
       </View>
 
       <View style={styles.card}>
-        {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            style={styles.image}
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={{ color: Colors.TEXT_MUTED }}>No image selected</Text>
-          </View>
+        {/* Threads don't store images yet, so there's nothing to edit here. */}
+        {isEditing ? null : (
+          // Tap the preview (or the empty box) to pick a photo from the library.
+          <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
+            {imageUri ? (
+              <FlexibleImage uri={imageUri} style={styles.image} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         )}
 
-        <View style={styles.row}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
-            onPress={() => pickFrom("library")}
-          >
-            <Text style={styles.buttonText}>Gallery</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: Colors.SECONDARY }]}
-            onPress={() => pickFrom("camera")}
-          >
-            <Text style={styles.buttonText}>Camera</Text>
-          </TouchableOpacity>
-        </View>
+        {isEditing ? null : (
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
+              onPress={() => pickFrom("library")}
+            >
+              <Text style={styles.buttonText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+    style={[styles.button, { backgroundColor: Colors.BRAND_GOLD }]}
+    onPress={() => pickFrom("camera")}
+  >
+    <Text style={[styles.buttonText, { color: Colors.BLACK }]}>
+      Camera
+    </Text>
+  </TouchableOpacity>
+          </View>
+        )}
 
         <TextInput
           placeholder="Share a question, resource, or encouraging thought…"
@@ -124,8 +186,46 @@ export default function Composer() {
           multiline
         />
 
-        <TouchableOpacity style={styles.postButton} onPress={submit}>
-          <Text style={styles.postButtonText}>Share with the community</Text>
+        <Text style={styles.tagLabel}>Tag (required)</Text>
+        <View style={styles.tagRow}>
+          {THREAD_CATEGORIES.map((c) => {
+            const selected = category === c.key;
+            return (
+              <TouchableOpacity
+                key={c.key}
+                onPress={() => {
+                  setCategory(c.key);
+                  setError("");
+                }}
+                style={[styles.tagChip, selected && styles.tagChipSelected]}
+              >
+                <Text
+                  style={[
+                    styles.tagChipText,
+                    selected && styles.tagChipTextSelected,
+                  ]}
+                >
+                  {c.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.postButton, saving && { opacity: 0.5 }]}
+          onPress={submit}
+          disabled={saving}
+        >
+          <Text style={styles.postButtonText}>
+            {isEditing
+              ? saving
+                ? "Saving..."
+                : "Save changes"
+              : "Share with the community"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -157,7 +257,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 220,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_200,
   },
@@ -203,6 +302,40 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.BORDER,
+  },
+  tagLabel: {
+    marginTop: 14,
+    color: Colors.TEXT,
+    fontWeight: "600",
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  tagChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.WHITE,
+  },
+  tagChipSelected: {
+    backgroundColor: Colors.PRIMARY,
+    borderColor: Colors.PRIMARY,
+  },
+  tagChipText: {
+    color: Colors.TEXT,
+    fontWeight: "600",
+  },
+  tagChipTextSelected: {
+    color: Colors.WHITE,
+  },
+  errorText: {
+    color: Colors.ERROR,
+    marginTop: 10,
   },
   postButton: {
     marginTop: 16,

@@ -15,6 +15,8 @@ async function handleResponse(res) {
   const err = new Error(body.message || 'Request failed');
   err.status = res.status;
   err.data = body.data || null;
+  // Validation errors come back under "error", not "data" -- check both.
+  err.data = body.data || body.error || null;
   throw err;
 }
 

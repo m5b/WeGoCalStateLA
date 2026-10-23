@@ -8,6 +8,7 @@ export function createThreadRepo(db){
         insertThread,
         updateByThreadId,
         updateByThreadUuid,
+        updateAnyByThreadUuid,
         deleteByThreadId,
         deleteByThreadUuid
     }
@@ -25,19 +26,21 @@ export function createThreadRepo(db){
                     WHEN t.deleted_at IS NULL THEN t.title
                     ELSE NULL
                     END AS title,
+                    t.category AS category,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
                     ELSE NULL 
                     END AS content,
                 CASE
-                    WHEN u.deleted_at IS NULL
+                    WHEN t.user_id IS NOT NULL AND u.deleted_at IS NULL
                         AND t.deleted_at IS NULL THEN BIN_TO_UUID(u.user_uuid)
                     ELSE NULL
                     END AS user_uuid,
                 CASE
-                    WHEN u.deleted_at IS NULL
-                        AND t.deleted_at IS NULL THEN u.username
-                    ELSE NULL
+                    WHEN t.deleted_at IS NOT NULL THEN NULL
+                    WHEN t.user_id IS NULL THEN 'Anonymous'
+                    WHEN u.deleted_at IS NOT NULL THEN NULL
+                    ELSE u.username
                     END AS username
             FROM
                 threads t
@@ -45,8 +48,11 @@ export function createThreadRepo(db){
         `
     }
     async function findAll() {
+        // Deleted threads are left out of the feed entirely -- see
+        // deleteByThreadUuid below, which soft-deletes by setting
+        // deleted_at rather than removing the row.
         const [row] = await db.query(
-            getPublicSelect()
+            getPublicSelect() + ' WHERE t.deleted_at IS NULL'
         )
         return row
     }
@@ -56,6 +62,7 @@ export function createThreadRepo(db){
             `
             WHERE
               t.thread_id = ?
+              AND t.deleted_at IS NULL
             `,
             [threadId]
         )
@@ -67,7 +74,8 @@ export function createThreadRepo(db){
             getPublicSelect() +
             `
             WHERE
-              t.thread_uuid = UUID_TO_BIN(?)`,
+              t.thread_uuid = UUID_TO_BIN(?)
+              AND t.deleted_at IS NULL`,
             [threadUuid]
         )
         return row[0] || null
@@ -94,10 +102,10 @@ export function createThreadRepo(db){
         return row
     }
 
-    async function insertThread({ userId, threadUuid, title, content }) {
+    async function insertThread({ userId, threadUuid, title, content, category = 'general' }) {
         const [result] = await db.execute(
-            'INSERT into threads (user_id, thread_uuid, title, content) VALUES (?,UUID_TO_BIN(?), ?, ?)',
-            [userId, threadUuid, title, content]
+            'INSERT into threads (user_id, thread_uuid, title, content, category) VALUES (?,UUID_TO_BIN(?), ?, ?, ?)',
+            [userId, threadUuid, title, content, category]
         )
 
         return result.insertId
@@ -128,6 +136,15 @@ export function createThreadRepo(db){
 
     }
 
+    // No user_id check: lets anyone edit any (non-deleted) thread.
+    async function updateAnyByThreadUuid({threadUuid, sqlQuery, dataList}) {
+        dataList.push(threadUuid)
+        const [result] = await db.query(
+            sqlQuery + ' where thread_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            dataList
+        )
+        return result.affectedRows > 0
+    }
 
     async function deleteByThreadId({threadId, userId}) {
         const [result] = await db.execute(

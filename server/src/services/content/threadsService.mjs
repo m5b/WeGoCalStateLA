@@ -14,6 +14,7 @@ export function createThreadService(threadRepo) {
         postByUserId,
         patchByThreadId,
         patchByThreadUuid,
+        patchAnyByThreadUuid,
         getByUserId,
         getByUserUuid,
         deleteByThreadId,
@@ -56,12 +57,13 @@ export function createThreadService(threadRepo) {
     }
 
     async function postByUserId(userId, payload) {
-        const { title, content } = payload
+        const { title, content, category } = payload
         const insertId = await threadRepo.insertThread({
             userId: userId,
             threadUuid: uuidv4(),
             title: title,
             content: content,
+            category: category,
         })
         const thread = await getByThreadId(insertId)
         return thread
@@ -93,6 +95,29 @@ export function createThreadService(threadRepo) {
         }
         const thread = await getByThreadUuid(threadUuid)
         return thread
+    }
+
+    // Edits a thread regardless of who wrote it.
+    async function patchAnyByThreadUuid({threadUuid, payload}) {
+        // FAQ posts are curated content: anyone can edit regular threads
+        // for now, but not the FAQs. (Also throws NotFound if the thread
+        // has been deleted.)
+        const existing = await getByThreadUuid(threadUuid)
+        if (existing.category === 'faq') {
+            throw new UnauthorizedError(null, "FAQ posts can only be edited by their author")
+        }
+        const { sqlQuery, dataList } = buildPatchQuery(
+            'threads',
+            dbMapper.toDb(payload)
+        )
+
+        const existed = await threadRepo.updateAnyByThreadUuid({threadUuid, sqlQuery, dataList})
+        if(!existed){
+            throw new NotFoundError({
+                thread: 'Cannot find thread with the given identifier',
+            })
+        }
+        return await getByThreadUuid(threadUuid)
     }
 
     async function deleteByThreadId({threadId, userId}) {

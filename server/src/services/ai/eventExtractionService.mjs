@@ -11,11 +11,11 @@ const isDate = (value) => {
 const eventSchema = z.object({
     eventStatus: z.enum(['likely_event', 'uncertain', 'not_event']),
     eventStatusReason: z.string().trim().max(240),
-    title: z.string().trim().max(300),
+    title: z.string().trim().max(255),
     description: z.string().trim().max(5000),
     date: z.string().refine((value) => value === '' || isDate(value)),
     time: z.string().regex(/^$|^(?:[1-9]|1[0-2]):[0-5]\d (?:AM|PM)$/),
-    location: z.string().trim().max(1000),
+    location: z.string().trim().max(500),
 }).strict()
 
 const responseJsonSchema = {
@@ -23,11 +23,11 @@ const responseJsonSchema = {
     properties: {
         eventStatus: { type: 'string', enum: ['likely_event', 'uncertain', 'not_event'] },
         eventStatusReason: { type: 'string', maxLength: 240, description: 'A concise explanation of the event classification, based only on visible indicators.' },
-        title: { type: 'string' },
-        description: { type: 'string' },
+        title: { type: 'string', maxLength: 255 },
+        description: { type: 'string', maxLength: 5000 },
         date: { type: 'string', description: 'YYYY-MM-DD, or empty if the full date including year is not stated.' },
         time: { type: 'string', description: '12-hour start time, e.g. 2:30 PM, or empty if ambiguous.' },
-        location: { type: 'string' },
+        location: { type: 'string', maxLength: 500 },
     },
     required: ['eventStatus', 'eventStatusReason', 'title', 'description', 'date', 'time', 'location'],
     additionalProperties: false,

@@ -60,8 +60,15 @@ describe('event flyer extraction', () => {
         JSON.stringify({ ...fields, eventStatus: 'unknown' }),
         JSON.stringify({ ...fields, eventStatusReason: 'x'.repeat(241) }),
         JSON.stringify({ ...fields, eventStatus: undefined }),
+        JSON.stringify({ ...fields, title: 'x'.repeat(256) }),
+        JSON.stringify({ ...fields, location: 'x'.repeat(501) }),
     ])('rejects invalid model output: %s', async (text) => {
         await expect(setup(text).service.extractEvent(image)).rejects.toMatchObject({ statusCode: 502, code: 'AI_INVALID_RESPONSE' })
+    })
+
+    it('accepts title and location lengths supported by event creation', async () => {
+        const result = { ...fields, title: 'x'.repeat(255), location: 'x'.repeat(500) }
+        await expect(setup(JSON.stringify(result)).service.extractEvent(image)).resolves.toEqual(result)
     })
 
     it.each([429, 503])('sanitizes provider errors without retrying HTTP %s', async (status) => {

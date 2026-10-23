@@ -5,15 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { Chrome as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
+import { House as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 
 export default function WebLayout({ children }) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -25,7 +26,9 @@ export default function WebLayout({ children }) {
     { name: 'Community', icon: MessagesSquare, route: '/threads/feed', active: pathname.includes('/threads') },
     { name: 'Events', icon: Calendar, route: '/home_screen/events', active: pathname === '/home_screen/events' },
     { name: 'Resources', icon: BookOpen, route: '/resources/resource', active: pathname.includes('/resources') },
-    { name: 'Profile', icon: User, route: '/profile', active: pathname.includes('/profile') },
+    ...(!isLoading && isAuthenticated
+      ? [{ name: 'Profile', icon: User, route: '/profile', active: pathname.includes('/profile') }]
+      : []),
   ];
 
   const navigateToScreen = (route) => {
@@ -74,7 +77,7 @@ export default function WebLayout({ children }) {
                 color={Colors.BRAND_GOLD} 
               />
             </View>
-            <Text style={styles.brandText}>WeGoCSULA</Text>
+            <Text style={styles.brandText}>WeGoToCSULA</Text>
           </TouchableOpacity>
 
           {/* Desktop Navigation */}
@@ -98,19 +101,36 @@ export default function WebLayout({ children }) {
 
           {/* User Menu */}
           <View style={styles.userSection}>
-            <TouchableOpacity 
-              style={styles.userButton}
-              onPress={() => setUserMenuOpen(!userMenuOpen)}
-            >
-              <View style={styles.avatar}>
-                <User size={16} color={Colors.WHITE} />
-              </View>
-              <Text style={styles.userName}>{user?.username || 'Community guest'}</Text>
-              <ChevronDown size={16} color="#64748b" />
-            </TouchableOpacity>
+            {isLoading ? (
+              <ActivityIndicator accessibilityLabel="Checking sign-in status" color={Colors.PRIMARY} style={styles.accountLoading} />
+            ) : isAuthenticated ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Account menu"
+                accessibilityState={{ expanded: userMenuOpen }}
+                style={styles.userButton}
+                onPress={() => setUserMenuOpen(!userMenuOpen)}
+              >
+                <View style={styles.avatar}>
+                  <User size={16} color={Colors.WHITE} />
+                </View>
+                <Text style={styles.userName}>{user?.username || 'My account'}</Text>
+                <ChevronDown size={16} color="#64748b" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                activeOpacity={0.8}
+                style={styles.signInButton}
+                onPress={() => navigateToScreen('/authentication/login')}
+              >
+                <LogIn size={18} color={Colors.BLACK} />
+                <Text style={styles.signInText}>Sign in</Text>
+              </TouchableOpacity>
+            )}
 
             {/* User Dropdown */}
-            {userMenuOpen && (
+            {!isLoading && isAuthenticated && userMenuOpen && (
               <View style={styles.userDropdown}>
                 <TouchableOpacity 
                   accessibilityRole="button"
@@ -121,7 +141,7 @@ export default function WebLayout({ children }) {
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
-                {isAuthenticated && user?.isAdmin ? (
+                {user?.isAdmin ? (
                   <TouchableOpacity
                     accessibilityRole="button"
                     activeOpacity={0.8}
@@ -132,39 +152,20 @@ export default function WebLayout({ children }) {
                     <Text style={styles.dropdownText}>Manage Users</Text>
                   </TouchableOpacity>
                 ) : null}
-                {isAuthenticated ? (
-                  <>
-                    <View style={styles.dropdownDivider} />
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityState={{ disabled: isSigningOut, busy: isSigningOut }}
-                      activeOpacity={0.8}
-                      disabled={isSigningOut}
-                      onPress={handleSignOut}
-                      style={styles.dropdownItem}
-                    >
-                      <LogOut size={16} color="#64748b" />
-                      <Text style={styles.dropdownText}>{isSigningOut ? 'Signing out...' : 'Sign out'}</Text>
-                    </TouchableOpacity>
-                    {signOutError ? (
-                      <Text accessibilityRole="alert" style={styles.signOutError}>{signOutError}</Text>
-                    ) : null}
-                  </>
-                ) : (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    activeOpacity={0.8}
-                    onPress={() => navigateToScreen('/authentication/login')}
-                    style={styles.dropdownItem}
-                  >
-                    <LogIn size={16} color="#64748b" />
-                    <Text style={styles.dropdownText}>Sign in</Text>
-                  </TouchableOpacity>
-                )}
-                {!isAuthenticated ? (
-                  <View style={styles.previewNote}>
-                    <Text style={styles.previewNoteText}>You are currently browsing in preview mode.</Text>
-                  </View>
+                <View style={styles.dropdownDivider} />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: isSigningOut, busy: isSigningOut }}
+                  activeOpacity={0.8}
+                  disabled={isSigningOut}
+                  onPress={handleSignOut}
+                  style={styles.dropdownItem}
+                >
+                  <LogOut size={16} color="#64748b" />
+                  <Text style={styles.dropdownText}>{isSigningOut ? 'Signing out...' : 'Sign out'}</Text>
+                </TouchableOpacity>
+                {signOutError ? (
+                  <Text accessibilityRole="alert" style={styles.signOutError}>{signOutError}</Text>
                 ) : null}
               </View>
             )}
@@ -234,7 +235,7 @@ export default function WebLayout({ children }) {
       </View>
 
       {/* Overlay for closing menus */}
-      {userMenuOpen && (
+      {!isLoading && isAuthenticated && userMenuOpen && (
         <TouchableOpacity 
           style={styles.globalOverlay}
           onPress={() => setUserMenuOpen(false)}
@@ -273,6 +274,7 @@ const styles = StyleSheet.create({
     display: responsive({ xs: 'flex', lg: 'none' }),
   },
   brand: {
+    flexShrink: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -287,7 +289,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brandText: {
-    fontSize: 24,
+    flexShrink: 1,
+    fontSize: width < 640 ? 18 : 24,
     fontWeight: '800',
     color: '#1e293b',
     letterSpacing: -0.5,
@@ -318,6 +321,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   userSection: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -347,6 +351,24 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: '#f1f5f9',
+  },
+  accountLoading: {
+    width: 96,
+    height: 44,
+  },
+  signInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.BRAND_GOLD,
+  },
+  signInText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.BLACK,
   },
   avatar: {
     width: 28,
@@ -402,17 +424,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     maxWidth: 240,
-  },
-  previewNote: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  previewNoteText: {
-    color: '#64748b',
-    fontSize: 12,
-    lineHeight: 18,
   },
   overlay: {
     position: 'absolute',

@@ -7,9 +7,10 @@ COPY . .
 FROM node:25-alpine AS runner
 WORKDIR /server
 ENV NODE_ENV=production
-RUN adduser --disabled-password dev && chown -R dev:dev /server
+RUN adduser --disabled-password dev
+COPY --from=builder --chown=dev:dev /server/. ./
+RUN mkdir -p /server/uploads && chown -R dev:dev /server/uploads
 USER dev
-COPY --from=builder /server/. ./
 
 EXPOSE 3000
 
