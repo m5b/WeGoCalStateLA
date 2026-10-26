@@ -1,4 +1,5 @@
 import { apiGet, apiForm } from './api';
+import { resolveUploadUrl } from '../utils/imageData';
 
 // Maps the server's event shape to the field names the client screens use.
 function mapEvent(dto) {
@@ -8,7 +9,7 @@ function mapEvent(dto) {
     caption: dto.caption,
     description: dto.description,
     text: dto.text,
-    imageUri: dto.imageUri,
+    imageUri: resolveUploadUrl(dto.imageUri),
     date: dto.date,
     time: dto.time,
     location: dto.location,
