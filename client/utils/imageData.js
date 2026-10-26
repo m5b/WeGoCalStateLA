@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { API_BASE_URL } from '../services/api';
 
 const MAX_DIMENSION = 1200;
 const JPEG_QUALITY = 0.8;
@@ -36,4 +37,12 @@ export async function shrinkImageUri(uri) {
   } catch {
     return uri;
   }
+}
+
+// Uploaded pictures come back from the API as "/api/uploads/...". Adding the
+// API address in front makes them load even when the app is served from a
+// different address than the API (like local development on :8081 vs :3000).
+export function resolveUploadUrl(path) {
+  if (!path) return null;
+  return path.startsWith('/') ? `${API_BASE_URL}${path}` : path;
 }
