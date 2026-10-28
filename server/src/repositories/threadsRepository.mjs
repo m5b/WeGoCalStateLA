@@ -27,6 +27,10 @@ export function createThreadRepo(db){
                     ELSE NULL
                     END AS title,
                     t.category AS category,
+                    -- top-level replies that are still visible, so the feed can show the count without loading them
+                (SELECT COUNT(*) FROM comments c
+                    WHERE c.thread_id = t.thread_id AND c.parent_comment_id IS NULL
+                      AND c.deleted_at IS NULL) AS reply_count,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
                     ELSE NULL 

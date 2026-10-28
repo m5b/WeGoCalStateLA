@@ -7,43 +7,8 @@ export const THREAD_CATEGORIES = [
   { key: "faq", label: "FAQs" },
 ];
 
-// Checks for a real backend UUID (every real thread/event has one) vs. the
-// faq-N ids used by the static placeholder content below.
+// Checks for a well-formed thread id (the server's uuid format).
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Static FAQ content -- not stored on the server, since there's no
-// FAQ-authoring feature yet. Replace with real content once that exists.
-const FAQ_THREADS = [
-  {
-    id: "faq-1",
-    author: "WeGo Community Team",
-    caption: "How do I find important dates like registration and financial-aid deadlines?",
-    text: "Check the Cal State LA academic calendar and the Events tab here for upcoming deadlines and reminders.",
-  },
-  {
-    id: "faq-2",
-    author: "WeGo Community Team",
-    caption: "Where can my student get mental health or wellness support on campus?",
-    text: "The Student Health Center and counseling services offer free support. See the Events tab for wellness workshops.",
-  },
-  {
-    id: "faq-3",
-    author: "WeGo Community Team",
-    caption: "Can family members attend campus events?",
-    text: "Many events are open to families. Check each event's details for who can attend.",
-  },
-].map((faq, i) => ({
-  likes: 0,
-  imageUri: null,
-  date: "",
-  time: "",
-  location: "",
-  category: "faq",
-  createdAt: Date.now() - 1000 * 60 * 60 * 24 * (i + 1),
-  replies: [],
-  repliesLoaded: true,
-  ...faq,
-}));
 
 // Maps a real thread (from GET /api/threads) to the shape the UI uses.
 function mapThread(dto) {
@@ -58,8 +23,9 @@ function mapThread(dto) {
     // heading) and their body is the answer.
     caption: dto.category === "faq" ? dto.title : dto.body,
     text: dto.body,
-    text: dto.body,
     likes: 0, // no reactions backend yet -- see toggleLike below
+    // Sent with the feed so the count shows before the post is opened.
+    replyCount: dto.replyCount ?? 0,
     imageUri: null, // threads don't support image attachments yet
     date: "",
     time: "",
@@ -94,8 +60,7 @@ function deriveTitle(text) {
   return (trimmed || "Community post").padEnd(20, ".");
 }
 
-// True for threads stored on the server (and so editable), false for the
-// static FAQ placeholders.
+// True for a well-formed thread id (the server's uuid format).
 export function isRealThread(threadId) {
   return UUID_RE.test(String(threadId));
 }
@@ -107,8 +72,7 @@ export async function getFeed() {
 
 export async function getThreadDetail(threadId) {
   if (!UUID_RE.test(String(threadId))) {
-    // FAQ (or any other non-real) id -- nothing to fetch.
-    throw new Error("Not a real thread");
+    throw new Error("Not a valid thread id");
   }
   const res = await apiGet(`/api/comments/thread/${threadId}`);
   const seen = new Set();
