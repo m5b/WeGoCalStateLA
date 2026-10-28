@@ -26,36 +26,28 @@ import { useAuth } from '../../context/AuthContext';
 
 const quickActions = [
   {
+    id: 'threads',
+    title: 'Community',
+    subtitle: 'Connect with other families, ask questions, and share advice.',
+    icon: MessageSquare,
+    color: Colors.SECONDARY,
+    route: 'threads',
+  },
+  {
     id: 'events',
-    title: 'Community Events',
-    subtitle: 'Find ways to connect and participate',
+    title: 'Events',
+    subtitle: 'Discover upcoming events for families and students, or share your own.',
     icon: Calendar,
     color: Colors.SECONDARY,
     route: 'events',
   },
   {
     id: 'resources',
-    title: 'Family Resources',
-    subtitle: 'Find campus and community support',
+    title: 'Resources',
+    subtitle: 'Explore financial, health, career, and other resources from Cal State LA and beyond.',
     icon: BookOpen,
     color: Colors.PRIMARY,
     route: 'resources',
-  },
-  {
-    id: 'threads',
-    title: 'Community Conversations',
-    subtitle: 'Share encouragement with a public alias',
-    icon: MessageSquare,
-    color: Colors.SECONDARY,
-    route: 'threads',
-  },
-  {
-    id: 'profile',
-    title: 'Your Profile',
-    subtitle: 'Manage your community alias and interests',
-    icon: User,
-    color: Colors.PRIMARY,
-    route: 'profile',
   },
 ];
 
