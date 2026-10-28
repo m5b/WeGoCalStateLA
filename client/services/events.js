@@ -1,5 +1,5 @@
 import { apiGet, apiForm } from './api';
-import { resolveUploadUrl } from '../utils/imageData';
+import { prepareImageBlob, resolveUploadUrl } from '../utils/imageData';
 
 // Maps the server's event shape to the field names the client screens use.
 function mapEvent(dto) {
@@ -30,11 +30,10 @@ export async function getEvent(eventId) {
   return mapEvent(res.data.event);
 }
 
-// Reads a local image URI (from the picker) as a Blob, so it can be
-// attached to the upload's FormData.
+// Reads a local image URI (from the picker) as a Blob, shrinking big photos
+// first (see prepareImageBlob), so it can be attached to the upload's FormData.
 async function uriToBlob(imageUri) {
-  const response = await fetch(imageUri);
-  return response.blob();
+  return prepareImageBlob(imageUri);
 }
 
 function buildEventForm(data) {
