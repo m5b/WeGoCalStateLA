@@ -18,8 +18,9 @@ function ThreadItem({ item, onPress, onLike }) {
   const title =
     item.caption ||
     item.text ||
-    // Counted by the server, so it shows before the post has been opened.
-    const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
+    (item.imageUri ? "New event shared" : "New thread");
+  // Counted by the server, so it shows before the post has been opened.
+  const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
