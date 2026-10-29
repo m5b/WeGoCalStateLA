@@ -8,7 +8,9 @@
 #   backup   save a copy of the REAL database to ~/wego-backups (do this first)
 #   setup    create the demo database and apply all migrations to it (safe to re-run)
 #   migrate  apply new migrations to the demo database (run after deploys that add migrations)
-#   seed     wipe the demo content and load fresh fake data (needs DEMO_PASSWORD)
+#   seed     wipe the demo content and load fresh fake data (needs DEMO_PASSWORD;
+#            optional DEAN_PASSWORD gives the demo_dean account its own password)
+#   verify   log in as demo_dean (needs VERIFY_PASSWORD) and test the site end to end
 #   use demo point the backend at the demo database
 #   use main point the backend back at the real database
 #   status   show which database the backend is using
@@ -79,7 +81,13 @@ cmd_seed() {
     : "${DEMO_PASSWORD:?Set DEMO_PASSWORD first, e.g.  DEMO_PASSWORD='Demo1234!' bash server/scripts/demo-db.sh seed}"
     db_exists "$DEMO_DB" || { echo "$DEMO_DB doesn't exist yet. Run the setup command first." >&2; exit 1; }
     # The backend container needs to be built with seedDemo.mjs and the demo images in it.
-    $COMPOSE exec -T -e DB_DATABASE="$DEMO_DB" -e DEMO_PASSWORD="$DEMO_PASSWORD" backend node scripts/seedDemo.mjs
+    $COMPOSE exec -T -e DB_DATABASE="$DEMO_DB" -e DEMO_PASSWORD="$DEMO_PASSWORD" -e DEAN_PASSWORD="${DEAN_PASSWORD:-}" backend node scripts/seedDemo.mjs
+}
+
+cmd_verify() {
+    : "${VERIFY_PASSWORD:?Set VERIFY_PASSWORD to the demo_dean password, e.g.  VERIFY_PASSWORD='...' bash server/scripts/demo-db.sh verify}"
+    # Tests the backend as it is right now, so run "use demo" first.
+    $COMPOSE exec -T -e VERIFY_USER="${VERIFY_USER:-demo_dean}" -e VERIFY_PASSWORD="$VERIFY_PASSWORD" backend node scripts/verifyDemo.mjs
 }
 
 cmd_status() {
@@ -112,7 +120,8 @@ case "${1:-}" in
     setup)   cmd_setup ;;
     migrate) cmd_migrate ;;
     seed)    cmd_seed ;;
+    verify)  cmd_verify ;;
     status)  cmd_status ;;
     use)     cmd_use "${2:-}" ;;
-    *)       sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//' ;;
+    *)       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
 esac
