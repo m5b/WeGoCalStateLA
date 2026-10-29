@@ -12,6 +12,8 @@ export default class ThreadDto {
         }
         // Set outside the loop above on purpose: counts, flags and missing photos are normal values
         // here, not "[Deleted]".
+        this.likeCount = Number(thread.likeCount ?? 0)
         this.replyCount = Number(thread.replyCount ?? 0)
+        this.likedByMe = Boolean(thread.likedByMe)
     }
 }

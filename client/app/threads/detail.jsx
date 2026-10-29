@@ -31,6 +31,15 @@ export default function ThreadDetail() {
     state.threads.find((t) => String(t.id) === String(threadId)) ??
     state.threads[0];
 
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const handleLike = async () => {
+    try {
+      await actions.likeThread(thread.id);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
+
   useEffect(() => {
     if (!thread || thread.repliesLoaded) return;
     setLoadingReplies(true);
@@ -163,10 +172,10 @@ export default function ThreadDetail() {
             </View>
 
             <TouchableOpacity
-              onPress={() => actions.likeThread(thread.id)}
+              onPress={handleLike}
               style={{ marginTop: 10 }}
             >
-              <Text style={styles.likesText}>❤ {thread.likes ?? 0}</Text>
+              <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
             </TouchableOpacity>
           </View>
         }

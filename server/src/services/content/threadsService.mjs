@@ -18,7 +18,9 @@ export function createThreadService(threadRepo) {
         getByUserId,
         getByUserUuid,
         deleteByThreadId,
-        deleteByThreadUuid
+        deleteByThreadUuid,
+        markLikedBy,
+        toggleLike
     }
     async function getAll() {
         const threads = dbMapper.fromDb(await threadRepo.findAll())
@@ -67,6 +69,22 @@ export function createThreadService(threadRepo) {
         })
         const thread = await getByThreadId(insertId)
         return thread
+    }
+
+    // Adds likedByMe to a thread (or a list of threads) for the signed-in user.
+    // With no userId nothing is marked as liked.
+    async function markLikedBy(threads, userId) {
+        const list = Array.isArray(threads) ? threads : [threads]
+        const liked = userId ? new Set(await threadRepo.findLikedThreadIds(userId)) : new Set()
+        for (const thread of list) thread.likedByMe = liked.has(thread.threadId)
+        return threads
+    }
+    // Likes the post if the user hasn't, un-likes it if they have.
+    async function toggleLike({ threadUuid, userId }) {
+        const thread = await getByThreadUuid(threadUuid)
+        const liked = await threadRepo.toggleLike({ threadId: thread.threadId, userId })
+        const likeCount = await threadRepo.countLikes(thread.threadId)
+        return { liked, likeCount }
     }
 
     async function patchByThreadId({userId, threadId, payload}) {

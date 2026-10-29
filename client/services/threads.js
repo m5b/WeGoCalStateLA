@@ -23,7 +23,8 @@ function mapThread(dto) {
     // heading) and their body is the answer.
     caption: dto.category === "faq" ? dto.title : dto.body,
     text: dto.body,
-    likes: 0, // no reactions backend yet -- see toggleLike below
+    likes: dto.likeCount ?? 0,
+    likedByMe: dto.likedByMe ?? false,
     // Sent with the feed so the count shows before the post is opened.
     replyCount: dto.replyCount ?? 0,
     imageUri: null, // threads don't support image attachments yet
@@ -147,13 +148,14 @@ export async function deleteReply(threadId, replyId) {
   return { ok: true };
 }
 
+// Likes the post, or takes the like back if you already liked it. Needs a signed-in
+// account (the server answers 401 otherwise). Returns { liked, likeCount }.
 export async function toggleLike(threadId) {
-  // No reactions backend yet -- no-op so the UI doesn't break; likes won't
-  // persist or be visible to others until that's built.
-  return 0;
+  const res = await apiJson(`/api/threads/${threadId}/like`, "POST", {});
+  return res.data;
 }
 
 export async function reportContent(threadId, reason) {
-  // No reports backend yet -- same situation as toggleLike.
+  // No reports backend yet, so this does nothing.
   return { ok: false };
 }

@@ -11,8 +11,10 @@ import { optionalAuth } from '../middlewares/optionalAuth.mjs'
 export function createThreadRouter({userService, threadService}){
     const router = Router()
     // Public: anyone can read the Community feed without being signed in.
-    router.get('/', async (req, res) => {
+    // optionalAuth only fills in which posts the signed-in person has liked; it never blocks.
+    router.get('/', optionalAuth(userService), async (req, res) => {
         const threads = await threadService.getAll()
+        await threadService.markLikedBy(threads, req.user?.userId)
         const threadDtos = threads.map((thread) => new ThreadDto(thread))
         res.send(jsend.success({ threads: threadDtos }))
     })
@@ -71,11 +73,19 @@ export function createThreadRouter({userService, threadService}){
         res.send(jsend.success({ thread: new ThreadDto(thread) }))
     })
 
+    // Like or un-like a post. Needs an account so one person can't like it many times.
+    router.post('/:threadUuid/like', requireAuth(userService), async (req, res) => {
+        const threadUuid = uuidSchema.parse(req.params.threadUuid)
+        const result = await threadService.toggleLike({ threadUuid, userId: req.user.userId })
+        res.json(jsend.success(result))
+    })
+
     //tested
     // Public: anyone can view a single thread without being signed in.
-    router.get('/:threadUuid', async (req, res) => {
+    router.get('/:threadUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const thread = await threadService.getByThreadUuid(threadUuid)
+        await threadService.markLikedBy(thread, req.user?.userId)
         res.json(jsend.success({thread: new ThreadDto(thread)}))
     })
 
