@@ -54,7 +54,7 @@ function ThreadItem({ item, onPress, onLike }) {
           onPress={onLike}
           style={{ flexDirection: "row", alignItems: "center" }}
         >
-          <Text style={styles.likesText}>❤ {item.likes ?? 0}</Text>
+          <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
         </TouchableOpacity>
         <Text style={styles.metaText}>
           {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
@@ -67,6 +67,14 @@ function ThreadItem({ item, onPress, onLike }) {
 export default function ThreadFeed() {
   const { state, actions } = useThreads();
   const router = useRouter();
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const handleLike = async (threadId) => {
+    try {
+      await actions.likeThread(threadId);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
   const params = useLocalSearchParams();
   const [category, setCategory] = useState(
     THREAD_CATEGORIES.some((c) => c.key === params.category)
@@ -135,7 +143,7 @@ export default function ThreadFeed() {
                 params: { threadId: item.id },
               })
             }
-            onLike={() => actions.likeThread(item.id)}
+            onLike={() => handleLike(item.id)}
           />
         )}
         contentContainerStyle={{ paddingVertical: 12 }}

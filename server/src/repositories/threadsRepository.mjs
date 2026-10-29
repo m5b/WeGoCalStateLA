@@ -10,7 +10,10 @@ export function createThreadRepo(db){
         updateByThreadUuid,
         updateAnyByThreadUuid,
         deleteByThreadId,
-        deleteByThreadUuid
+        deleteByThreadUuid,
+        toggleLike,
+        countLikes,
+        findLikedThreadIds
     }
     function getPublicSelect(){
         return`
@@ -27,6 +30,8 @@ export function createThreadRepo(db){
                     ELSE NULL
                     END AS title,
                     t.category AS category,
+                    (SELECT COUNT(*) FROM thread_reactions r
+                    WHERE r.thread_id = t.thread_id AND r.reaction_value = 'like') AS like_count,
                     -- top-level replies that are still visible, so the feed can show the count without loading them
                 (SELECT COUNT(*) FROM comments c
                     WHERE c.thread_id = t.thread_id AND c.parent_comment_id IS NULL
@@ -164,5 +169,37 @@ export function createThreadRepo(db){
             [threadUuid, userId]
         )
         return result.affectedRows > 0
+    }
+    
+    // Likes: one row per user per post (UNIQUE user_id + thread_id). Returns true if the
+    // post is liked after the call, false if the like was taken back.
+    async function toggleLike({ threadId, userId }) {
+        const [removed] = await db.execute(
+            "DELETE FROM thread_reactions WHERE user_id = ? AND thread_id = ? AND reaction_value = 'like'",
+            [userId, threadId]
+        )
+        if (removed.affectedRows > 0) return false
+        await db.execute(
+            "INSERT INTO thread_reactions (user_id, thread_id, reaction_value) VALUES (?, ?, 'like') ON DUPLICATE KEY UPDATE reaction_value = 'like'",
+            [userId, threadId]
+        )
+        return true
+    }
+
+    async function countLikes(threadId) {
+        const [rows] = await db.execute(
+            "SELECT COUNT(*) AS n FROM thread_reactions WHERE thread_id = ? AND reaction_value = 'like'",
+            [threadId]
+        )
+        return Number(rows[0].n)
+    }
+
+    // Ids of the posts this user has liked (used to fill in the heart on the feed).
+    async function findLikedThreadIds(userId) {
+        const [rows] = await db.execute(
+            "SELECT thread_id FROM thread_reactions WHERE user_id = ? AND reaction_value = 'like'",
+            [userId]
+        )
+        return rows.map((row) => row.thread_id)
     }
 }

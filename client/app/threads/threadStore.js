@@ -26,7 +26,7 @@ function reducer(state, action) {
         threads: state.threads.map((t) =>
           // Keep the already-loaded replies; the PATCH response has none.
           t.id === updated.id
-            ? { ...updated, replies: t.replies, repliesLoaded: t.repliesLoaded }
+            ? { ...updated, replies: t.replies, repliesLoaded: t.repliesLoaded, likedByMe: t.likedByMe }
             : t
         ),
       };
@@ -72,11 +72,11 @@ function reducer(state, action) {
       };
     }
     case 'LIKE_THREAD': {
-      const { threadId, likes } = action.payload;
+      const { threadId, liked, likeCount } = action.payload;
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, likes } : t
+          t.id === threadId ? { ...t, likes: likeCount, likedByMe: liked } : t
         ),
       };
     }
@@ -136,8 +136,9 @@ export function ThreadsProvider({ children }) {
   };
 
   const likeThread = async (threadId) => {
-    const likes = await toggleLike(threadId);
-    dispatch({ type: 'LIKE_THREAD', payload: { threadId, likes } });
+    // Throws with status 401 when nobody is signed in; the screens send those people to log in.
+    const { liked, likeCount } = await toggleLike(threadId);
+    dispatch({ type: 'LIKE_THREAD', payload: { threadId, liked, likeCount } });
   };
 
   const reportThread = async (threadId, reason) => {
