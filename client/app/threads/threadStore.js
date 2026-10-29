@@ -41,7 +41,9 @@ function reducer(state, action) {
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, replies: [...t.replies, reply] } : t
+          t.id === threadId
+            ? { ...t, replies: [...t.replies, reply], replyCount: (t.replyCount ?? t.replies.length) + 1 }
+            : t
         ),
       };
     }
@@ -51,7 +53,11 @@ function reducer(state, action) {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId
-            ? { ...t, replies: t.replies.filter((r) => r.id !== replyId) }
+            ? {
+                ...t,
+                replies: t.replies.filter((r) => r.id !== replyId),
+                replyCount: Math.max(0, (t.replyCount ?? t.replies.length) - 1),
+              }
             : t
         ),
       };
@@ -61,7 +67,7 @@ function reducer(state, action) {
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, replies, repliesLoaded: true } : t
+          t.id === threadId ? { ...t, replies, repliesLoaded: true, replyCount: replies.length } : t
         ),
       };
     }

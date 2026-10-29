@@ -19,6 +19,8 @@ function ThreadItem({ item, onPress, onLike }) {
     item.caption ||
     item.text ||
     (item.imageUri ? "New event shared" : "New thread");
+  // Counted by the server, so it shows before the post has been opened.
+  const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
@@ -55,7 +57,7 @@ function ThreadItem({ item, onPress, onLike }) {
           <Text style={styles.likesText}>❤ {item.likes ?? 0}</Text>
         </TouchableOpacity>
         <Text style={styles.metaText}>
-          {(item.replies?.length ?? 0)} replies
+          {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
         </Text>
       </View>
     </TouchableOpacity>

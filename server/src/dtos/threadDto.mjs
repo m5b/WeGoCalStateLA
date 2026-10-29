@@ -10,5 +10,8 @@ export default class ThreadDto {
                 this[DEFINE_PUBLIC_FIELDS[i]] = thread[PUBLIC_FIELDS[i]]
             }
         }
+        // Set outside the loop above on purpose: counts, flags and missing photos are normal values
+        // here, not "[Deleted]".
+        this.replyCount = Number(thread.replyCount ?? 0)
     }
 }
