@@ -12,6 +12,9 @@
 // relationship / interests use the same options as the profile page.
 export const USERS = [
     { username: 'demo_admin', alias: 'Demo Admin', relationship: 'Other', interests: 'Campus events', isAdmin: true },
+    // The account to hand to the dean: a regular supporter account (not an admin) so they can try
+    // posting, replying, liking and creating events. Has its own password (DEAN_PASSWORD).
+    { username: 'demo_dean', alias: 'Dean Preview', relationship: 'Supporter / Mentor', interests: 'Campus events, Family resources, Community volunteering, Academic support', isDean: true },
     { username: 'demo_rosa', alias: 'Eagle Mom Rosa', relationship: 'Parent', interests: 'Family resources, Financial aid info, Housing resources' },
     { username: 'demo_david', alias: 'Commuter Dad', relationship: 'Parent', interests: 'Financial aid info, Academic support' },
     { username: 'demo_keiko', alias: 'Proud Mom Keiko', relationship: 'Parent', interests: 'Campus events, Family resources, Social activities' },
