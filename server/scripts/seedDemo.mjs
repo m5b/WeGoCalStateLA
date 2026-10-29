@@ -21,9 +21,12 @@ const PHOTO_URL_PREFIX = '/api/uploads/demo/'
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,21}$/
 
 // conn: a mysql2 connection (promise API). hashPassword(plain) -> hash.
-export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_DIR, uploadDir, now = new Date(), log = console.log }) {
+export async function seedDemo({ conn, hashPassword, password, deanPassword = password, imageDir = IMAGE_DIR, uploadDir, now = new Date(), log = console.log }) {
     if (!PASSWORD_RULE.test(password || '')) {
         throw new Error('DEMO_PASSWORD must be 8-21 characters with upper, lower, digit, and one of @$!%*?& (same rule as the login form).')
+    }
+    if (!PASSWORD_RULE.test(deanPassword || '')) {
+        throw new Error('DEAN_PASSWORD must be 8-21 characters with upper, lower, digit, and one of @$!%*?& (same rule as the login form).')
     }
 
     const ago = ([days, hours]) => new Date(now.getTime() - (days * 24 + hours) * 3600 * 1000)
@@ -50,7 +53,8 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
         "SELECT is_nullable AS nullable FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'comments' AND column_name = 'user_id'"
     )
     const anonymousOk = nullRow && nullRow.nullable === 'YES'
-    if (!threadPhotos || !commentPhotos) log('Note: post/reply photo columns not found, so only event photos will be used (posts and replies are text-only until that migration exists).')
+    if (!threadPhotos) log('Note: the post photo column was not found, so posts show only the event pictures. Run the migrations to add post pictures.')
+    if (!commentPhotos) log('Note: replies cannot carry pictures yet, so the two replies with pictures are added without them.')
     if (!anonymousOk) log('Note: anonymous posting columns not found, so anonymous posts/replies are skipped.')
 
     // Make the sample pictures available to the API (served from /api/uploads).
@@ -91,12 +95,13 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
 
         // ---- users ----
         const passwordHash = await hashPassword(password)
+        const deanHash = deanPassword === password ? passwordHash : await hashPassword(deanPassword)
         const userIds = {}
         for (const u of USERS) {
             const stamp = ago([40, 0])
             const [res] = await conn.execute(
                 'INSERT INTO users (username, alias, relationship, interests, password_hash, is_admin, user_uuid, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, UUID_TO_BIN(?), ?, ?)',
-                [u.username, u.alias, u.relationship, u.interests, passwordHash, u.isAdmin ? 1 : 0, randomUUID(), stamp, stamp]
+                [u.username, u.alias, u.relationship, u.interests, u.isDean ? deanHash : passwordHash, u.isAdmin ? 1 : 0, randomUUID(), stamp, stamp]
             )
             userIds[u.username] = res.insertId
         }
@@ -119,7 +124,20 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0 }
+        // Likes: each post gets a steady, made-up number of likes from the demo people (never the
+        // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
+        const LIKE_COUNTS = [9, 14, 11, 16, 7, 12, 18, 6, 13, 10, 15, 8, 17, 5, 12, 9, 14, 11, 7, 16]
+        const likePool = USERS.filter((u) => !u.isAdmin && !u.isDean).map((u) => u.username)
+        const addLikes = async (threadId, index, author) => {
+            const pool = likePool.filter((name) => name !== author)
+            const wanted = Math.min(LIKE_COUNTS[index % LIKE_COUNTS.length], pool.length)
+            for (let i = 0; i < wanted; i++) {
+                const name = pool[(index * 5 + i) % pool.length]
+                await conn.execute("INSERT INTO thread_reactions (user_id, thread_id, reaction_value) VALUES (?, ?, 'like')", [idFor(name), threadId])
+                counts.likes++
+            }
+        }
         const insertThread = async ({ who, text, title, category, photo, createdAt }) => {
             const fields = ['user_id', 'thread_uuid', 'title', 'content', 'category', 'created_at', 'updated_at']
             const marks = ['?', 'UUID_TO_BIN(?)', '?', '?', '?', '?', '?']
@@ -153,13 +171,14 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
         }
 
         // ---- community posts ----
-        for (const p of POSTS) {
+        for (const [postIndex, p] of POSTS.entries()) {
             if (p.user === null && !anonymousOk) continue
             const threadId = await insertThread({
                 who: p.user, text: p.text, title: p.text.slice(0, 200), category: 'general',
                 photo: photoUrl(p.photo), createdAt: ago(p.ago),
             })
             counts.posts++
+            await addLikes(threadId, postIndex, p.user)
             await insertReplies(threadId, p.replies)
         }
 
@@ -170,7 +189,7 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
         }
 
         // ---- events (each with its linked community post) ----
-        for (const e of EVENTS) {
+        for (const [eventIndex, e] of EVENTS.entries()) {
             const posted = ago([e.inDays > 30 ? 6 : 3, 3])
             const photo = photoUrl(e.photo)
             const threadId = await insertThread({
@@ -185,12 +204,13 @@ export async function seedDemo({ conn, hashPassword, password, imageDir = IMAGE_
             )
             if (photo) counts.photos++
             counts.events++
+            await addLikes(threadId, eventIndex + 7, e.organizer)
             await insertReplies(threadId, e.replies)
         }
 
         await conn.commit()
-        log(`Done: ${counts.users} users, ${counts.posts} community posts, ${counts.faqs} FAQs, ${counts.replies} replies, ${counts.events} events, ${counts.photos} photos.`)
-        log('Demo logins: demo_rosa, demo_david, demo_lena ... and demo_admin (admin). All use the DEMO_PASSWORD you passed in.')
+        log(`Done: ${counts.users} users, ${counts.posts} community posts, ${counts.faqs} FAQs, ${counts.replies} replies, ${counts.events} events, ${counts.photos} photos, ${counts.likes} likes.`)
+        log('Demo logins: demo_dean (the dean\'s account, uses DEAN_PASSWORD if set), demo_rosa, demo_david, demo_lena ... and demo_admin (admin). The others use DEMO_PASSWORD.')
         return counts
     } catch (err) {
         await conn.rollback()
@@ -213,6 +233,7 @@ async function main() {
         await seedDemo({
             conn,
             password: process.env.DEMO_PASSWORD,
+            deanPassword: process.env.DEAN_PASSWORD || process.env.DEMO_PASSWORD,
             hashPassword: (plain) => bcrypt.hash(plain, 12),
             uploadDir: UPLOAD_ROOT,
         })
