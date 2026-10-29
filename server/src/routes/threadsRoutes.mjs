@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import {
     threadPatchSchema, threadPostSchema,
 } from '../validators/threadsValidators.mjs'
@@ -7,6 +8,21 @@ import { jsend } from '../util/jSend.mjs'
 import {uuidSchema} from "../validators/authValidators.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
+import { BadRequestError } from '../errors/badRequestError.mjs'
+
+// Photos are held in memory and saved by threadService. Only real picture types are
+// accepted, since uploads are served back to browsers from /api/uploads.
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 },
+    fileFilter(req, file, callback) {
+        if (!IMAGE_TYPES.has(file.mimetype)) {
+            return callback(new BadRequestError(null, 'Use a JPEG, PNG, WebP, or GIF image.'))
+        }
+        callback(null, true)
+    },
+})
 
 export function createThreadRouter({userService, threadService}){
     const router = Router()
@@ -30,10 +46,10 @@ export function createThreadRouter({userService, threadService}){
     // Posting doesn't require an account: optionalAuth attaches req.user if
     // the person is signed in, but never blocks the request if not -- an
     // unauthenticated post is attributed to "Anonymous" (see threadsRepository).
-    router.post('/me', optionalAuth(userService), async (req, res) => {
+    router.post('/me', optionalAuth(userService), upload.single('image'), async (req, res) => {
         const payload = threadPostSchema.parse(req.body)
         const userId = req.user ? req.user.userId : null
-        const thread = await threadService.postByUserId(userId, payload)
+        const thread = await threadService.postByUserId(userId, payload, req.file)
         const threadDto = new ThreadDto(thread)
         res.json(jsend.success({thread: threadDto}))
     })

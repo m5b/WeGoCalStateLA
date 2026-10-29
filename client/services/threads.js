@@ -1,5 +1,6 @@
-import { apiGet, apiJson } from "./api";
+import { apiGet, apiJson, apiForm } from "./api";
 import { getEvent } from "./events";
+import { prepareImageBlob, resolveUploadUrl } from "../utils/imageData";
 
 export const THREAD_CATEGORIES = [
   { key: "general", label: "General" },
@@ -17,7 +18,7 @@ function mapThread(dto) {
     author: dto.author,
     authorUuid: dto.userUuid,
     // Shows the real post content, not dto.title -- the server requires a
-    // 20+ character title (see deriveTitle below), so title often has
+    // 20 character title (see deriveTitle below), so title often has
     // trailing dots padding it out and was never meant to be displayed.
     // FAQs are the exception: their title is the question (shown as the
     // heading) and their body is the answer.
@@ -27,7 +28,8 @@ function mapThread(dto) {
     likedByMe: dto.likedByMe ?? false,
     // Sent with the feed so the count shows before the post is opened.
     replyCount: dto.replyCount ?? 0,
-    imageUri: null, // threads don't support image attachments yet
+    // The post's cover picture (for event posts, the event's picture).
+    imageUri: resolveUploadUrl(dto.photoUrl),
     date: "",
     time: "",
     location: "",
@@ -56,7 +58,7 @@ function mapComment(dto) {
 function deriveTitle(text) {
   const trimmed = (text || "").trim();
   if (trimmed.length >= 20) {
-    return trimmed.length <= 200 ? trimmed : trimmed.slice(0, 197) + "...";
+    return trimmed.length <= 200 ? trimmed : `${trimmed.slice(0, 197)}...`;
   }
   return (trimmed || "Community post").padEnd(20, ".");
 }
@@ -106,14 +108,17 @@ export async function getThreadByEventId(eventId) {
 
 export async function createThread(data) {
   const content = data.caption || data.text || "";
-  const res = await apiJson("/api/threads/me", "POST", {
-    title: deriveTitle(content),
-    content,
-    category: data.category || "general",
-  });
-  // Note: data.imageUri is intentionally not sent -- the real threads table
-  // has no image column yet, so a photo attached in the composer currently
-  // isn't persisted.
+  // Sent as a form (not JSON) so a cover photo can travel with the text.
+  const formData = new FormData();
+  formData.append("title", deriveTitle(content));
+  formData.append("content", content);
+  formData.append("category", data.category || "general");
+  if (data.imageUri) {
+    const blob = await prepareImageBlob(data.imageUri);
+    const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+    formData.append("image", blob, `cover.${extension}`);
+  }
+  const res = await apiForm("/api/threads/me", "POST", formData);
   return mapThread(res.data.thread);
 }
 

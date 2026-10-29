@@ -6,7 +6,8 @@ import buildPatchQuery from "../../util/buildPatchQuery.mjs";
 
 import { v4 as uuidv4 } from 'uuid';
 
-export function createThreadService(threadRepo) {
+// uploadBuffer saves an uploaded photo and returns its URL (see lib/localStorage.mjs).
+export function createThreadService(threadRepo, { uploadBuffer } = {}) {
     return {
         getAll,
         getByThreadId,
@@ -58,14 +59,23 @@ export function createThreadService(threadRepo) {
         return threads
     }
 
-    async function postByUserId(userId, payload) {
+     // imageFile is multer's req.file (undefined when no photo was attached, or when
+    // eventService creates a linked post).
+    async function postByUserId(userId, payload, imageFile) {
         const { title, content, category } = payload
+        let photoUrl = null
+        if (imageFile) {
+            // Name the file from its type, never from the uploaded file name.
+            const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[imageFile.mimetype] ?? 'jpg'
+            photoUrl = await uploadBuffer({ buffer: imageFile.buffer, key: `threads/${uuidv4()}.${ext}` })
+        }
         const insertId = await threadRepo.insertThread({
             userId: userId,
             threadUuid: uuidv4(),
             title: title,
             content: content,
             category: category,
+            photoUrl,
         })
         const thread = await getByThreadId(insertId)
         return thread
