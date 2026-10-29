@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
@@ -14,7 +15,9 @@ import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
 import FlexibleImage from "../../components/FlexibleImage";
 
-function ThreadItem({ item, onPress, onLike }) {
+function ThreadItem({ item, onPress, onLike, compact = false }) {
+  // An empty slot that keeps the last row's cards the same width as the rows above it.
+  if (item.placeholder) return <View style={styles.placeholderCard} />;
   const title =
     item.caption ||
     item.text ||
@@ -23,12 +26,12 @@ function ThreadItem({ item, onPress, onLike }) {
   const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+    <TouchableOpacity onPress={onPress} style={[styles.card, compact && styles.cardGrid]}>
       {item.imageUri ? (
         <FlexibleImage uri={item.imageUri} style={styles.image} />
       ) : null}
 
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} numberOfLines={compact ? 5 : undefined}>{title}</Text>
 
       {item.createdAt ? (
         <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
@@ -48,6 +51,9 @@ function ThreadItem({ item, onPress, onLike }) {
           <Text style={styles.metaText}> • {item.location}</Text>
         ) : null}
       </View>
+
+      {/* Pushes the likes/replies row to the bottom when neighbouring cards are taller. */}
+      <View style={{ flexGrow: 1 }} />
 
       <View style={styles.footerRow}>
         <TouchableOpacity
@@ -76,6 +82,9 @@ export default function ThreadFeed() {
     }
   };
   const params = useLocalSearchParams();
+  // Cards sit side by side, like the Events page: 3 across on wide screens, 2 on medium, 1 on phones.
+  const { width } = useWindowDimensions();
+  const columns = width >= 1100 ? 3 : width >= 700 ? 2 : 1;
   const [category, setCategory] = useState(
     THREAD_CATEGORIES.some((c) => c.key === params.category)
       ? params.category
@@ -85,6 +94,11 @@ export default function ThreadFeed() {
   const visibleThreads = state.threads
     .filter((t) => (t.category ?? "general") === category)
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
+  const gridData = [...visibleThreads];
+  while (columns > 1 && gridData.length % columns !== 0) {
+    gridData.push({ id: `empty-${gridData.length}`, placeholder: true });
+  }
 
   if (state.loading && !state.threads.length) {
     return (
@@ -107,7 +121,7 @@ export default function ThreadFeed() {
             router.push({ pathname: "/threads/composer", params: { category } })
           }
         >
-          <Text style={styles.newButtonText}>+ Start a conversation</Text>
+          <Text style={styles.newButtonText}> Start a conversation</Text>
         </TouchableOpacity>
       </View>
 
@@ -132,11 +146,16 @@ export default function ThreadFeed() {
       </View>
 
       <FlatList
-        data={visibleThreads}
+        // A new key makes the list rebuild when the number of columns changes (e.g. resizing the window).
+        key={columns}
+        numColumns={columns}
+        columnWrapperStyle={columns > 1 ? styles.gridRow : undefined}
+        data={gridData}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <ThreadItem
             item={item}
+            compact={columns > 1}
             onPress={() =>
               router.push({
                 pathname: "/threads/detail",
@@ -225,6 +244,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
+  },
+  // Side-by-side cards: share the row equally (the row adds 6px each side, so the outer
+  // margin and the gap between cards match the single-column layout).
+  cardGrid: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 6,
+  },
+  // Same padding as a real card, so an empty slot takes exactly the width a card would.
+  placeholderCard: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 6,
+    padding: 14,
+  },
+  gridRow: {
+    paddingHorizontal: 6,
   },
   image: {
     width: "100%",
