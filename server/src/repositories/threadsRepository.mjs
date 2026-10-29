@@ -30,6 +30,11 @@ export function createThreadRepo(db){
                     ELSE NULL
                     END AS title,
                     t.category AS category,
+                    -- cover picture: the post's own photo, or the linked event's photo for event posts
+                CASE
+                    WHEN t.deleted_at IS NULL THEN COALESCE(t.photo_url, ev.photo_url)
+                    ELSE NULL
+                    END AS photo_url,
                     (SELECT COUNT(*) FROM thread_reactions r
                     WHERE r.thread_id = t.thread_id AND r.reaction_value = 'like') AS like_count,
                     -- top-level replies that are still visible, so the feed can show the count without loading them
@@ -54,6 +59,7 @@ export function createThreadRepo(db){
             FROM
                 threads t
                     LEFT JOIN users u ON t.user_id = u.user_id
+                    LEFT JOIN events ev ON ev.thread_id = t.thread_id AND ev.deleted_at IS NULL
         `
     }
     async function findAll() {
@@ -111,10 +117,10 @@ export function createThreadRepo(db){
         return row
     }
 
-    async function insertThread({ userId, threadUuid, title, content, category = 'general' }) {
+    async function insertThread({ userId, threadUuid, title, content, category = 'general', photoUrl = null }) {
         const [result] = await db.execute(
-            'INSERT into threads (user_id, thread_uuid, title, content, category) VALUES (?,UUID_TO_BIN(?), ?, ?, ?)',
-            [userId, threadUuid, title, content, category]
+            'INSERT into threads (user_id, thread_uuid, title, content, category, photo_url) VALUES (?,UUID_TO_BIN(?), ?, ?, ?, ?)',
+            [userId, threadUuid, title, content, category, photoUrl]
         )
 
         return result.insertId
