@@ -9,8 +9,8 @@
 #   setup    create the demo database and apply all migrations to it (safe to re-run)
 #   migrate  apply new migrations to the demo database (run after deploys that add migrations)
 #   seed     wipe the demo content and load fresh fake data (needs DEMO_PASSWORD;
-#            optional DEAN_PASSWORD gives the demo_dean account its own password)
-#   verify   log in as demo_dean (needs VERIFY_PASSWORD) and test the site end to end
+#            optional DEAN_PASSWORD gives the Dean account its own password)
+#   verify   log in as Dean (needs VERIFY_PASSWORD) and test the site end to end
 #   use demo point the backend at the demo database
 #   use main point the backend back at the real database
 #   status   show which database the backend is using
@@ -85,9 +85,9 @@ cmd_seed() {
 }
 
 cmd_verify() {
-    : "${VERIFY_PASSWORD:?Set VERIFY_PASSWORD to the demo_dean password, e.g.  VERIFY_PASSWORD='...' bash server/scripts/demo-db.sh verify}"
+    : "${VERIFY_PASSWORD:?Set VERIFY_PASSWORD to the Dean password, e.g.  VERIFY_PASSWORD='...' bash server/scripts/demo-db.sh verify}"
     # Tests the backend as it is right now, so run "use demo" first.
-    $COMPOSE exec -T -e VERIFY_USER="${VERIFY_USER:-demo_dean}" -e VERIFY_PASSWORD="$VERIFY_PASSWORD" backend node scripts/verifyDemo.mjs
+    $COMPOSE exec -T -e VERIFY_USER="${VERIFY_USER:-Dean}" -e VERIFY_PASSWORD="$VERIFY_PASSWORD" backend node scripts/verifyDemo.mjs
 }
 
 cmd_status() {
