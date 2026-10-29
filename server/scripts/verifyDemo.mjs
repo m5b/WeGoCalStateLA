@@ -3,7 +3,7 @@
 // writes then deletes a post. Run through demo-db.sh ("verify"); the backend must already be
 // pointed at the demo database ("use demo").
 const BASE = `http://127.0.0.1:${process.env.PORT || 3000}`
-const USER = process.env.VERIFY_USER || 'demo_dean'
+const USER = process.env.VERIFY_USER || 'Dean'
 const PASSWORD = process.env.VERIFY_PASSWORD
 
 const results = []

@@ -91,7 +91,11 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             `DELETE FROM threads WHERE category = 'faq' AND title IN (${FAQS.map(() => '?').join(', ')})`,
             FAQS.map((f) => f.title)
         )
-        await conn.execute("DELETE FROM users WHERE username LIKE 'demo\\_%'")
+        // The demo people are found by name (plus any left over from older seeds, which used a demo_ prefix).
+        await conn.execute(
+            `DELETE FROM users WHERE username LIKE 'demo\\_%' OR username IN (${USERS.map(() => '?').join(', ')})`,
+            USERS.map((u) => u.username)
+        )
 
         // ---- users ----
         const passwordHash = await hashPassword(password)
@@ -210,7 +214,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
 
         await conn.commit()
         log(`Done: ${counts.users} users, ${counts.posts} community posts, ${counts.faqs} FAQs, ${counts.replies} replies, ${counts.events} events, ${counts.photos} photos, ${counts.likes} likes.`)
-        log('Demo logins: demo_dean (the dean\'s account, uses DEAN_PASSWORD if set), demo_rosa, demo_david, demo_lena ... and demo_admin (admin). The others use DEMO_PASSWORD.')
+        log('Demo logins: Dean (the dean\'s account, uses DEAN_PASSWORD if set), Rosa, David, Lena ... and Admin (admin). The others use DEMO_PASSWORD.')
         return counts
     } catch (err) {
         await conn.rollback()
