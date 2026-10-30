@@ -9,7 +9,6 @@ import {uuidSchema} from "../validators/authValidators.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
 import { BadRequestError } from '../errors/badRequestError.mjs'
-import { UnauthorizedError } from '../errors/unauthorizedError.mjs'
 import { threadForViewer } from '../util/visibility.mjs'
 
 // Photos are held in memory and saved by threadService. Only real picture types are
@@ -83,27 +82,6 @@ export function createThreadRouter({userService, threadService}){
             isAdmin: Boolean(user.isAdmin),
         })
         res.send(jsend.success(null))
-    })
-
-
-    // Public: anyone can edit any thread, signed in or not. Temporary, to
-    // keep things simple -- the author-only PATCH /me/:threadUuid above is
-    // still available. Signed-out visitors can't edit private threads or
-    // change whether a thread is public.
-    router.patch('/:threadUuid', optionalAuth(userService), async (req, res) => {
-        const threadUuid = uuidSchema.parse(req.params.threadUuid)
-        const payload = threadPatchSchema.parse(req.body)
-        if (!req.user) {
-            const existing = await threadService.getByThreadUuid(threadUuid)
-            if (!existing.isPublic || payload.isPublic !== undefined) {
-                throw new UnauthorizedError(
-                    { auth: 'Not authorized' },
-                    'Sign in to change this thread'
-                )
-            }
-        }
-        const thread = await threadService.patchAnyByThreadUuid({ threadUuid, payload })
-        res.send(jsend.success({ thread: new ThreadDto(thread) }))
     })
 
     // Like or un-like a post. Needs an account so one person can't like it many times.
