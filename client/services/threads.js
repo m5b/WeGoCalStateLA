@@ -141,10 +141,10 @@ export async function createThread(data) {
 
 export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
-  // Anyone can edit any thread for now (see PATCH /api/threads/:threadUuid).
+  // Only the thread's author or an admin can edit it (the server checks).  
   // Keeps a thread's own title (e.g. a seeded question) rather than
   // replacing it with one generated from the edited body.
-  const res = await apiJson(`/api/threads/${threadId}`, "PATCH", {
+  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
     title: data.customTitle || deriveTitle(content),
     content,
     category: data.category || "general",

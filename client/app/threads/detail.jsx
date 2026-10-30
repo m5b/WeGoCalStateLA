@@ -66,10 +66,11 @@ export default function ThreadDetail() {
     );
   }
 
-  // Anyone can edit any real thread for now. Private threads are shown
+  // Edit: the person who wrote the thread, or an admin. Private threads are shown
   // behind the sign-in prompt to signed-out visitors (the server has already
   // stripped their content).
-  const canEdit = isRealThread(thread.id) && !thread.locked;
+  const canEdit =
+    isRealThread(thread.id) && !thread.locked && canManage(user, thread.authorUuid);
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
