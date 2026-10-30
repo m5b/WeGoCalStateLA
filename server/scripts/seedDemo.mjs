@@ -49,6 +49,8 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
     }
     const threadPhotos = await hasColumn('threads', 'photo_url')
     const commentPhotos = await hasColumn('comments', 'photo_url')
+    const threadPublic = await hasColumn('threads', 'is_public')
+    const eventPublic = await hasColumn('events', 'is_public')
     const [[nullRow]] = await conn.execute(
         "SELECT is_nullable AS nullable FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'comments' AND column_name = 'user_id'"
     )
@@ -128,7 +130,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0 }
         // Likes: each post gets a steady, made-up number of likes from the demo people (never the
         // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
         const LIKE_COUNTS = [9, 14, 11, 16, 7, 12, 18, 6, 13, 10, 15, 8, 17, 5, 12, 9, 14, 11, 7, 16]
@@ -142,7 +144,13 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
                 counts.likes++
             }
         }
-        const insertThread = async ({ who, text, title, category, photo, createdAt }) => {
+        // Which posts and events signed-out visitors can read in full: about two thirds of the posts and
+        // three quarters of the events, so the demo shows both the open look and the private ("sign in
+        // to read") look. FAQs are help content, so they are always public. A post or event in
+        // demoData.mjs can set isPublic: true or false to override this.
+        const publicPost = (index) => index % 3 !== 2
+        const publicEvent = (index) => index % 4 !== 3
+        const insertThread = async ({ who, text, title, category, photo, createdAt, isPublic = false }) => {
             const fields = ['user_id', 'thread_uuid', 'title', 'content', 'category', 'created_at', 'updated_at']
             const marks = ['?', 'UUID_TO_BIN(?)', '?', '?', '?', '?', '?']
             const params = [idFor(who), randomUUID(), title, text, category, createdAt, createdAt]
@@ -151,6 +159,12 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
                 marks.push('?')
                 params.push(photo)
                 counts.photos++
+            }
+            if (threadPublic) {
+                fields.push('is_public')
+                marks.push('?')
+                params.push(isPublic ? 1 : 0)
+                if (isPublic) counts.publicThreads++
             }
             const [res] = await conn.execute(`INSERT INTO threads (${fields.join(', ')}) VALUES (${marks.join(', ')})`, params)
             return res.insertId
@@ -179,7 +193,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             if (p.user === null && !anonymousOk) continue
             const threadId = await insertThread({
                 who: p.user, text: p.text, title: p.text.slice(0, 200), category: 'general',
-                photo: photoUrl(p.photo), createdAt: ago(p.ago),
+                photo: photoUrl(p.photo), createdAt: ago(p.ago), isPublic: p.isPublic ?? publicPost(postIndex),
             })
             counts.posts++
             await addLikes(threadId, postIndex, p.user)
@@ -188,24 +202,29 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
 
         // ---- FAQs ----
         for (const f of FAQS) {
-            await insertThread({ who: 'team', text: f.text, title: f.title, category: 'faq', photo: null, createdAt: ago(f.ago) })
+            await insertThread({ who: 'team', text: f.text, title: f.title, category: 'faq', photo: null, createdAt: ago(f.ago), isPublic: true })
             counts.faqs++
         }
 
         // ---- events (each with its linked community post) ----
         for (const [eventIndex, e] of EVENTS.entries()) {
             const posted = ago([e.inDays > 30 ? 6 : 3, 3])
-            const photo = photoUrl(e.photo)
+            const isPublic = e.isPublic ?? publicEvent(eventIndex)
             const threadId = await insertThread({
                 who: e.organizer, text: e.description, title: `${e.title} — Event`, category: 'events',
-                photo: null, createdAt: posted,
+                photo: null, createdAt: posted, isPublic,
             })
             const startedAt = startsIn(e.inDays, e.hour, e.minute)
             const endedAt = new Date(startedAt.getTime() + 2 * 3600 * 1000)
-            await conn.execute(
-                'INSERT INTO events (event_uuid, event_title, event_description, started_at, ended_at, created_by_user_id, thread_id, photo_url, created_at, updated_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [randomUUID(), e.title, e.description, startedAt, endedAt, idFor(e.organizer), threadId, photo, posted, posted]
-            )
+            const eventFields = ['event_uuid', 'event_title', 'event_description', 'started_at', 'ended_at', 'created_by_user_id', 'thread_id', 'photo_url', 'created_at', 'updated_at']
+            const eventMarks = ['UUID_TO_BIN(?)', '?', '?', '?', '?', '?', '?', '?', '?', '?']
+            const eventParams = [randomUUID(), e.title, e.description, startedAt, endedAt, idFor(e.organizer), threadId, photo, posted, posted]
+            if (eventPublic) {
+                eventFields.push('is_public')
+                eventMarks.push('?')
+                eventParams.push(isPublic ? 1 : 0)
+            }
+            await conn.execute(`INSERT INTO events (${eventFields.join(', ')}) VALUES (${eventMarks.join(', ')})`, eventParams)
             if (photo) counts.photos++
             counts.events++
             await addLikes(threadId, eventIndex + 7, e.organizer)
@@ -213,7 +232,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         await conn.commit()
-        log(`Done: ${counts.users} users, ${counts.posts} community posts, ${counts.faqs} FAQs, ${counts.replies} replies, ${counts.events} events, ${counts.photos} photos, ${counts.likes} likes.`)
+        log(`Done: ... ${counts.likes} likes, ${counts.publicThreads} of ${counts.posts + counts.faqs + counts.events} threads public.`)
         log('Demo logins: Dean (the dean\'s account, uses DEAN_PASSWORD if set), Rosa, David, Lena ... and Admin (admin). The others use DEMO_PASSWORD.')
         return counts
     } catch (err) {
