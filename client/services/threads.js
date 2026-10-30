@@ -143,9 +143,14 @@ export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
   // Only the thread's author or an admin can edit it (the server checks).  
   // Keeps a thread's own title (e.g. a seeded question) rather than
-  // replacing it with one generated from the edited body.
+  // replacing it with one generated from the edited body -- but only if the
+  // server will accept it (20-200 characters). An event's linked post is titled
+  // "<event name> — Event", which is too short for a short event name, so those
+  // get a generated title instead of failing to save.
+  const keepTitle =
+    data.customTitle && data.customTitle.length >= 20 && data.customTitle.length <= 200;
   const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
-    title: data.customTitle || deriveTitle(content),
+    title: keepTitle ? data.customTitle : deriveTitle(content),
     content,
     category: data.category || "general",
     isPublic: !!data.isPublic,
