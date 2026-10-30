@@ -147,7 +147,7 @@ export default function ThreadDetail() {
         ListHeaderComponent={
           <View style={styles.threadCard}>
             {thread.imageUri ? (
-              <FlexibleImage uri={thread.imageUri} style={styles.image} />
+              <FlexibleImage uri={thread.imageUri} maxHeight={340} style={[styles.image, styles.imageCapped]} />
             ) : null}
 
             <View style={styles.tagRow}>
@@ -295,6 +295,11 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
+  },
+  // Keeps a big photo from filling the whole screen: at most 520px wide and 340px tall, centered.
+  imageCapped: {
+    maxWidth: 520,
+    alignSelf: "center",
   },
   tagRow: {
     flexDirection: "row",
