@@ -19,6 +19,7 @@ import { createReply, deleteReply, getThreadByEventId } from "../../services/thr
 import { confirmAction } from "../../utils/confirmAction";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
+import { formatEventDate } from "../../utils/formatEventDate";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -191,7 +192,7 @@ export default function EventDetails() {
                 {event.date ? (
                   <View style={styles.metaItem}>
                     <CalendarDays size={18} color={EVENT_TEXT_COLOR} />
-                    <Text style={styles.metaText}>{event.date}</Text>
+                    <Text style={styles.metaText}>{formatEventDate(event.date)}</Text>
                   </View>
                 ) : null}
 

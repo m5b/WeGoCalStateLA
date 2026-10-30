@@ -20,6 +20,7 @@ import {
 import { Colors } from '../../constant/Colors';
 import { getEvents } from '../../services/events';
 import WebLayout from '../../components/WebLayout';
+import { formatEventDate } from '../../utils/formatEventDate';
 
 const { width } = Dimensions.get('window');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -253,7 +254,7 @@ export default function EventsScreen() {
                       <EventCard
                         key={event.id}
                         title={event.title}
-                        date={`${event.date}${event.time ? ` at ${event.time}` : ''}`}
+                        date={`${formatEventDate(event.date)}${event.time ? ` at ${event.time}` : ''}`}
                         location={event.location}
                         description={event.description}
                         imageUrl={event.imageUrl}
@@ -311,7 +312,7 @@ export default function EventsScreen() {
                   <EventCard
                     key={event.id}
                     title={event.title}
-                    date={`${event.date}${event.time ? ` at ${event.time}` : ''}`}
+                    date={`${formatEventDate(event.date)}${event.time ? ` at ${event.time}` : ''}`}
                     location={event.location}
                     description={event.description}
                     imageUrl={event.imageUrl}
