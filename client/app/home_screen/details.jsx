@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CalendarDays, Clock, MapPin, MessageCircle } from "lucide-react-native";
+import { CalendarDays, Clock, Lock, MapPin, MessageCircle } from "lucide-react-native";
 import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
@@ -119,8 +119,10 @@ export default function EventDetails() {
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
 
+  // Private events come back locked (details stripped) for signed-out
+  // visitors, so they get the sign-in prompt over the page instead.
   return (
-    <WebLayout>
+    <WebLayout requireSignIn={event.locked ? "events" : undefined}>
       <View style={styles.screen}>
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -154,6 +156,12 @@ export default function EventDetails() {
             ) : null}
 
             <View style={styles.eventBody}>
+              {!event.isPublic ? (
+                <View style={styles.privateBadge}>
+                  <Lock size={12} color={Colors.WHITE} />
+                  <Text style={styles.privateBadgeText}>Private event</Text>
+                </View>
+              ) : null}
               <Text style={styles.eventTitle}>{title}</Text>
               {event.author ? (
                 <Text style={styles.postedBy}>Posted by {event.author}</Text>
@@ -256,6 +264,22 @@ export default function EventDetails() {
 }
 
 const styles = StyleSheet.create({
+  privateBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BLACK,
+  },
+  privateBadgeText: {
+    color: Colors.WHITE,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   screen: {
     flex: 1,
     backgroundColor: Colors.LIGHT_GRAY,

@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { requireAuth } from '../middlewares/requireAuth.mjs'
+import { optionalAuth } from '../middlewares/optionalAuth.mjs'
+import { eventForViewer } from '../util/visibility.mjs'
 import { eventPatchSchema, eventPostSchema } from '../validators/eventsValidators.mjs'
 import { uuidSchema } from '../validators/authValidators.mjs'
 import { jsend } from '../util/jSend.mjs'
@@ -15,10 +17,11 @@ const upload = multer({
 export function createEventsRouter({userService, eventService}) {
     const router = Router()
 
-    // Public event feed.
-    router.get('/', async (req, res) => {
+    // Public event feed. Private events come back locked for signed-out
+    // visitors.
+    router.get('/', optionalAuth(userService), async (req, res) => {
         const events = await eventService.getAll()
-        res.json(jsend.success({ events }))
+        res.json(jsend.success({ events: events.map((event) => eventForViewer(event, req.user)) }))
     })
 
     // Events the logged-in user posted.
@@ -44,10 +47,10 @@ export function createEventsRouter({userService, eventService}) {
     })
 
     // Single event detail.
-    router.get('/:eventUuid', async (req, res) => {
+    router.get('/:eventUuid', optionalAuth(userService), async (req, res) => {
         const eventUuid = uuidSchema.parse(req.params.eventUuid)
         const event = await eventService.getByEventUuid(eventUuid)
-        res.json(jsend.success({ event }))
+        res.json(jsend.success({ event: eventForViewer(event, req.user) }))
     })
 
     return router

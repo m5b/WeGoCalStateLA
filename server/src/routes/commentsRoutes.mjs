@@ -7,6 +7,7 @@ import buildCommentTree from "../util/commentTreeBuilder.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
+import { assertCanView } from '../util/visibility.mjs'
 
 
 export function createCommentRouter({userService, commentService}) {
@@ -106,10 +107,12 @@ export function createCommentRouter({userService, commentService}) {
     })
 
     //tested
-    // Public: anyone can read a thread's replies without being signed in.
-    router.get('/thread/:threadUuid', async (req, res) => {
+    // Public: anyone can read a public thread's replies without being signed
+    // in. Private threads' replies need an account.
+    router.get('/thread/:threadUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const {thread, comments} = await commentService.getByThreadUuid(threadUuid)
+        assertCanView(thread, req.user)
         const threadDto = new ThreadDto(thread)
         const commentDtos = comments.map((comment) => new CommentDto(comment))
 
@@ -119,11 +122,12 @@ export function createCommentRouter({userService, commentService}) {
         res.json(jsend.success({threadDto, comments: commentDtoTreeList}))
     })
 
-    router.get('/thread/:threadUuid/comment/:commentUuid', async (req, res) => {
+    router.get('/thread/:threadUuid/comment/:commentUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const commentUuid = uuidSchema.parse(req.params.commentUuid)
         const { thread, comments } =
             await commentService.getByThreadUuid(threadUuid)
+        assertCanView(thread, req.user)
         const commentDtos = comments.map((comment) => new CommentDto(comment))
 
         const { commentDtoTreeList, commentTreeMap } =

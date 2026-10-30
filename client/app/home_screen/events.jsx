@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Lock,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { getEvents } from '../../services/events';
@@ -59,7 +60,7 @@ function getEventTitle(event) {
 }
 
 // ------- Event Card -------
-function EventCard({ title, date, location, description, author, onPress, imageUrl, compact = false }) {
+function EventCard({ title, date, location, description, author, onPress, imageUrl, isPublic = true, locked = false, compact = false }) {
   return (
     <TouchableOpacity
       activeOpacity={0.95}
@@ -84,6 +85,12 @@ function EventCard({ title, date, location, description, author, onPress, imageU
       <View style={eventStyles.contentRow}>
         <View style={eventStyles.leftAccent} />
         <View style={[eventStyles.inner, compact && eventStyles.compactInner]}>
+          {!isPublic ? (
+            <View style={eventStyles.privateBadge}>
+              <Lock size={11} color={Colors.WHITE} />
+              <Text style={eventStyles.privateBadgeText}>Private</Text>
+            </View>
+          ) : null}
           <Text style={[eventStyles.title, compact && eventStyles.compactTitle]}>{title}</Text>
           {author ? <Text style={eventStyles.author}>by {author}</Text> : null}
           {date ? <Text style={[eventStyles.date, compact && eventStyles.compactDate]}>{date}</Text> : null}
@@ -99,6 +106,12 @@ function EventCard({ title, date, location, description, author, onPress, imageU
               style={[eventStyles.description, compact && eventStyles.compactDescription]}
             >
               {description}
+            </Text>
+          ) : null}
+
+          {locked ? (
+            <Text style={[eventStyles.description, compact && eventStyles.compactDescription]}>
+              Sign in to see the details.
             </Text>
           ) : null}
         </View>
@@ -141,6 +154,8 @@ export default function EventsScreen() {
                 description: event.description || (event.text && event.text !== title ? event.text : ''),
                 imageUrl: event.imageUri || null,
                 author: event.author || '',
+                isPublic: event.isPublic,
+                locked: event.locked,
                 eventDate,
               };
             })
@@ -243,6 +258,8 @@ export default function EventsScreen() {
                         description={event.description}
                         imageUrl={event.imageUrl}
                         author={event.author}
+                        isPublic={event.isPublic}
+                        locked={event.locked}
                         onPress={() =>
                           router.push({
                             pathname: '/home_screen/details',
@@ -299,6 +316,8 @@ export default function EventsScreen() {
                     description={event.description}
                     imageUrl={event.imageUrl}
                     author={event.author}
+                    isPublic={event.isPublic}
+                    locked={event.locked}
                     compact
                     onPress={() =>
                       router.push({
@@ -369,6 +388,22 @@ const eventStyles = StyleSheet.create({
   compactTitle: {
     fontSize: 13,
     marginBottom: 3,
+  },
+  privateBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: Colors.BLACK,
+  },
+  privateBadgeText: {
+    color: Colors.WHITE,
+    fontSize: 11,
+    fontWeight: '700',
   },
   author: {
     color: EVENT_TEXT_COLOR,

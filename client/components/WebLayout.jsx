@@ -12,14 +12,16 @@ import { House as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Spark
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
+import { GatedContent } from './SignInGate';
 
-export default function WebLayout({ children }) {
+export default function WebLayout({ children, requireSignIn }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
   const pathname = usePathname();
+  const showSignInGate = Boolean(requireSignIn) && !isLoading && !isAuthenticated;
 
   const navigationItems = [
     { name: 'Home', icon: Home, route: '/home_screen/home', active: pathname === '/home_screen/home' || pathname === '/' },
@@ -231,7 +233,9 @@ export default function WebLayout({ children }) {
 
       {/* Main Content */}
       <View style={styles.mainContent}>
-        {children}
+        <GatedContent variant={requireSignIn} locked={showSignInGate}>
+          {children}
+        </GatedContent>
       </View>
 
       {/* Overlay for closing menus */}

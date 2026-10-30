@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Lock } from "lucide-react-native";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
@@ -31,7 +32,17 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
         <FlexibleImage uri={item.imageUri} style={styles.image} />
       ) : null}
 
-      <Text style={styles.title} numberOfLines={compact ? 5 : undefined}>{title}</Text>
+      {!item.isPublic ? (
+        <View style={styles.privateBadge}>
+          <Lock size={12} color={Colors.BLACK} />
+          <Text style={styles.privateBadgeText}>Private</Text>
+        </View>
+      ) : null}
+
+      <Text style={[styles.title, item.locked && styles.lockedTitle]} numberOfLines={compact ? 5 : undefined}>{title}</Text>
+      {item.locked ? (
+        <Text style={styles.lockedHint}>Sign in or create an account to read this conversation.</Text>
+      ) : null}
 
       {item.createdAt ? (
         <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
@@ -113,7 +124,7 @@ export default function ThreadFeed() {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.screenTitle}>Community conversations</Text>
-          <Text style={styles.previewText}>Posts are visible to everyone, even without an account. Do not share private information.</Text>
+          <Text style={styles.previewText}>Public posts are visible to everyone, even without an account. Private posts are only for signed-in members.</Text>
         </View>
         <TouchableOpacity
           style={styles.newButton}
@@ -272,6 +283,30 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     fontSize: 16,
     fontWeight: "700",
+  },
+  privateBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BRAND_GOLD,
+  },
+  privateBadgeText: {
+    color: Colors.BLACK,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  lockedTitle: {
+    fontStyle: "italic",
+  },
+  lockedHint: {
+    color: Colors.GRAY_300,
+    fontSize: 13,
+    marginTop: 4,
   },
   timestamp: {
     color: Colors.TEXT_MUTED,

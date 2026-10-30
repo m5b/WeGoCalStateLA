@@ -63,7 +63,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
     }
 
     // imageFile is multer's req.file (undefined if no image was sent).
-    async function postByUserId(userId, { title, description, date, time }, imageFile) {
+    async function postByUserId(userId, { title, description, date, time, isPublic = false }, imageFile) {
         const { startedAt: safeStartedAt, endedAt } = toStartEnd(date, time)
         const photoUrl = imageFile ? await savePhoto(imageFile) : null
 
@@ -73,6 +73,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             title: `${title} — Event`,
             content: description || title,
             category: 'events',
+            isPublic,
         })
 
         const eventUuid = uuidv4()
@@ -85,15 +86,16 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             createdByUserId: userId,
             threadId: thread.threadId,
             photoUrl,
+            isPublic,
         })
 
         return await getByEventUuid(eventUuid)
     }
 
     // Only the event's creator can edit it. A new image (if sent) replaces
-    // the old one. Title/description changes are mirrored onto the linked
-    // community post so the two stay in sync.
-    async function patchByEventUuid(userId, eventUuid, { title, description, date, time }, imageFile) {
+    // the old one. Title/description/visibility changes are mirrored onto the
+    // linked community post so the two stay in sync.
+    async function patchByEventUuid(userId, eventUuid, { title, description, date, time, isPublic }, imageFile) {
         const existing = await eventRepo.findByEventUuid(eventUuid)
         if (!existing) {
             throw new NotFoundError({ event: 'Not Found' }, 'Event not found.')
@@ -111,20 +113,23 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             fields.ended_at = endedAt
         }
         if (imageFile) fields.photo_url = await savePhoto(imageFile)
+        if (isPublic !== undefined) fields.is_public = isPublic
 
         await eventRepo.updateByEventUuid({ eventUuid, userId, fields })
 
-        if (existing.thread_id && (title !== undefined || description !== undefined)) {
+        if (existing.thread_id && (title !== undefined || description !== undefined || isPublic !== undefined)) {
             const newTitle = title ?? existing.event_title
             const newDescription = description ?? existing.event_description
+            const threadPayload = {
+                title: `${newTitle} — Event`,
+                content: newDescription || newTitle,
+            }
+            if (isPublic !== undefined) threadPayload.isPublic = isPublic
             try {
                 await threadService.patchByThreadId({
                     userId,
                     threadId: existing.thread_id,
-                    payload: {
-                        title: `${newTitle} — Event`,
-                        content: newDescription || newTitle,
-                    },
+                    payload: threadPayload,
                 })
             } catch (err) {
                 // The linked community post was deleted -- the event edit

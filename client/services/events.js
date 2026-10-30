@@ -16,6 +16,10 @@ function mapEvent(dto) {
     author: dto.author,
     authorUuid: dto.authorUuid,
     threadId: dto.threadId,
+    isPublic: !!dto.isPublic,
+    // Private events come back locked (details stripped) for signed-out
+    // visitors -- see server/src/util/visibility.mjs.
+    locked: !!dto.locked,
     createdAt: dto.createdAt,
   };
 }
@@ -43,6 +47,7 @@ function buildEventForm(data) {
   formData.append('date', data.date || '');
   formData.append('time', data.time || '');
   formData.append('location', data.location || '');
+  formData.append('isPublic', data.isPublic ? 'true' : 'false');
   return formData;
 }
 

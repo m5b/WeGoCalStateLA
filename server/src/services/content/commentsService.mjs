@@ -3,6 +3,7 @@ import { NotFoundError } from '../../errors/notFoundError.mjs'
 import {UnauthorizedError} from "../../errors/unauthorizedError.mjs";
 import { v4 as uuidv4 } from 'uuid';
 import buildPatchQuery from "../../util/buildPatchQuery.mjs";
+import { assertCanView } from '../../util/visibility.mjs'
 
 export function createCommentService({commentRepo, threadService}) {
     return{
@@ -67,6 +68,8 @@ export function createCommentService({commentRepo, threadService}) {
 
     async function postComment({userId, threadUuid, payload, parentCommentUuid}) {
         const thread = await threadService.getByThreadUuid(threadUuid)
+        // Replying anonymously is only allowed on public threads.
+        if (userId == null) assertCanView(thread, null)
         const { content } = payload
         let inserted, insertId
         if(parentCommentUuid == null){

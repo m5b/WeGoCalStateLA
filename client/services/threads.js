@@ -5,7 +5,8 @@ import { prepareImageBlob, resolveUploadUrl } from "../utils/imageData";
 export const THREAD_CATEGORIES = [
   { key: "general", label: "General" },
   { key: "events", label: "Events" },
-  { key: "faq", label: "FAQs" },
+  // Stored as "faq" (the original name) -- shown to users as Questions.
+  { key: "faq", label: "Questions" },
 ];
 
 // Checks for a well-formed thread id (the server's uuid format).
@@ -13,6 +14,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 // Maps a real thread (from GET /api/threads) to the shape the UI uses.
 function mapThread(dto) {
+  // A thread has its own title only when it wasn't generated from the body
+  // by deriveTitle -- e.g. the seeded questions, whose title is the question
+  // and whose body is the answer.
+  const customTitle =
+    !dto.locked && dto.title && dto.title !== deriveTitle(dto.body)
+      ? dto.title
+      : null;
   return {
     id: dto.threadUuid,
     author: dto.author,
@@ -20,10 +28,17 @@ function mapThread(dto) {
     // Shows the real post content, not dto.title -- the server requires a
     // 20 character title (see deriveTitle below), so title often has
     // trailing dots padding it out and was never meant to be displayed.
-    // FAQs are the exception: their title is the question (shown as the
-    // heading) and their body is the answer.
-    caption: dto.category === "faq" ? dto.title : dto.body,
-    text: dto.body,
+    // Questions with their own title are the exception: the title is the
+    // question (shown as the heading) and the body is the answer.
+    // Private threads come back locked (content stripped) for signed-out
+    // visitors -- see server/src/util/visibility.mjs.
+    caption: dto.locked
+      ? "Private conversation"
+      : dto.category === "faq" && customTitle ? customTitle : dto.body,
+    text: dto.locked ? "" : dto.body,
+    customTitle,
+    isPublic: !!dto.isPublic,
+    locked: !!dto.locked,
     likes: dto.likeCount ?? 0,
     likedByMe: dto.likedByMe ?? false,
     // Sent with the feed so the count shows before the post is opened.
@@ -113,6 +128,7 @@ export async function createThread(data) {
   formData.append("title", deriveTitle(content));
   formData.append("content", content);
   formData.append("category", data.category || "general");
+  formData.append("isPublic", data.isPublic ? "true" : "false");
   if (data.imageUri) {
     const blob = await prepareImageBlob(data.imageUri);
     const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
@@ -125,10 +141,13 @@ export async function createThread(data) {
 export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
   // Anyone can edit any thread for now (see PATCH /api/threads/:threadUuid).
+  // Keeps a thread's own title (e.g. a seeded question) rather than
+  // replacing it with one generated from the edited body.
   const res = await apiJson(`/api/threads/${threadId}`, "PATCH", {
-    title: deriveTitle(content),
+    title: data.customTitle || deriveTitle(content),
     content,
     category: data.category || "general",
+    isPublic: !!data.isPublic,
   });
   return mapThread(res.data.thread);
 }
