@@ -17,11 +17,14 @@ import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
+import { useAuth } from "../../context/AuthContext";
+import { canManage } from "../../utils/permissions";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -128,7 +131,8 @@ export default function ThreadDetail() {
               <Text style={styles.editText}>Edit</Text>
             </TouchableOpacity>
           ) : null}
-          {thread.locked ? null : (
+          {/* Delete: the person who wrote the thread, or an admin. */}
+          {thread.locked || !canManage(user, thread.authorUuid) ? null : (
             <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
               <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
                 {deleting ? "Deleting..." : "Delete"}
@@ -203,9 +207,11 @@ export default function ThreadDetail() {
                     {formatTimestamp(item.createdAt)}
                   </Text>
                 ) : null}
-                <TouchableOpacity onPress={() => confirmDeleteReply(item.id)}>
-                  <Text style={styles.replyDelete}>Delete</Text>
-                </TouchableOpacity>
+                {canManage(user, item.authorUuid) ? (
+                  <TouchableOpacity onPress={() => confirmDeleteReply(item.id)}>
+                    <Text style={styles.replyDelete}>Delete</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
             {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}

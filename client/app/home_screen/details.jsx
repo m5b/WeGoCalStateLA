@@ -14,10 +14,11 @@ import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import { Colors } from "../../constant/Colors";
-import { getEvent } from "../../services/events";
+import { getEvent, deleteEvent } from "../../services/events";
 import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
 import { confirmAction } from "../../utils/confirmAction";
 import { useAuth } from "../../context/AuthContext";
+import { canManage } from "../../utils/permissions";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -98,6 +99,20 @@ export default function EventDetails() {
     }
   };
 
+  const confirmDeleteEvent = () =>
+    confirmAction({
+      title: "Delete event",
+      message: "Delete this event and its discussion? This can't be undone.",
+      onConfirm: async () => {
+        try {
+          await deleteEvent(event.id);
+          router.replace("/home_screen/events");
+        } catch (error) {
+          console.warn("Failed to delete event", error);
+        }
+      },
+    });
+
   const confirmDeleteReply = (replyId) =>
     confirmAction({
       title: "Delete reply",
@@ -115,7 +130,8 @@ export default function EventDetails() {
       },
     });
 
-  const isAuthor = !!user?.userUuid && user.userUuid === event.authorUuid;
+  // Edit and delete: the person who created the event, or an admin.
+  const canManageEvent = canManage(user, event.authorUuid);
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
 
@@ -129,19 +145,23 @@ export default function EventDetails() {
             <Text style={styles.backText}>{"\u2190"} Back to Events</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Event Details</Text>
-          {isAuthor ? (
-            <TouchableOpacity
-              style={{ width: 72, alignItems: "flex-end" }}
-              onPress={() =>
-                router.push({
-                  pathname: "/home_screen/create_event",
-                  params: { eventId: event.id },
-                })
-              }
-            >
-              <Text style={styles.backText}>Edit</Text>
-            </TouchableOpacity>
-          ) : (
+          {canManageEvent ? (
+            <View style={{ width: 72, alignItems: "flex-end" }}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/home_screen/create_event",
+                    params: { eventId: event.id },
+                  })
+                }
+              >
+                <Text style={styles.backText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={confirmDeleteEvent}>
+                <Text style={styles.deleteEventText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+           ) : (
             <View style={{ width: 72 }} />
           )}
         </View>
@@ -227,9 +247,11 @@ export default function EventDetails() {
                   <View key={String(reply.id)} style={styles.replyCard}>
                     <View style={styles.replyHeader}>
                       <Text style={styles.replyAuthor}>{reply.author || "Anonymous"}</Text>
-                      <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
-                        <Text style={styles.replyDelete}>Delete</Text>
-                      </TouchableOpacity>
+                      {canManage(user, reply.authorUuid) ? (
+                        <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
+                          <Text style={styles.replyDelete}>Delete</Text>
+                        </TouchableOpacity>
+                      ) : null}
                     </View>
                     {!!reply.text && (
                       <Text style={styles.replyText}>{reply.text}</Text>
@@ -435,6 +457,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  deleteEventText: {
+    color: Colors.ERROR,
+    fontWeight: "700",
+    marginTop: 4,
   },
   replyDelete: {
     color: Colors.ERROR,

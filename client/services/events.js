@@ -1,4 +1,4 @@
-import { apiGet, apiForm } from './api';
+import { apiGet, apiForm, apiJson } from './api';
 import { prepareImageBlob, resolveUploadUrl } from '../utils/imageData';
 
 // Maps the server's event shape to the field names the client screens use.
@@ -78,4 +78,10 @@ export async function updateEvent(eventId, data) {
 
   const res = await apiForm(`/api/events/me/${eventId}`, 'PATCH', formData);
   return mapEvent(res.data.event);
+}
+
+// Deletes an event and its discussion. Only the person who created it, or an admin, can do this.
+export async function deleteEvent(eventId) {
+  await apiJson(`/api/events/me/${eventId}`, 'DELETE');
+  return { ok: true };
 }
