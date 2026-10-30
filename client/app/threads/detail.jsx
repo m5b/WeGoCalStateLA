@@ -16,6 +16,7 @@ import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import { confirmAction } from "../../utils/confirmAction";
+import { GatedContent } from "../../components/SignInGate";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
@@ -41,7 +42,8 @@ export default function ThreadDetail() {
   };
 
   useEffect(() => {
-    if (!thread || thread.repliesLoaded) return;
+    // Locked threads' replies need an account, so there's nothing to fetch.
+    if (!thread || thread.repliesLoaded || thread.locked) return;
     setLoadingReplies(true);
     actions
       .loadThreadDetail(thread.id)
@@ -51,7 +53,7 @@ export default function ThreadDetail() {
       // object references every render, so including them would refetch on
       // every state update instead of once per thread.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thread?.id]);
+  }, [thread?.id, thread?.locked]);
 
   if (!thread) {
     return (
@@ -61,8 +63,10 @@ export default function ThreadDetail() {
     );
   }
 
-  // Anyone can edit any real thread for now; FAQ placeholders aren't stored.
-  const canEdit = isRealThread(thread.id) && thread.category !== "faq";
+  // Anyone can edit any real thread for now. Private threads are shown
+  // behind the sign-in prompt to signed-out visitors (the server has already
+  // stripped their content).
+  const canEdit = isRealThread(thread.id) && !thread.locked;
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
@@ -104,6 +108,7 @@ export default function ThreadDetail() {
   };
 
   return (
+    <GatedContent variant="threads" locked={thread.locked}>
     <View style={{ flex: 1, backgroundColor: Colors.BACKGROUND_SECONDARY }}>
       <View style={styles.topRow}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -123,11 +128,13 @@ export default function ThreadDetail() {
               <Text style={styles.editText}>Edit</Text>
             </TouchableOpacity>
           ) : null}
-          <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
-            <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
-              {deleting ? "Deleting..." : "Delete"}
-            </Text>
-          </TouchableOpacity>
+          {thread.locked ? null : (
+            <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
+              <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
+                {deleting ? "Deleting..." : "Delete"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -138,9 +145,14 @@ export default function ThreadDetail() {
               <FlexibleImage uri={thread.imageUri} style={styles.image} />
             ) : null}
 
-            {categoryLabel ? (
-              <Text style={styles.categoryTag}>{categoryLabel}</Text>
-            ) : null}
+            <View style={styles.tagRow}>
+              {categoryLabel ? (
+                <Text style={styles.categoryTag}>{categoryLabel}</Text>
+              ) : null}
+              {!thread.isPublic ? (
+                <Text style={styles.privateTag}>Private</Text>
+              ) : null}
+            </View>
 
             {!!thread.caption && (
               <Text style={styles.threadCaption}>{thread.caption}</Text>
@@ -226,6 +238,7 @@ export default function ThreadDetail() {
         </TouchableOpacity>
       </View>
     </View>
+    </GatedContent>
   );
 }
 
@@ -276,9 +289,23 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
+  tagRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  privateTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BRAND_GOLD,
+    color: Colors.BLACK,
+    fontSize: 12,
+    fontWeight: "700",
+    overflow: "hidden",
+  },
   categoryTag: {
     alignSelf: "flex-start",
-    marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,

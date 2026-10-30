@@ -16,5 +16,6 @@ export default class ThreadDto {
         this.likeCount = Number(thread.likeCount ?? 0)
         this.replyCount = Number(thread.replyCount ?? 0)
         this.likedByMe = Boolean(thread.likedByMe)
+        this.isPublic = Boolean(thread.isPublic)
     }
 }

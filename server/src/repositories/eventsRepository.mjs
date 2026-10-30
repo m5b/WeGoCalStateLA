@@ -9,6 +9,7 @@ const BASE_SELECT = `
         e.started_at,
         e.ended_at,
         e.photo_url,
+        e.is_public,
         e.created_at,
         e.updated_at,
         e.created_by_user_id,
@@ -53,12 +54,12 @@ export function createEventsRepo(db) {
         return rows
     }
 
-    async function insertEvent({eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl}) {
+    async function insertEvent({eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl, isPublic = false}) {
         const [result] = await db.execute(
             `INSERT INTO events
-                (event_uuid, event_title, event_description, started_at, ended_at, created_by_user_id, thread_id, photo_url, created_at, updated_at)
-             VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-            [eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl]
+                (event_uuid, event_title, event_description, started_at, ended_at, created_by_user_id, thread_id, photo_url, is_public, created_at, updated_at)
+             VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+            [eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl, isPublic]
         )
         return result.insertId
     }

@@ -62,7 +62,7 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
      // imageFile is multer's req.file (undefined when no photo was attached, or when
     // eventService creates a linked post).
     async function postByUserId(userId, payload, imageFile) {
-        const { title, content, category } = payload
+        const { title, content, category, isPublic } = payload
         let photoUrl = null
         if (imageFile) {
             // Name the file from its type, never from the uploaded file name.
@@ -76,6 +76,7 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
             content: content,
             category: category,
             photoUrl,
+            isPublic: isPublic,
         })
         const thread = await getByThreadId(insertId)
         return thread
@@ -127,13 +128,8 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
 
     // Edits a thread regardless of who wrote it.
     async function patchAnyByThreadUuid({threadUuid, payload}) {
-        // FAQ posts are curated content: anyone can edit regular threads
-        // for now, but not the FAQs. (Also throws NotFound if the thread
-        // has been deleted.)
-        const existing = await getByThreadUuid(threadUuid)
-        if (existing.category === 'faq') {
-            throw new UnauthorizedError(null, "FAQ posts can only be edited by their author")
-        }
+        // Throws NotFound if the thread has been deleted.
+        await getByThreadUuid(threadUuid)
         const { sqlQuery, dataList } = buildPatchQuery(
             'threads',
             dbMapper.toDb(payload)

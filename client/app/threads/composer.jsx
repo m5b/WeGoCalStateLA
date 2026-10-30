@@ -14,9 +14,13 @@ import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import FlexibleImage from "../../components/FlexibleImage";
+import VisibilityToggle from "../../components/VisibilityToggle";
+import { GatedContent } from "../../components/SignInGate";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Composer() {
   const { state, actions } = useThreads();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
 
@@ -29,6 +33,7 @@ export default function Composer() {
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState(null);
+  const [isPublic, setIsPublic] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -38,6 +43,7 @@ export default function Composer() {
     if (!editingThread) return;
     setCaption(editingThread.text || editingThread.caption || "");
     setCategory(editingThread.category || "general");
+    setIsPublic(!!editingThread.isPublic);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingThread?.id]);
 
@@ -85,7 +91,12 @@ export default function Composer() {
     if (isEditing) {
       setSaving(true);
       try {
-        await actions.editThread(params.threadId, { caption, category });
+        await actions.editThread(params.threadId, {
+          caption,
+          category,
+          isPublic,
+          customTitle: editingThread?.customTitle,
+        });
         router.back();
       } catch (e) {
         console.warn("Failed to update thread", e);
@@ -100,6 +111,7 @@ export default function Composer() {
         caption,
         imageUri,
         category,
+        isPublic,
         createdAt: Date.now(),
       });
     } catch (e) {
@@ -111,11 +123,13 @@ export default function Composer() {
     setImageUri(null);
     setCaption("");
     setCategory(null);
+    setIsPublic(false);
 
     router.replace({ pathname: "/threads/feed", params: { category } });
   }
 
   return (
+    <GatedContent variant="threads" locked={!authLoading && !isAuthenticated}>
     <ScrollView
       contentContainerStyle={{
         padding: 16,
@@ -212,6 +226,8 @@ export default function Composer() {
           })}
         </View>
 
+        <VisibilityToggle isPublic={isPublic} onChange={setIsPublic} noun="thread" />
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <TouchableOpacity
@@ -229,6 +245,7 @@ export default function Composer() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </GatedContent>
   );
 }
 

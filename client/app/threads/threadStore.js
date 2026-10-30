@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
 
 const ThreadsContext = createContext(null);
@@ -87,6 +88,7 @@ function reducer(state, action) {
 
 export function ThreadsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const loadFeed = async () => {
     dispatch({ type: 'LOAD_START' });
@@ -145,9 +147,12 @@ export function ThreadsProvider({ children }) {
     return reportContent(threadId, reason);
   };
 
+  // Reloads when the visitor signs in or out, since private threads come
+  // back locked for signed-out visitors and unlocked for members.
   useEffect(() => {
+    if (authLoading) return;
     loadFeed();
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const value = {
     state,

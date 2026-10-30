@@ -41,6 +41,7 @@ export function createThreadRepo(db){
                 (SELECT COUNT(*) FROM comments c
                     WHERE c.thread_id = t.thread_id AND c.parent_comment_id IS NULL
                       AND c.deleted_at IS NULL) AS reply_count,
+                t.is_public AS is_public,
                 CASE
                     WHEN t.deleted_at IS NULL THEN t.content
                     ELSE NULL 
@@ -117,10 +118,10 @@ export function createThreadRepo(db){
         return row
     }
 
-    async function insertThread({ userId, threadUuid, title, content, category = 'general', photoUrl = null }) {
+    async function insertThread({ userId, threadUuid, title, content, category = 'general', photoUrl = null, isPublic = false }) {
         const [result] = await db.execute(
-            'INSERT into threads (user_id, thread_uuid, title, content, category, photo_url) VALUES (?,UUID_TO_BIN(?), ?, ?, ?, ?)',
-            [userId, threadUuid, title, content, category, photoUrl]
+            'INSERT into threads (user_id, thread_uuid, title, content, category, photo_url, is_public) VALUES (?,UUID_TO_BIN(?), ?, ?, ?, ?, ?)',
+            [userId, threadUuid, title, content, category, photoUrl, isPublic]
         )
 
         return result.insertId
