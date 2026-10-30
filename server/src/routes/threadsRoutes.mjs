@@ -66,6 +66,8 @@ export function createThreadRouter({userService, threadService}){
             userId: user.userId,
             threadUuid,
             payload,
+            // Admins can edit any thread, not only their own.
+            isAdmin: Boolean(user.isAdmin),
         })
         res.send(jsend.success({ thread: new ThreadDto(thread) }))
     })
@@ -77,6 +79,8 @@ export function createThreadRouter({userService, threadService}){
         await threadService.deleteByThreadUuid({
             threadUuid,
             userId: user.userId,
+            // Admins can delete any thread, not only their own.
+            isAdmin: Boolean(user.isAdmin),
         })
         res.send(jsend.success(null))
     })

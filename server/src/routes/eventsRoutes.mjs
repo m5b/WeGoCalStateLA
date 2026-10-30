@@ -37,13 +37,21 @@ export function createEventsRouter({userService, eventService}) {
         res.json(jsend.success({ event }))
     })
 
-    // Edits an event the logged-in user created. Image is optional; if sent
+    // Edits an event the logged-in user created (or any event, for an admin). Image is optional; if sent
     // it replaces the current cover image.
     router.patch('/me/:eventUuid', requireAuth(userService), upload.single('image'), async (req, res) => {
         const eventUuid = uuidSchema.parse(req.params.eventUuid)
         const payload = eventPatchSchema.parse(req.body)
-        const event = await eventService.patchByEventUuid(req.user.userId, eventUuid, payload, req.file)
+        // Admins can edit any event, not only their own.
+        const event = await eventService.patchByEventUuid(req.user.userId, eventUuid, payload, req.file, { isAdmin: Boolean(req.user.isAdmin) })
         res.json(jsend.success({ event }))
+    })
+
+    // Deletes an event (and its linked community post). The creator or an admin can do this.
+    router.delete('/me/:eventUuid', requireAuth(userService), async (req, res) => {
+        const eventUuid = uuidSchema.parse(req.params.eventUuid)
+        await eventService.deleteByEventUuid(req.user.userId, eventUuid, { isAdmin: Boolean(req.user.isAdmin) })
+        res.json(jsend.success(null))
     })
 
     // Single event detail.

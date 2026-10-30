@@ -76,6 +76,8 @@ export function createCommentRouter({userService, commentService}) {
             commentUuid,
             userId,
             payload,
+            // Admins can edit any reply, not only their own.
+            isAdmin: Boolean(req.user.isAdmin),
         })
         res.send(
             jsend.success({
@@ -91,7 +93,8 @@ export function createCommentRouter({userService, commentService}) {
         async (req, res) => {
             const commentUuid = uuidSchema.parse(req.params.commentUuid)
             const userId = req.user.userId
-            await commentService.deleteByCommentUuid({ commentUuid, userId})
+            // Admins can delete any reply, not only their own.
+            await commentService.deleteByCommentUuid({ commentUuid, userId, isAdmin: Boolean(req.user.isAdmin) })
             res.send(jsend.success(null))
         }
     )

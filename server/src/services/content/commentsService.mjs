@@ -116,15 +116,17 @@ export function createCommentService({commentRepo, threadService}) {
         return comment
     }
 
-    async function patchByCommentUuid({commentUuid, userId, payload}){
+    // isAdmin lets an admin edit any reply, not only their own.
+    async function patchByCommentUuid({commentUuid, userId, payload, isAdmin = false}){
         const { sqlQuery, dataList } = buildPatchQuery(
             'comments',
             dbMapper.toDb(payload)
         )
-        const{existed, changed} = await commentRepo.updateByCommentUuid({
-            commentUuid, userId, sqlQuery, dataList
-        })
+        const{existed, changed} = isAdmin
+            ? await commentRepo.updateAnyByCommentUuid({ commentUuid, sqlQuery, dataList })
+            : await commentRepo.updateByCommentUuid({ commentUuid, userId, sqlQuery, dataList })
         if(!existed){
+            if (isAdmin) throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
         const comment = await getByCommentUuid(commentUuid)
@@ -142,11 +144,13 @@ export function createCommentService({commentRepo, threadService}) {
         }
     }
 
-    async function deleteByCommentUuid({commentUuid, userId}) {
-        const deleted = await commentRepo.deleteByCommentUuid({
-            commentUuid, userId
-        })
+    // isAdmin lets an admin delete any reply, not only their own.
+    async function deleteByCommentUuid({commentUuid, userId, isAdmin = false}) {
+        const deleted = isAdmin
+            ? await commentRepo.deleteAnyByCommentUuid({ commentUuid })
+            : await commentRepo.deleteByCommentUuid({ commentUuid, userId })
         if(!deleted){
+            if (isAdmin) throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
     }

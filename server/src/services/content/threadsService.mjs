@@ -112,7 +112,9 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
         return thread
     }
 
-    async function patchByThreadUuid({userId, threadUuid, payload}) {
+    // isAdmin lets an admin edit any thread, not only their own.
+    async function patchByThreadUuid({userId, threadUuid, payload, isAdmin = false}) {
+        if (isAdmin) return patchAnyByThreadUuid({threadUuid, payload})
         const { sqlQuery, dataList } = buildPatchQuery(
             'threads',
             dbMapper.toDb(payload)
@@ -152,7 +154,15 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
     }
-    async function deleteByThreadUuid({threadUuid, userId}) {
+    // isAdmin lets an admin delete any thread, not only their own.
+    async function deleteByThreadUuid({threadUuid, userId, isAdmin = false}) {
+        if (isAdmin) {
+            const removed = await threadRepo.deleteAnyByThreadUuid({threadUuid})
+            if (!removed) {
+                throw new NotFoundError({ thread: 'Cannot find thread with the given identifier' })
+            }
+            return
+        }
         const deleted = await threadRepo.deleteByThreadUuid(
             {threadUuid, userId}
         )
