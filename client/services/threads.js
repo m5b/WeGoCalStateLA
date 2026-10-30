@@ -61,6 +61,7 @@ function mapComment(dto) {
   return {
     id: dto.commentUuid,
     author: dto.username,
+    authorUuid: dto.userUuid,
     text: dto.content,
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
   };
