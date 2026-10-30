@@ -5,16 +5,16 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Lock } from "lucide-react-native";
+import { Lock, MessageCircle } from "lucide-react-native";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
-import FlexibleImage from "../../components/FlexibleImage";
 
 function ThreadItem({ item, onPress, onLike, compact = false }) {
   // An empty slot that keeps the last row's cards the same width as the rows above it.
@@ -28,21 +28,30 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
 
   return (
     <TouchableOpacity onPress={onPress} style={[styles.card, compact && styles.cardGrid]}>
-      {item.imageUri ? (
-        <FlexibleImage uri={item.imageUri} style={styles.image} />
-      ) : null}
+      {/* Every card gets the same picture box: the photo is cropped to fit, and posts without a
+          photo show a placeholder, so all the cards come out the same size. */}
+      <View>
+        {item.imageUri ? (
+          <Image source={{ uri: item.imageUri }} resizeMode="cover" style={styles.cardImage} />
+        ) : (
+          <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+            <MessageCircle size={36} color={Colors.TEXT_MUTED} />
+          </View>
+        )}
+        {!item.isPublic ? (
+          <View style={styles.privateBadge}>
+            <Lock size={12} color={Colors.BLACK} />
+            <Text style={styles.privateBadgeText}>Private</Text>
+          </View>
+        ) : null}
+      </View>
 
-      {!item.isPublic ? (
-        <View style={styles.privateBadge}>
-          <Lock size={12} color={Colors.BLACK} />
-          <Text style={styles.privateBadgeText}>Private</Text>
-        </View>
-      ) : null}
-
-      <Text style={[styles.title, item.locked && styles.lockedTitle]} numberOfLines={compact ? 5 : undefined}>{title}</Text>
-      {item.locked ? (
-        <Text style={styles.lockedHint}>Sign in or create an account to read this conversation.</Text>
-      ) : null}
+      <View style={styles.textBlock}>
+        <Text style={[styles.title, item.locked && styles.lockedTitle]} numberOfLines={3}>{title}</Text>
+        {item.locked ? (
+          <Text style={styles.lockedHint} numberOfLines={2}>Sign in or create an account to read this conversation.</Text>
+        ) : null}
+      </View>
 
       {item.createdAt ? (
         <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
@@ -273,23 +282,35 @@ const styles = StyleSheet.create({
   gridRow: {
     paddingHorizontal: 6,
   },
-  image: {
+  cardImage: {
     width: "100%",
+    height: 170,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
-    marginBottom: 10,
+  },
+  cardImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Room for a 3-line title, so short and long posts take the same space.
+  textBlock: {
+    minHeight: 78,
+    marginTop: 10,
   },
   title: {
     color: Colors.WHITE,
     fontSize: 16,
+    lineHeight: 22,
     fontWeight: "700",
   },
+  // Sits on the corner of the picture box, so it doesn't change the card's height.
   privateBadge: {
-    alignSelf: "flex-start",
+    position: "absolute",
+    top: 8,
+    left: 8,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    marginBottom: 8,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
