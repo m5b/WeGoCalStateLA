@@ -11,6 +11,7 @@ export function createThreadRepo(db){
         updateAnyByThreadUuid,
         deleteByThreadId,
         deleteByThreadUuid,
+        deleteAnyByThreadUuid,
         toggleLike,
         countLikes,
         findLikedThreadIds
@@ -174,6 +175,15 @@ export function createThreadRepo(db){
         const [result] = await db.execute(
             "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_uuid = UUID_TO_BIN(?) AND user_id = ? AND deleted_at IS NULL",
             [threadUuid, userId]
+        )
+        return result.affectedRows > 0
+    }
+
+    // No user_id check: lets an admin remove anyone's thread.
+    async function deleteAnyByThreadUuid({threadUuid}) {
+        const [result] = await db.execute(
+            "Update threads set deleted_at = NOW() , title = null , content = null, status = 'deleted' where thread_uuid = UUID_TO_BIN(?) AND deleted_at IS NULL",
+            [threadUuid]
         )
         return result.affectedRows > 0
     }

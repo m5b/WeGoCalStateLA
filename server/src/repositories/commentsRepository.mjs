@@ -12,6 +12,8 @@ export function createCommentRepo(db){
         updateByCommentUuid,
         deleteByCommentId,
         deleteByCommentUuid,
+        updateAnyByCommentUuid,
+        deleteAnyByCommentUuid,
     }
 
     function getPublicSelect(){
@@ -207,6 +209,30 @@ export function createCommentRepo(db){
                     AND deleted_at IS NULL
             `,
             [commentUuid, userId]
+        )
+        return result.affectedRows > 0
+    }
+
+        // No user_id check: lets an admin edit anyone's reply.
+    async function updateAnyByCommentUuid({commentUuid, sqlQuery, dataList}) {
+        dataList.push(commentUuid)
+        const [result] = await db.execute(
+            sqlQuery + ' where comment_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            dataList
+        )
+        return {existed: result.affectedRows > 0, changed: result.changedRows > 0}
+    }
+
+    // No user_id check: lets an admin remove anyone's reply.
+    async function deleteAnyByCommentUuid({commentUuid}) {
+        const [result] = await db.execute(
+            `
+                UPDATE comments
+                SET deleted_at = NOW()  , content = null , status = 'deleted'
+                WHERE comment_uuid = UUID_TO_BIN(?)
+                    AND deleted_at IS NULL
+            `,
+            [commentUuid]
         )
         return result.affectedRows > 0
     }
