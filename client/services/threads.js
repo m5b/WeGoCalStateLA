@@ -1,6 +1,7 @@
 import { apiGet, apiJson, apiForm } from "./api";
 import { getEvent } from "./events";
 import { prepareImageBlob, resolveUploadUrl } from "../utils/imageData";
+import { buildReplyTree } from "../utils/replyTree";
 
 export const THREAD_CATEGORIES = [
   { key: "general", label: "General" },
@@ -65,6 +66,11 @@ function mapComment(dto) {
     text: dto.content,
     // A picture attached to the reply (shown small -- see FlexibleImage maxHeight on the screens).
     imageUri: resolveUploadUrl(dto.photoUrl),
+    parentId: dto.parentCommentUuid ?? null,
+    likes: dto.likeCount ?? 0,
+    likedByMe: !!dto.likedByMe,
+    // Filled in by buildReplyTree: the replies to this reply.
+    replies: [],
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
   };
 }
@@ -96,20 +102,11 @@ export async function getThreadDetail(threadId) {
     throw new Error("Not a valid thread id");
   }
   const res = await apiGet(`/api/comments/thread/${threadId}`);
-  const seen = new Set();
-  const topLevelReplies = res.data.comments
-    .filter((c) => c.parentCommentUuid == null)
-    .filter((c) => {
-      // the server's tree builder currently lists top-level comments twice;
-      // de-dupe defensively here until that's fixed server-side
-      if (seen.has(c.commentUuid)) return false;
-      seen.add(c.commentUuid);
-      return true;
-    })
-    .map(mapComment);
+  // The server sends every reply in one list (some repeated); build the nested replies from it.
+  const replies = buildReplyTree(res.data.comments.map(mapComment));
 
   const dto = res.data.threadDto;
-  return { ...mapThread(dto), replies: topLevelReplies };
+  return { ...mapThread(dto), replies };
 }
 
 export async function getThreadByEventId(eventId) {
@@ -160,7 +157,7 @@ export async function updateThread(threadId, data) {
   return mapThread(res.data.thread);
 }
 
-export async function createReply(threadId, { text, imageUri }) {
+export async function createReply(threadId, { text, imageUri, parentId }) {
   // Sent as a form (not JSON) so a picture can travel with the text. The text may be empty
   // when there is a picture.
   const formData = new FormData();
@@ -170,7 +167,11 @@ export async function createReply(threadId, { text, imageUri }) {
     const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
     formData.append("image", blob, `reply.${extension}`);
   }
-  const res = await apiForm(`/api/comments/me/thread/${threadId}`, "POST", formData);
+  // With parentId the reply goes under that reply; without it, at the top of the thread.
+  const path = parentId
+    ? `/api/comments/me/thread/${threadId}/comment/${parentId}`
+    : `/api/comments/me/thread/${threadId}`;
+  const res = await apiForm(path, "POST", formData);
   return mapComment(res.data.comment);
 }
 
@@ -191,6 +192,13 @@ export async function deleteReply(threadId, replyId) {
 // account (the server answers 401 otherwise). Returns { liked, likeCount }.
 export async function toggleLike(threadId) {
   const res = await apiJson(`/api/threads/${threadId}/like`, "POST", {});
+  return res.data;
+}
+
+// Likes a reply, or takes the like back if you already liked it. Needs a signed-in account (the
+// server answers 401 otherwise). Returns { liked, likeCount }.
+export async function toggleReplyLike(replyId) {
+  const res = await apiJson(`/api/comments/${replyId}/like`, "POST", {});
   return res.data;
 }
 

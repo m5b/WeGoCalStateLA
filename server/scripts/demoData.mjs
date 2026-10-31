@@ -490,3 +490,42 @@ export const FAQS = [
         text: 'Check the Events tab for mentor meetups and workshops, and ask your student about campus programs. Mentors in the Community tab are happy to share what has worked for their students.',
     },
 ]
+
+
+// Replies to replies. POST_NESTED[postIndex][replyIndex] is a list of replies to that reply;
+// EVENT_NESTED works the same way for an event's discussion. `later` is how many hours after the
+// reply it answers (so the order always makes sense, whatever day the demo is seeded).
+export const POST_NESTED = {
+    0: {
+        0: [
+            { user: 'Rosa', later: 5, text: 'The Sunday call idea is perfect. Thank you, David!' },
+            { user: 'David', later: 9, text: "Glad it helps. It took us a few weeks to find the rhythm, so be patient with yourself." },
+        ],
+        3: [{ user: 'Rosa', later: 6, text: 'I love that. I am going to try the "best and hardest part" question tonight.' }],
+    },
+    1: {
+        0: [{ user: 'David', later: 4, text: 'A shared calendar is a great idea. He is more likely to follow it if he sets it up himself.' }],
+        2: [{ user: 'David', later: 3, text: "Thanks, Fatima. I'll sign up for it." }],
+    },
+    2: {
+        1: [{ user: 'Mei', later: 7, text: 'Celebrating small wins, yes. Last week we made his favorite soup after a quiz.' }],
+        2: [{ user: 'Mei', later: 5, text: 'That means a lot coming from a sibling. Thank you, Aaliyah.' }],
+    },
+    3: { 0: [{ user: 'Aaliyah', later: 4, text: "Thanks, Rosa! I'll write one tonight and add a snack." }] },
+    4: {
+        0: [{ user: 'Marcus', later: 3, text: 'Twenty minutes is a win. Thank you for trying it!' }],
+        2: [{ user: 'Marcus', later: 8, text: 'Please do report back. I would love to hear how it goes.' }],
+    },
+    5: {
+        0: [{ user: 'Priya', later: 6, text: 'Sharing with people he already knows sounds much safer. Thank you.' }],
+        3: [{ user: 'Priya', later: 4, text: 'Reading the lease together is a great tip.' }],
+    },
+    8: { 0: [{ user: 'Lena', later: 5, text: '"A coach for your mind" is a great way to say it.' }] },
+    10: { 1: [{ user: 'Keiko', later: 4, text: 'Thank you, Carmen. The parking lot was a mess of tears!' }] },
+}
+
+export const EVENT_NESTED = {
+    0: { 0: [{ user: 'Keiko', later: 6, text: 'Same here, Rosa. We can find a seat together!' }] },
+    1: { 1: [{ user: 'David', later: 5, text: 'Notes in the thread would help us too. Thank you!' }] },
+    3: { 0: [{ user: 'Sam', later: 3, text: 'I will come too, so we can sit together.' }] },
+}

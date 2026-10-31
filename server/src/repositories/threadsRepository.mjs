@@ -38,9 +38,9 @@ export function createThreadRepo(db){
                     END AS photo_url,
                     (SELECT COUNT(*) FROM thread_reactions r
                     WHERE r.thread_id = t.thread_id AND r.reaction_value = 'like') AS like_count,
-                    -- top-level replies that are still visible, so the feed can show the count without loading them
+                    -- every reply that is still visible (including replies to replies), so the feed can show the count without loading them
                 (SELECT COUNT(*) FROM comments c
-                    WHERE c.thread_id = t.thread_id AND c.parent_comment_id IS NULL
+                    WHERE c.thread_id = t.thread_id
                       AND c.deleted_at IS NULL) AS reply_count,
                 t.is_public AS is_public,
                 CASE
