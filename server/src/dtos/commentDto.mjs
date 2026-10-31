@@ -11,5 +11,7 @@ export default class CommentDto {
                 this["parentCommentUuid"] = comment["parentCommentUuid"]
             }
             this.photoUrl = comment.photoUrl ?? null
+            this.likeCount = Number(comment.likeCount ?? 0)
+            this.likedByMe = Boolean(comment.likedByMe)
     }
 }

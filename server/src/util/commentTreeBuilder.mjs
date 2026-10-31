@@ -10,10 +10,12 @@ export default function buildCommentTree(commentDtos) {
     })
     commentDtoTreeList.forEach((commentDto) => {
         const parentCommentUuid = commentDto.parentCommentUuid
-        if (parentCommentUuid == null) {
+        const parent = parentCommentUuid == null ? null : commentTreeMap.get(parentCommentUuid)
+        if (!parent) {
+            // Top-level, or its parent reply was deleted (deleted replies aren't in the list):
+            // either way it is shown at the top level instead of breaking the whole thread.
             commentDtoTreeList.push(commentDto)
         } else {
-            const parent = commentTreeMap.get(parentCommentUuid)
             parent.replies.push(commentDto)
             parent.descendantCount += 1;
         }

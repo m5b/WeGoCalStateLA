@@ -10,7 +10,7 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { USERS, POSTS, EVENTS, FAQS } from './demoData.mjs'
+import { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED } from './demoData.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const IMAGE_DIR = path.resolve(HERE, '../demo/images')
@@ -130,7 +130,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0 }
         // Likes: each post gets a steady, made-up number of likes from the demo people (never the
         // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
         const LIKE_COUNTS = [9, 14, 11, 16, 7, 12, 18, 6, 13, 10, 15, 8, 17, 5, 12, 9, 14, 11, 7, 16]
@@ -169,22 +169,53 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             const [res] = await conn.execute(`INSERT INTO threads (${fields.join(', ')}) VALUES (${marks.join(', ')})`, params)
             return res.insertId
         }
-        const insertReplies = async (threadId, replies) => {
-            for (const r of replies) {
+        // Likes on replies: a steady, made-up number from the demo people (never the reply's author,
+        // the admin, or the dean's account).
+        const REPLY_LIKE_COUNTS = [3, 0, 5, 2, 7, 1, 0, 4, 6, 2]
+        let replySeen = 0
+        const addReplyLikes = async (commentId, author) => {
+            const index = replySeen++
+            const pool = likePool.filter((name) => name !== author)
+            const wanted = Math.min(REPLY_LIKE_COUNTS[index % REPLY_LIKE_COUNTS.length], pool.length)
+            for (let i = 0; i < wanted; i++) {
+                const name = pool[(index * 3 + i) % pool.length]
+                await conn.execute("INSERT INTO comment_reactions (user_id, comment_id, reaction_value) VALUES (?, ?, 'like')", [idFor(name), commentId])
+                counts.replyLikes++
+            }
+        }
+        const insertReply = async ({ threadId, r, createdAt, parentId = null }) => {
+            const fields = ['comment_uuid', 'user_id', 'thread_id', 'content', 'created_at', 'updated_at']
+            const marks = ['UUID_TO_BIN(?)', '?', '?', '?', '?', '?']
+            const params = [randomUUID(), idFor(r.user), threadId, r.text, createdAt, createdAt]
+            if (parentId) {
+                fields.push('parent_comment_id')
+                marks.push('?')
+                params.push(parentId)
+            }
+            const photo = photoUrl(r.photo)
+            if (commentPhotos && photo) {
+                fields.push('photo_url')
+                marks.push('?')
+                params.push(photo)
+                counts.photos++
+            }
+            const [res] = await conn.execute(`INSERT INTO comments (${fields.join(', ')}) VALUES (${marks.join(', ')})`, params)
+            counts.replies++
+            return res.insertId
+        }
+        // nested: { [replyIndex]: [replies to that reply] }
+        const insertReplies = async (threadId, replies, nested = {}) => {
+            for (const [i, r] of replies.entries()) {
                 if (r.user === null && !anonymousOk) continue
                 const createdAt = ago(r.ago)
-                const fields = ['comment_uuid', 'user_id', 'thread_id', 'content', 'created_at', 'updated_at']
-                const marks = ['UUID_TO_BIN(?)', '?', '?', '?', '?', '?']
-                const params = [randomUUID(), idFor(r.user), threadId, r.text, createdAt, createdAt]
-                const photo = photoUrl(r.photo)
-                if (commentPhotos && photo) {
-                    fields.push('photo_url')
-                    marks.push('?')
-                    params.push(photo)
-                    counts.photos++
+                const commentId = await insertReply({ threadId, r, createdAt })
+                await addReplyLikes(commentId, r.user)
+                for (const child of nested[i] ?? []) {
+                    const childAt = new Date(Math.min(now.getTime(), createdAt.getTime() + child.later * 3600 * 1000))
+                    const childId = await insertReply({ threadId, r: child, createdAt: childAt, parentId: commentId })
+                    await addReplyLikes(childId, child.user)
+                    counts.nested++
                 }
-                await conn.execute(`INSERT INTO comments (${fields.join(', ')}) VALUES (${marks.join(', ')})`, params)
-                counts.replies++
             }
         }
 
@@ -197,7 +228,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             })
             counts.posts++
             await addLikes(threadId, postIndex, p.user)
-            await insertReplies(threadId, p.replies)
+            await insertReplies(threadId, p.replies, POST_NESTED[postIndex])
         }
 
         // ---- FAQs ----
@@ -228,12 +259,12 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             if (photo) counts.photos++
             counts.events++
             await addLikes(threadId, eventIndex + 7, e.organizer)
-            await insertReplies(threadId, e.replies)
+            await insertReplies(threadId, e.replies, EVENT_NESTED[eventIndex])
         }
 
         await conn.commit()
-        log(`Done: ... ${counts.likes} likes, ${counts.publicThreads} of ${counts.posts + counts.faqs + counts.events} threads public.`)
-        log('Demo logins: Dean (the dean\'s account, uses DEAN_PASSWORD if set), Rosa, David, Lena ... and Admin (admin). The others use DEMO_PASSWORD.')
+        log(`Done: ${counts.users} users, ${counts.posts} community posts, ${counts.faqs} FAQs, ${counts.replies} replies, ${counts.events} events, ${counts.photos} photos, ${counts.likes} likes, ${counts.publicThreads} of ${counts.posts + counts.faqs + counts.events} threads public, ${counts.nested} replies to replies, ${counts.replyLikes} likes on replies.`)
+        log('Demo logins: Dean (the dean\'s account, uses DEAN_PASSWORD if set), Admin (an admin, uses ADMIN_PASSWORD if set), Rosa, David, Lena ... The others use DEMO_PASSWORD.')
         return counts
     } catch (err) {
         await conn.rollback()

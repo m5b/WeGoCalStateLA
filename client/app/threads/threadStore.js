@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, reportContent } from '../../services/threads';
+import { addReplyToTree, removeReplyFromTree, updateReplyInTree, countReplies, findReply } from '../../utils/replyTree';
 
 const ThreadsContext = createContext(null);
 
@@ -38,12 +39,16 @@ function reducer(state, action) {
         threads: state.threads.filter((t) => t.id !== action.payload),
       };
     case 'ADD_REPLY': {
-      const { threadId, reply } = action.payload;
+      const { threadId, reply, parentId } = action.payload;
       return {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId
-            ? { ...t, replies: [...t.replies, reply], replyCount: (t.replyCount ?? t.replies.length) + 1 }
+            ? {
+                ...t,
+                replies: addReplyToTree(t.replies ?? [], reply, parentId),
+                replyCount: (t.replyCount ?? countReplies(t.replies ?? [])) + 1,
+              }
             : t
         ),
       };
@@ -56,8 +61,11 @@ function reducer(state, action) {
           t.id === threadId
             ? {
                 ...t,
-                replies: t.replies.filter((r) => r.id !== replyId),
-                replyCount: Math.max(0, (t.replyCount ?? t.replies.length) - 1),
+                replies: removeReplyFromTree(t.replies ?? [], replyId),
+                replyCount: Math.max(
+                  0,
+                  (t.replyCount ?? countReplies(t.replies ?? [])) - (findReply(t.replies ?? [], replyId) ? 1 : 0)
+                ),
               }
             : t
         ),
@@ -68,7 +76,7 @@ function reducer(state, action) {
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, replies, repliesLoaded: true, replyCount: replies.length } : t
+          t.id === threadId ? { ...t, replies, repliesLoaded: true, replyCount: countReplies(replies) } : t
         ),
       };
     }
@@ -78,6 +86,17 @@ function reducer(state, action) {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId ? { ...t, likes: likeCount, likedByMe: liked } : t
+        ),
+      };
+    }
+    case 'LIKE_REPLY': {
+      const { threadId, replyId, liked, likeCount } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId
+            ? { ...t, replies: updateReplyInTree(t.replies ?? [], replyId, { likes: likeCount, likedByMe: liked }) }
+            : t
         ),
       };
     }
@@ -121,10 +140,17 @@ export function ThreadsProvider({ children }) {
     return detail;
   };
 
-  const addReply = async (threadId, { text, imageUri }) => {
-    const created = await createReply(threadId, { text, imageUri });
-    dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created } });
+  // parentId makes it a reply to that reply; without it the reply goes at the top of the thread.
+  const addReply = async (threadId, { text, imageUri, parentId }) => {
+    const created = await createReply(threadId, { text, imageUri, parentId });
+    dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created, parentId } });
     return created;
+  };
+
+  // Throws with status 401 when nobody is signed in; the screens send those people to log in.
+  const likeReply = async (threadId, replyId) => {
+    const { liked, likeCount } = await toggleReplyLike(replyId);
+    dispatch({ type: 'LIKE_REPLY', payload: { threadId, replyId, liked, likeCount } });
   };
 
   const removeReply = async (threadId, replyId) => {
@@ -156,7 +182,7 @@ export function ThreadsProvider({ children }) {
 
   const value = {
     state,
-    actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, removeReply, removeThread, likeThread, reportThread },
+    actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, likeReply, removeReply, removeThread, likeThread, reportThread },
   };
 
   return (

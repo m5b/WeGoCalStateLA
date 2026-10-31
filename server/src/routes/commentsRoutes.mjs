@@ -115,6 +115,13 @@ export function createCommentRouter({userService, commentService}) {
         )
     })
 
+    // Like or un-like a reply. Needs an account so one person can't like it many times.
+    router.post('/:commentUuid/like', requireAuth(userService), async (req, res) => {
+        const commentUuid = uuidSchema.parse(req.params.commentUuid)
+        const result = await commentService.toggleLike({ commentUuid, userId: req.user.userId })
+        res.json(jsend.success(result))
+    })
+
     //tested
     // Public: anyone can read a public thread's replies without being signed
     // in. Private threads' replies need an account.
@@ -122,6 +129,8 @@ export function createCommentRouter({userService, commentService}) {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const {thread, comments} = await commentService.getByThreadUuid(threadUuid)
         assertCanView(thread, req.user)
+        // Fills in which replies the signed-in person has liked (nothing is marked for visitors).
+        await commentService.markLikedBy(comments, req.user?.userId)
         const threadDto = new ThreadDto(thread)
         const commentDtos = comments.map((comment) => new CommentDto(comment))
 

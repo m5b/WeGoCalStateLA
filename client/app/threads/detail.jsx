@@ -15,6 +15,7 @@ import { formatTimestamp } from "../../utils/formatTimestamp";
 import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
+import ReplyNode from "../../components/ReplyNode";
 import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
 import { useAuth } from "../../context/AuthContext";
@@ -41,6 +42,15 @@ export default function ThreadDetail() {
   const handleLike = async () => {
     try {
       await actions.likeThread(thread.id);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
+
+  // Same for liking a reply.
+  const handleReplyLike = async (reply) => {
+    try {
+      await actions.likeReply(thread.id, reply.id);
     } catch (error) {
       if (error?.status === 401) router.push("/authentication/login");
     }
@@ -206,28 +216,14 @@ export default function ThreadDetail() {
         }
         data={thread.replies ?? []}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={styles.replyCard}>
-            <View style={styles.replyHeader}>
-              <Text style={styles.replyAuthor}>{item.author || "Anonymous"}</Text>
-              <View style={styles.replyMeta}>
-                {item.createdAt ? (
-                  <Text style={styles.replyTimestamp}>
-                    {formatTimestamp(item.createdAt)}
-                  </Text>
-                ) : null}
-                {canManage(user, item.authorUuid) ? (
-                  <TouchableOpacity onPress={() => confirmDeleteReply(item.id)}>
-                    <Text style={styles.replyDelete}>Delete</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-            {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}
-            {item.imageUri ? (
-              <FlexibleImage uri={item.imageUri} maxHeight={220} style={styles.replyImage} />
-            ) : null}
-          </View>
+                renderItem={({ item }) => (
+          <ReplyNode
+            reply={item}
+            user={user}
+            onLike={handleReplyLike}
+            onReply={(parent, text) => actions.addReply(thread.id, { text, parentId: parent.id })}
+            onDelete={(reply) => confirmDeleteReply(reply.id)}
+          />
         )}
         ListFooterComponent={
           loadingReplies ? (

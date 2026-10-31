@@ -14,6 +14,9 @@ export function createCommentRepo(db){
         deleteByCommentUuid,
         updateAnyByCommentUuid,
         deleteAnyByCommentUuid,
+        toggleLike,
+        countLikes,
+        findLikedCommentIds,
     }
 
     function getPublicSelect(){
@@ -29,6 +32,8 @@ export function createCommentRepo(db){
                     WHEN c.deleted_at IS NULL THEN c.photo_url
                     ELSE NULL
                     END AS photo_url,
+                    (SELECT COUNT(*) FROM comment_reactions r
+                    WHERE r.comment_id = c.comment_id AND r.reaction_value = 'like') AS like_count,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
                 c.deleted_at AS deleted_at,
@@ -239,5 +244,37 @@ export function createCommentRepo(db){
             [commentUuid]
         )
         return result.affectedRows > 0
+    }
+
+        // Likes: one row per user per reply (UNIQUE user_id + comment_id). Returns true if the
+    // reply is liked after the call, false if the like was taken back.
+    async function toggleLike({ commentId, userId }) {
+        const [removed] = await db.execute(
+            "DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ? AND reaction_value = 'like'",
+            [userId, commentId]
+        )
+        if (removed.affectedRows > 0) return false
+        await db.execute(
+            "INSERT INTO comment_reactions (user_id, comment_id, reaction_value) VALUES (?, ?, 'like') ON DUPLICATE KEY UPDATE reaction_value = 'like'",
+            [userId, commentId]
+        )
+        return true
+    }
+
+    async function countLikes(commentId) {
+        const [rows] = await db.execute(
+            "SELECT COUNT(*) AS n FROM comment_reactions WHERE comment_id = ? AND reaction_value = 'like'",
+            [commentId]
+        )
+        return Number(rows[0].n)
+    }
+
+    // Ids of the replies this user has liked (used to fill in the heart on a thread's replies).
+    async function findLikedCommentIds(userId) {
+        const [rows] = await db.execute(
+            "SELECT comment_id FROM comment_reactions WHERE user_id = ? AND reaction_value = 'like'",
+            [userId]
+        )
+        return rows.map((row) => row.comment_id)
     }
 }

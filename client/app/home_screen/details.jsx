@@ -13,9 +13,11 @@ import { CalendarDays, Clock, Lock, MapPin, MessageCircle } from "lucide-react-n
 import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
+import ReplyNode from "../../components/ReplyNode";
+import { addReplyToTree, removeReplyFromTree, updateReplyInTree } from "../../utils/replyTree";
 import { Colors } from "../../constant/Colors";
 import { getEvent, deleteEvent } from "../../services/events";
-import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
+import { createReply, deleteReply, getThreadByEventId, toggleReplyLike } from "../../services/threads";
 import { confirmAction } from "../../utils/confirmAction";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
@@ -94,13 +96,35 @@ export default function EventDetails() {
       const reply = await createReply(thread.id, { text, imageUri: replyImage });
       setThread((current) => ({
         ...current,
-        replies: [...(current.replies ?? []), reply],
+        replies: addReplyToTree(current.replies ?? [], reply, null),
       }));
       setReplyText("");
       setReplyImage(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
       setReplyError(replyErrorMessage(error));
+    }
+  };
+
+  // Posts a reply under another reply.
+  const replyTo = async (parent, text) => {
+    const reply = await createReply(thread.id, { text, parentId: parent.id });
+    setThread((current) => ({
+      ...current,
+      replies: addReplyToTree(current.replies ?? [], reply, parent.id),
+    }));
+  };
+
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const likeReply = async (reply) => {
+    try {
+      const { liked, likeCount } = await toggleReplyLike(reply.id);
+      setThread((current) => ({
+        ...current,
+        replies: updateReplyInTree(current.replies ?? [], reply.id, { likes: likeCount, likedByMe: liked }),
+      }));
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
     }
   };
 
@@ -127,7 +151,7 @@ export default function EventDetails() {
           await deleteReply(thread.id, replyId);
           setThread((current) => ({
             ...current,
-            replies: (current.replies ?? []).filter((r) => r.id !== replyId),
+            replies: removeReplyFromTree(current.replies ?? [], replyId),
           }));
         } catch (error) {
           console.warn("Failed to delete reply", error);
@@ -249,22 +273,16 @@ export default function EventDetails() {
                 </Text>
               ) : (
                 thread.replies.map((reply) => (
-                  <View key={String(reply.id)} style={styles.replyCard}>
-                    <View style={styles.replyHeader}>
-                      <Text style={styles.replyAuthor}>{reply.author || "Anonymous"}</Text>
-                      {canManage(user, reply.authorUuid) ? (
-                        <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
-                          <Text style={styles.replyDelete}>Delete</Text>
-                        </TouchableOpacity>
-                      ) : null}
-                    </View>
-                    {!!reply.text && (
-                      <Text style={styles.replyText}>{reply.text}</Text>
-                    )}
-                    {reply.imageUri ? (
-                      <FlexibleImage uri={reply.imageUri} maxHeight={220} style={styles.replyImage} />
-                    ) : null}
-                  </View>
+                  <ReplyNode
+                    key={String(reply.id)}
+                    reply={reply}
+                    user={user}
+                    inset={0}
+                    cardColor={Colors.LIGHT_GRAY}
+                    onLike={likeReply}
+                    onReply={replyTo}
+                    onDelete={(r) => confirmDeleteReply(r.id)}
+                  />
                 ))
               )}
 

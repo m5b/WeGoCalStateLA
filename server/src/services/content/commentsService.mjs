@@ -21,6 +21,8 @@ export function createCommentService({commentRepo, threadService, uploadBuffer})
         postComment,
         deleteByCommentId,
         deleteByCommentUuid,
+        markLikedBy,
+        toggleLike,
     }
 
     async function getByCommentId(commentId) {
@@ -67,6 +69,24 @@ export function createCommentService({commentRepo, threadService, uploadBuffer})
     async function getByUserUuid(userUuid) {
         const comments = dbMapper.fromDb(await commentRepo.findByUserUuid(userUuid))
         return comments
+    }
+
+    // Adds likedByMe to each reply for the signed-in user. With no userId nothing is marked as liked.
+    async function markLikedBy(comments, userId) {
+        const liked = userId ? new Set(await commentRepo.findLikedCommentIds(userId)) : new Set()
+        for (const comment of comments) comment.likedByMe = liked.has(comment.commentId)
+        return comments
+    }
+
+    // Likes the reply if the user hasn't, un-likes it if they have.
+    async function toggleLike({ commentUuid, userId }) {
+        const comment = await getByCommentUuid(commentUuid)
+        if (comment.deletedAt) {
+            throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
+        }
+        const liked = await commentRepo.toggleLike({ commentId: comment.commentId, userId })
+        const likeCount = await commentRepo.countLikes(comment.commentId)
+        return { liked, likeCount }
     }
 
         // imageFile is multer's req.file (undefined when no picture was attached).
