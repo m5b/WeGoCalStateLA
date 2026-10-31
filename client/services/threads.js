@@ -63,6 +63,8 @@ function mapComment(dto) {
     author: dto.username,
     authorUuid: dto.userUuid,
     text: dto.content,
+    // A picture attached to the reply (shown small -- see FlexibleImage maxHeight on the screens).
+    imageUri: resolveUploadUrl(dto.photoUrl),
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
   };
 }
@@ -158,10 +160,17 @@ export async function updateThread(threadId, data) {
   return mapThread(res.data.thread);
 }
 
-export async function createReply(threadId, { text }) {
-  const res = await apiJson(`/api/comments/me/thread/${threadId}`, "POST", {
-    content: text,
-  });
+export async function createReply(threadId, { text, imageUri }) {
+  // Sent as a form (not JSON) so a picture can travel with the text. The text may be empty
+  // when there is a picture.
+  const formData = new FormData();
+  formData.append("content", text || "");
+  if (imageUri) {
+    const blob = await prepareImageBlob(imageUri);
+    const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+    formData.append("image", blob, `reply.${extension}`);
+  }
+  const res = await apiForm(`/api/comments/me/thread/${threadId}`, "POST", formData);
   return mapComment(res.data.comment);
 }
 

@@ -20,6 +20,7 @@ import { confirmAction } from "../../utils/confirmAction";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
 import { formatEventDate } from "../../utils/formatEventDate";
+import { replyErrorMessage } from "../../utils/replyError";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -36,6 +37,7 @@ export default function EventDetails() {
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
+  const [replyError, setReplyError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function EventDetails() {
   const submitReply = async () => {
     const text = replyText.trim();
     if ((!text && !replyImage) || !thread) return;
+    setReplyError("");
     try {
       const reply = await createReply(thread.id, { text, imageUri: replyImage });
       setThread((current) => ({
@@ -97,6 +100,7 @@ export default function EventDetails() {
       setReplyImage(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
+      setReplyError(replyErrorMessage(error));
     }
   };
 
@@ -258,13 +262,14 @@ export default function EventDetails() {
                       <Text style={styles.replyText}>{reply.text}</Text>
                     )}
                     {reply.imageUri ? (
-                      <FlexibleImage uri={reply.imageUri} style={styles.replyImage} />
+                      <FlexibleImage uri={reply.imageUri} maxHeight={220} style={styles.replyImage} />
                     ) : null}
                   </View>
                 ))
               )}
 
               <View style={styles.replyBox}>
+                {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
                 <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
                   placeholder="Write a reply..."
@@ -475,9 +480,15 @@ const styles = StyleSheet.create({
   },
   replyImage: {
     width: "100%",
+    maxWidth: 300,
+    alignSelf: "flex-start",
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,
+  },
+  replyError: {
+    color: Colors.ERROR,
+    fontSize: 12,
   },
   replyText: {
     color: Colors.TEXT,
