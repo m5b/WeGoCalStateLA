@@ -21,12 +21,15 @@ const PHOTO_URL_PREFIX = '/api/uploads/demo/'
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,21}$/
 
 // conn: a mysql2 connection (promise API). hashPassword(plain) -> hash.
-export async function seedDemo({ conn, hashPassword, password, deanPassword = password, imageDir = IMAGE_DIR, uploadDir, now = new Date(), log = console.log }) {
+export async function seedDemo({ conn, hashPassword, password, deanPassword = password, adminPassword = password, imageDir = IMAGE_DIR, uploadDir, now = new Date(), log = console.log }) {
     if (!PASSWORD_RULE.test(password || '')) {
         throw new Error('DEMO_PASSWORD must be 8-21 characters with upper, lower, digit, and one of @$!%*?& (same rule as the login form).')
     }
     if (!PASSWORD_RULE.test(deanPassword || '')) {
         throw new Error('DEAN_PASSWORD must be 8-21 characters with upper, lower, digit, and one of @$!%*?& (same rule as the login form).')
+    }
+    if (!PASSWORD_RULE.test(adminPassword || '')) {
+        throw new Error('ADMIN_PASSWORD must be 8-21 characters with upper, lower, digit, and one of @$!%*?& (same rule as the login form).')
     }
 
     const ago = ([days, hours]) => new Date(now.getTime() - (days * 24 + hours) * 3600 * 1000)
@@ -102,12 +105,13 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         // ---- users ----
         const passwordHash = await hashPassword(password)
         const deanHash = deanPassword === password ? passwordHash : await hashPassword(deanPassword)
+        const adminHash = adminPassword === password ? passwordHash : await hashPassword(adminPassword)
         const userIds = {}
         for (const u of USERS) {
             const stamp = ago([40, 0])
             const [res] = await conn.execute(
                 'INSERT INTO users (username, alias, relationship, interests, password_hash, is_admin, user_uuid, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, UUID_TO_BIN(?), ?, ?)',
-                [u.username, u.alias, u.relationship, u.interests, u.isDean ? deanHash : passwordHash, u.isAdmin ? 1 : 0, randomUUID(), stamp, stamp]
+                [u.username, u.alias, u.relationship, u.interests, u.isDean ? deanHash : u.isAdmin ? adminHash : passwordHash, u.isAdmin ? 1 : 0, randomUUID(), stamp, stamp]
             )
             userIds[u.username] = res.insertId
         }
@@ -288,6 +292,7 @@ async function main() {
             conn,
             password: process.env.DEMO_PASSWORD,
             deanPassword: process.env.DEAN_PASSWORD || process.env.DEMO_PASSWORD,
+            adminPassword: process.env.ADMIN_PASSWORD || process.env.DEMO_PASSWORD,
             hashPassword: (plain) => bcrypt.hash(plain, 12),
             uploadDir: UPLOAD_ROOT,
         })
