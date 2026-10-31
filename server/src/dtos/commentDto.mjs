@@ -10,5 +10,6 @@ export default class CommentDto {
                 }
                 this["parentCommentUuid"] = comment["parentCommentUuid"]
             }
+            this.photoUrl = comment.photoUrl ?? null
     }
 }

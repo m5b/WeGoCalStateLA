@@ -25,6 +25,10 @@ export function createCommentRepo(db){
                     WHEN c.deleted_at IS NULL THEN c.content
                     ELSE NULL
                     END AS content,
+                    CASE
+                    WHEN c.deleted_at IS NULL THEN c.photo_url
+                    ELSE NULL
+                    END AS photo_url,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
                 c.deleted_at AS deleted_at,
@@ -131,31 +135,31 @@ export function createCommentRepo(db){
         return row
     }
 
-    async function insertCommentWithParent({userId, threadId, content, commentUuid, parentCommentUuid,}) {
+    async function insertCommentWithParent({userId, threadId, content, commentUuid, parentCommentUuid, photoUrl = null}) {
         const [result] = await db.execute(
             `
-                INSERT INTO comments (comment_uuid, parent_comment_id, user_id, thread_id, content)
-                SELECT UUID_TO_BIN(?), p.comment_id, ?, ?, ?
+                INSERT INTO comments (comment_uuid, parent_comment_id, user_id, thread_id, content, photo_url)
+                SELECT UUID_TO_BIN(?), p.comment_id, ?, ?, ?, ?
                 FROM comments p
                 WHERE p.comment_uuid = UUID_TO_BIN(?)
                   AND p.thread_id = ?
                   AND p.deleted_at IS NULL
             `,
-            [commentUuid, userId, threadId, content, parentCommentUuid, threadId]
+            [commentUuid, userId, threadId, content, photoUrl, parentCommentUuid, threadId]
         )
         const inserted = result.affectedRows > 0
         return {inserted, insertId: result.insertId}
     }
 
 
-    async function insertComment({ userId, threadId, content, commentUuid}) {
+    async function insertComment({ userId, threadId, content, commentUuid, photoUrl = null}) {
         const [result] = await db.execute(
             `
                 INSERT INTO comments
-                    (comment_uuid, user_id, thread_id, content)
-                VALUES (UUID_TO_BIN(?), ?, ?, ?) 
+                    (comment_uuid, user_id, thread_id, content, photo_url)
+                VALUES (UUID_TO_BIN(?), ?, ?, ?, ?) 
             `,
-            [commentUuid, userId, threadId, content]
+            [commentUuid, userId, threadId, content, photoUrl]
         )
         const inserted = result.affectedRows > 0
         return {inserted, insertId: result.insertId}

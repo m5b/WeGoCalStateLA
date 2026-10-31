@@ -1,14 +1,16 @@
 import {Router} from 'express'
 import CommentDto from "../dtos/commentDto.mjs";
 import {jsend} from "../util/jSend.mjs";
-import {commentSchema} from "../validators/commentsValidators.mjs";
+import {commentSchema, commentPostSchema} from "../validators/commentsValidators.mjs";
 import {uuidSchema} from "../validators/authValidators.mjs";
 import buildCommentTree from "../util/commentTreeBuilder.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
 import { assertCanView } from '../util/visibility.mjs'
+import { createImageUpload } from '../lib/imageUpload.mjs'
 
+const upload = createImageUpload()
 
 export function createCommentRouter({userService, commentService}) {
 
@@ -25,6 +27,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.post(
         '/me/thread/:threadUuid',
+        upload.single('image'),
         optionalAuth(userService),
         async (req, res) => {
             const userId = req.user ? req.user.userId : null
@@ -35,6 +38,7 @@ export function createCommentRouter({userService, commentService}) {
                 threadUuid,
                 payload,
                 parentCommentUuid: null,
+                imageFile: req.file,
             })
             res.json(
                 jsend.success({
@@ -47,18 +51,20 @@ export function createCommentRouter({userService, commentService}) {
     router.post(
         '/me/thread/:threadUuid/comment/:parentCommentUuid',
         optionalAuth(userService),
+        upload.single('image'),
         async (req, res) => {
             const userId = req.user ? req.user.userId : null
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
             const parentCommentUuid = uuidSchema.parse(
                 req.params.parentCommentUuid
             )
-            const payload = commentSchema.parse(req.body)
+            const payload = commentPostSchema.parse(req.body)
             const comment = await commentService.postComment({
                 userId,
                 threadUuid,
                 payload,
                 parentCommentUuid,
+                imageFile: req.file,
             })
             res.json(
                 jsend.success({

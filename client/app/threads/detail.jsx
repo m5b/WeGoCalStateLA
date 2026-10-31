@@ -19,6 +19,7 @@ import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
+import { replyErrorMessage } from "../../utils/replyError";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
@@ -27,6 +28,7 @@ export default function ThreadDetail() {
   const { user } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
+  const [replyError, setReplyError] = useState("");
   const [loadingReplies, setLoadingReplies] = useState(false);
 
   const [deleting, setDeleting] = useState(false);
@@ -106,9 +108,15 @@ export default function ThreadDetail() {
 
   const submit = async () => {
     if (!text.trim() && !replyImage) return;
-    await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
-    setText("");
-    setReplyImage(null);
+    setReplyError("");
+    try {
+      await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
+      setText("");
+      setReplyImage(null);
+    } catch (error) {
+      console.warn("Failed to post reply", error);
+      setReplyError(replyErrorMessage(error));
+    }
   };
 
   return (
@@ -217,7 +225,7 @@ export default function ThreadDetail() {
             </View>
             {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}
             {item.imageUri ? (
-              <FlexibleImage uri={item.imageUri} style={styles.replyImage} />
+              <FlexibleImage uri={item.imageUri} maxHeight={220} style={styles.replyImage} />
             ) : null}
           </View>
         )}
@@ -232,6 +240,7 @@ export default function ThreadDetail() {
       />
       
       <View style={styles.replyBox}>
+        {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
         <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
           placeholder="Write a reply..."
@@ -391,11 +400,19 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,                  
     marginTop: 4,
   },
+  // A reply's picture is a small preview (at most 300px wide and 220px tall), not full width.
   replyImage: {
     width: "100%",
+    maxWidth: 300,
+    alignSelf: "flex-start",
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,
+  },
+  replyError: {
+    color: Colors.ERROR,
+    fontSize: 12,
+    marginBottom: 6,
   },
   replyBox: {
     position: "absolute",
