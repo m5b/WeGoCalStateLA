@@ -9,8 +9,9 @@
 #   setup    create the demo database and apply all migrations to it (safe to re-run)
 #   migrate  apply new migrations to the demo database (run after deploys that add migrations)
 #   seed     wipe the demo content and load fresh fake data (needs DEMO_PASSWORD;
-#            optional DEAN_PASSWORD gives the Dean account its own password)
-#   verify   log in as Dean (needs VERIFY_PASSWORD) and test the site end to end
+#            optional DEAN_PASSWORD / ADMIN_PASSWORD give the Dean and Admin accounts their own passwords)
+#   verify   log in as Dean (needs VERIFY_PASSWORD) and test the site end to end; with
+#            VERIFY_ADMIN_PASSWORD it also tests the Admin account's powers
 #   use demo point the backend at the demo database
 #   use main point the backend back at the real database
 #   status   show which database the backend is using
@@ -81,13 +82,13 @@ cmd_seed() {
     : "${DEMO_PASSWORD:?Set DEMO_PASSWORD first, e.g.  DEMO_PASSWORD='Demo1234!' bash server/scripts/demo-db.sh seed}"
     db_exists "$DEMO_DB" || { echo "$DEMO_DB doesn't exist yet. Run the setup command first." >&2; exit 1; }
     # The backend container needs to be built with seedDemo.mjs and the demo images in it.
-    $COMPOSE exec -T -e DB_DATABASE="$DEMO_DB" -e DEMO_PASSWORD="$DEMO_PASSWORD" -e DEAN_PASSWORD="${DEAN_PASSWORD:-}" backend node scripts/seedDemo.mjs
+    $COMPOSE exec -T -e DB_DATABASE="$DEMO_DB" -e DEMO_PASSWORD="$DEMO_PASSWORD" -e DEAN_PASSWORD="${DEAN_PASSWORD:-}" -e ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" backend node scripts/seedDemo.mjs
 }
 
 cmd_verify() {
     : "${VERIFY_PASSWORD:?Set VERIFY_PASSWORD to the Dean password, e.g.  VERIFY_PASSWORD='...' bash server/scripts/demo-db.sh verify}"
     # Tests the backend as it is right now, so run "use demo" first.
-    $COMPOSE exec -T -e VERIFY_USER="${VERIFY_USER:-Dean}" -e VERIFY_PASSWORD="$VERIFY_PASSWORD" backend node scripts/verifyDemo.mjs
+    $COMPOSE exec -T -e VERIFY_USER="${VERIFY_USER:-Dean}" -e VERIFY_PASSWORD="$VERIFY_PASSWORD" -e VERIFY_ADMIN_PASSWORD="${VERIFY_ADMIN_PASSWORD:-}" backend node scripts/verifyDemo.mjs
 }
 
 cmd_status() {
@@ -123,5 +124,5 @@ case "${1:-}" in
     verify)  cmd_verify ;;
     status)  cmd_status ;;
     use)     cmd_use "${2:-}" ;;
-    *)       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
+    *)       sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//' ;;
 esac
