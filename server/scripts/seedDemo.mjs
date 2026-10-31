@@ -244,6 +244,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         // ---- events (each with its linked community post) ----
         for (const [eventIndex, e] of EVENTS.entries()) {
             const posted = ago([e.inDays > 30 ? 6 : 3, 3])
+            const photo = photoUrl(e.photo)
             const isPublic = e.isPublic ?? publicEvent(eventIndex)
             const threadId = await insertThread({
                 who: e.organizer, text: e.description, title: `${e.title} — Event`, category: 'events',
