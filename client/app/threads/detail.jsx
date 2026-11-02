@@ -222,6 +222,7 @@ export default function ThreadDetail() {
             user={user}
             onLike={handleReplyLike}
             onReply={(parent, text) => actions.addReply(thread.id, { text, parentId: parent.id })}
+            onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
             onDelete={(reply) => confirmDeleteReply(reply.id)}
           />
         )}

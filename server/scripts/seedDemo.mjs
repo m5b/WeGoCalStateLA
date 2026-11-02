@@ -52,6 +52,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
     }
     const threadPhotos = await hasColumn('threads', 'photo_url')
     const commentPhotos = await hasColumn('comments', 'photo_url')
+    const commentEdited = await hasColumn('comments', 'edited_at')
     const threadPublic = await hasColumn('threads', 'is_public')
     const eventPublic = await hasColumn('events', 'is_public')
     const [[nullRow]] = await conn.execute(
@@ -177,6 +178,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         // the admin, or the dean's account).
         const REPLY_LIKE_COUNTS = [3, 0, 5, 2, 7, 1, 0, 4, 6, 2]
         let replySeen = 0
+        let editedSeen = 0
         const addReplyLikes = async (commentId, author) => {
             const index = replySeen++
             const pool = likePool.filter((name) => name !== author)
@@ -202,6 +204,12 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
                 marks.push('?')
                 params.push(photo)
                 counts.photos++
+            }
+            // A few replies show up as edited, so the demo shows the "edited" marker.
+            if (commentEdited && editedSeen++ % 9 === 4) {
+                fields.push('edited_at')
+                marks.push('?')
+                params.push(new Date(Math.min(now.getTime(), createdAt.getTime() + 40 * 60 * 1000)))
             }
             const [res] = await conn.execute(`INSERT INTO comments (${fields.join(', ')}) VALUES (${marks.join(', ')})`, params)
             counts.replies++

@@ -17,7 +17,7 @@ import ReplyNode from "../../components/ReplyNode";
 import { addReplyToTree, removeReplyFromTree, updateReplyInTree } from "../../utils/replyTree";
 import { Colors } from "../../constant/Colors";
 import { getEvent, deleteEvent } from "../../services/events";
-import { createReply, deleteReply, getThreadByEventId, toggleReplyLike } from "../../services/threads";
+import { createReply, deleteReply, getThreadByEventId, toggleReplyLike, updateReply } from "../../services/threads";
 import { confirmAction } from "../../utils/confirmAction";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
@@ -112,6 +112,15 @@ export default function EventDetails() {
     setThread((current) => ({
       ...current,
       replies: addReplyToTree(current.replies ?? [], reply, parent.id),
+    }));
+  };
+
+  // Changes the text of a reply you wrote and marks it edited.
+  const editReply = async (reply, text) => {
+    const changes = await updateReply(reply.id, text);
+    setThread((current) => ({
+      ...current,
+      replies: updateReplyInTree(current.replies ?? [], reply.id, changes),
     }));
   };
 
@@ -281,6 +290,7 @@ export default function EventDetails() {
                     cardColor={Colors.LIGHT_GRAY}
                     onLike={likeReply}
                     onReply={replyTo}
+                    onEdit={editReply}
                     onDelete={(r) => confirmDeleteReply(r.id)}
                   />
                 ))
