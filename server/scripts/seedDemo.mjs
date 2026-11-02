@@ -89,6 +89,9 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         for (const table of ['comment_reactions', 'thread_reactions', 'comment_reports', 'thread_reports']) {
             await conn.execute(`DELETE FROM ${table}`)
         }
+        // A reply can point at a parent reply, and MySQL checks that one row at a time (it refuses to
+        // delete a parent before the replies under it), so detach them first.
+        await conn.execute('UPDATE comments SET parent_comment_id = NULL')
         await conn.execute('DELETE FROM comments')
         await conn.execute('DELETE FROM events')
         await conn.execute("DELETE FROM threads WHERE category <> 'faq'")
@@ -215,6 +218,18 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             counts.replies++
             return res.insertId
         }
+
+        // Adds the replies under a reply, and the replies under those, as deep as the data goes
+        // (a reply entry can have its own `replies` list). `later` is hours after the reply it answers.
+        const insertChildren = async (threadId, parentId, parentAt, children) => {
+            for (const child of children ?? []) {
+                const childAt = new Date(Math.min(now.getTime(), parentAt.getTime() + child.later * 3600 * 1000))
+                const childId = await insertReply({ threadId, r: child, createdAt: childAt, parentId })
+                await addReplyLikes(childId, child.user)
+                counts.nested++
+                await insertChildren(threadId, childId, childAt, child.replies)
+            }
+        }
         // nested: { [replyIndex]: [replies to that reply] }
         const insertReplies = async (threadId, replies, nested = {}) => {
             for (const [i, r] of replies.entries()) {
@@ -222,12 +237,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
                 const createdAt = ago(r.ago)
                 const commentId = await insertReply({ threadId, r, createdAt })
                 await addReplyLikes(commentId, r.user)
-                for (const child of nested[i] ?? []) {
-                    const childAt = new Date(Math.min(now.getTime(), createdAt.getTime() + child.later * 3600 * 1000))
-                    const childId = await insertReply({ threadId, r: child, createdAt: childAt, parentId: commentId })
-                    await addReplyLikes(childId, child.user)
-                    counts.nested++
-                }
+                await insertChildren(threadId, commentId, createdAt, nested[i])
             }
         }
 
