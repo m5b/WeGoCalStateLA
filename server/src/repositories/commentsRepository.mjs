@@ -36,6 +36,7 @@ export function createCommentRepo(db){
                     WHERE r.comment_id = c.comment_id AND r.reaction_value = 'like') AS like_count,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
+                c.edited_at AS edited_at,
                 c.deleted_at AS deleted_at,
                 c.status AS status,
                 -- parent thread
@@ -186,7 +187,8 @@ export function createCommentRepo(db){
         dataList.push(commentUuid)
         dataList.push(userId)
         const [result] = await db.execute(
-            sqlQuery + ' where comment_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
+            // edited_at is what makes the page show "edited" next to the reply
+            sqlQuery + ', edited_at = NOW() where comment_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -226,7 +228,7 @@ export function createCommentRepo(db){
     async function updateAnyByCommentUuid({commentUuid, sqlQuery, dataList}) {
         dataList.push(commentUuid)
         const [result] = await db.execute(
-            sqlQuery + ' where comment_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            sqlQuery + ', edited_at = NOW() where comment_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
             dataList
         )
         return {existed: result.affectedRows > 0, changed: result.changedRows > 0}

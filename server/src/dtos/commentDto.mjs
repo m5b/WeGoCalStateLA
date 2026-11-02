@@ -11,6 +11,8 @@ export default class CommentDto {
                 this["parentCommentUuid"] = comment["parentCommentUuid"]
             }
             this.photoUrl = comment.photoUrl ?? null
+            // When the text was last changed (null if never), so the page can show "edited".
+            this.editedAt = comment.editedAt ?? null
             this.likeCount = Number(comment.likeCount ?? 0)
             this.likedByMe = Boolean(comment.likedByMe)
     }

@@ -69,6 +69,8 @@ function mapComment(dto) {
     parentId: dto.parentCommentUuid ?? null,
     likes: dto.likeCount ?? 0,
     likedByMe: !!dto.likedByMe,
+    // True once the reply's text has been changed after posting (shown as "edited").
+    edited: !!dto.editedAt,
     // Filled in by buildReplyTree: the replies to this reply.
     replies: [],
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
@@ -193,6 +195,12 @@ export async function deleteReply(threadId, replyId) {
 export async function toggleLike(threadId) {
   const res = await apiJson(`/api/threads/${threadId}/like`, "POST", {});
   return res.data;
+}
+
+// Changes a reply's text. Only the person who wrote it (or an admin) can; the server checks.
+export async function updateReply(replyId, text) {
+  await apiJson(`/api/comments/me/${replyId}`, "PATCH", { content: text });
+  return { text, edited: true };
 }
 
 // Likes a reply, or takes the like back if you already liked it. Needs a signed-in account (the

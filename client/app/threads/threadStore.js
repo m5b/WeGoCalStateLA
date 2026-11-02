@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, updateReply, reportContent } from '../../services/threads';
 import { addReplyToTree, removeReplyFromTree, updateReplyInTree, countReplies, findReply } from '../../utils/replyTree';
 
 const ThreadsContext = createContext(null);
@@ -89,6 +89,15 @@ function reducer(state, action) {
         ),
       };
     }
+    case 'EDIT_REPLY': {
+      const { threadId, replyId, changes } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId ? { ...t, replies: updateReplyInTree(t.replies ?? [], replyId, changes) } : t
+        ),
+      };
+    }
     case 'LIKE_REPLY': {
       const { threadId, replyId, liked, likeCount } = action.payload;
       return {
@@ -147,6 +156,12 @@ export function ThreadsProvider({ children }) {
     return created;
   };
 
+  // Changes the text of a reply and marks it edited.
+  const editReply = async (threadId, replyId, text) => {
+    const changes = await updateReply(replyId, text);
+    dispatch({ type: 'EDIT_REPLY', payload: { threadId, replyId, changes } });
+  };
+
   // Throws with status 401 when nobody is signed in; the screens send those people to log in.
   const likeReply = async (threadId, replyId) => {
     const { liked, likeCount } = await toggleReplyLike(replyId);
@@ -182,7 +197,7 @@ export function ThreadsProvider({ children }) {
 
   const value = {
     state,
-    actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, likeReply, removeReply, removeThread, likeThread, reportThread },
+        actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, likeReply, editReply, removeReply, removeThread, likeThread, reportThread },
   };
 
   return (
