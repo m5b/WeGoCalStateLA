@@ -498,7 +498,33 @@ export const FAQS = [
 export const POST_NESTED = {
     0: {
         0: [
-            { user: 'Rosa', later: 5, text: 'The Sunday call idea is perfect. Thank you, David!' },
+                        // A long conversation, so there is something to fold with the [-] button.
+            {
+                user: 'Rosa', later: 5, text: 'The Sunday call idea is perfect. Thank you, David!',
+                replies: [
+                    {
+                        user: 'David', later: 2, text: 'Happy to. We keep it to twenty minutes so it never feels like a chore.',
+                        replies: [
+                            {
+                                user: 'Rosa', later: 1, text: 'Twenty minutes sounds doable. Do you ask about school or just chat?',
+                                replies: [
+                                    {
+                                        user: 'David', later: 2, text: 'Mostly just chat. School comes up on its own when she is ready.',
+                                        replies: [
+                                            { user: 'Rosa', later: 3, text: 'That is good advice. I tend to jump straight to grades.' },
+                                        ],
+                                    },
+                                ],
+                            },
+                            { user: 'Mei', later: 3, text: 'We do the same on Saturdays. It became his favorite part of the week.' },
+                        ],
+                    },
+                    {
+                        user: 'Priya', later: 4, text: 'Do you video call or just phone?',
+                        replies: [{ user: 'David', later: 2, text: 'Phone mostly. He likes walking while we talk.' }],
+                    },
+                ],
+            },
             { user: 'David', later: 9, text: "Glad it helps. It took us a few weeks to find the rhythm, so be patient with yourself." },
         ],
         3: [{ user: 'Rosa', later: 6, text: 'I love that. I am going to try the "best and hardest part" question tonight.' }],
@@ -513,7 +539,14 @@ export const POST_NESTED = {
     },
     3: { 0: [{ user: 'Aaliyah', later: 4, text: "Thanks, Rosa! I'll write one tonight and add a snack." }] },
     4: {
-        0: [{ user: 'Marcus', later: 3, text: 'Twenty minutes is a win. Thank you for trying it!' }],
+                // Many direct replies to one reply, so the [-] button has a long list to hide.
+        0: [
+            { user: 'Marcus', later: 3, text: 'Twenty minutes is a win. Thank you for trying it!' },
+            { user: 'Sam', later: 4, text: 'We tried this too and it helped.' },
+            { user: 'Carmen', later: 5, text: 'Adding this to our routine this week.' },
+            { user: 'Lena', later: 6, text: 'Thanks for sharing. Saving this for later.' },
+            { user: 'Hector', later: 7, text: 'Same here!' },
+        ],
         2: [{ user: 'Marcus', later: 8, text: 'Please do report back. I would love to hear how it goes.' }],
     },
     5: {
