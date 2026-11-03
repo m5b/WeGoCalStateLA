@@ -17,48 +17,46 @@ import {
   User,
   Clock,
   MessageSquare,
+  LogIn,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { width } from '../../utils/responsive';
 import WebLayout from '../../components/WebLayout';
+import { useAuth } from '../../context/AuthContext';
 
 const quickActions = [
   {
+    id: 'threads',
+    title: 'Community',
+    subtitle: 'Connect with other families, ask questions, and share advice.',
+    icon: MessageSquare,
+    color: Colors.SECONDARY,
+    route: 'threads',
+  },
+  {
     id: 'events',
-    title: 'Community Events',
-    subtitle: 'Find ways to connect and participate',
+    title: 'Events',
+    subtitle: 'Discover upcoming events for families and students, or share your own.',
     icon: Calendar,
     color: Colors.SECONDARY,
     route: 'events',
   },
   {
     id: 'resources',
-    title: 'Family Resources',
-    subtitle: 'Find campus and community support',
+    title: 'Resources',
+    subtitle: 'Explore financial, health, career, and other resources from Cal State LA and beyond.',
     icon: BookOpen,
     color: Colors.PRIMARY,
     route: 'resources',
   },
-  {
-    id: 'threads',
-    title: 'Community Conversations',
-    subtitle: 'Share encouragement with a public alias',
-    icon: MessageSquare,
-    color: Colors.SECONDARY,
-    route: 'threads',
-  },
-  {
-    id: 'profile',
-    title: 'Preview Profile',
-    subtitle: 'Explore how a community alias could work',
-    icon: User,
-    color: Colors.PRIMARY,
-    route: 'profile',
-  },
 ];
 
 export default function HomeScreen() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
+  const visibleQuickActions = quickActions.filter(
+    (action) => action.id !== 'profile' || (!isLoading && isAuthenticated)
+  );
 
   const navigateToScreen = (screen) => {
     switch (screen) {
@@ -253,7 +251,7 @@ export default function HomeScreen() {
           <View style={webStyles.webSection}>
             <Text style={webStyles.webSectionTitle}>Quick Actions</Text>
             <View style={webStyles.webQuickActionsGrid}>
-              {quickActions.map((action) => (
+              {visibleQuickActions.map((action) => (
                 <TouchableOpacity
                   key={action.id}
                   style={webStyles.webActionCard}
@@ -344,7 +342,7 @@ export default function HomeScreen() {
           {/* Quick Actions */}
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
-            {quickActions.map((action) => (
+            {visibleQuickActions.map((action) => (
               <TouchableOpacity
                 key={action.id}
                 style={styles.actionCard}
@@ -422,15 +420,24 @@ export default function HomeScreen() {
                 navigateToScreen('resources');
               }}
             />
-            <TabButton
-              icon={User}
-              label="Profile"
-              isActive={activeTab === 'profile'}
-              onPress={() => {
-                setActiveTab('profile');
-                navigateToScreen('profile');
-              }}
-            />
+            {!isLoading && (isAuthenticated ? (
+              <TabButton
+                icon={User}
+                label="Profile"
+                isActive={activeTab === 'profile'}
+                onPress={() => {
+                  setActiveTab('profile');
+                  navigateToScreen('profile');
+                }}
+              />
+            ) : (
+              <TabButton
+                icon={LogIn}
+                label="Sign in"
+                isActive={false}
+                onPress={() => router.push('/authentication/login')}
+              />
+            ))}
           </View>
         </LinearGradient>
       </View>

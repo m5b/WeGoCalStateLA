@@ -12,6 +12,11 @@ export function createCommentRepo(db){
         updateByCommentUuid,
         deleteByCommentId,
         deleteByCommentUuid,
+        updateAnyByCommentUuid,
+        deleteAnyByCommentUuid,
+        toggleLike,
+        countLikes,
+        findLikedCommentIds,
     }
 
     function getPublicSelect(){
@@ -23,8 +28,15 @@ export function createCommentRepo(db){
                     WHEN c.deleted_at IS NULL THEN c.content
                     ELSE NULL
                     END AS content,
+                    CASE
+                    WHEN c.deleted_at IS NULL THEN c.photo_url
+                    ELSE NULL
+                    END AS photo_url,
+                    (SELECT COUNT(*) FROM comment_reactions r
+                    WHERE r.comment_id = c.comment_id AND r.reaction_value = 'like') AS like_count,
                 c.created_at AS created_at,
                 c.updated_at AS updated_at,
+                c.edited_at AS edited_at,
                 c.deleted_at AS deleted_at,
                 c.status AS status,
                 -- parent thread
@@ -129,31 +141,31 @@ export function createCommentRepo(db){
         return row
     }
 
-    async function insertCommentWithParent({userId, threadId, content, commentUuid, parentCommentUuid,}) {
+    async function insertCommentWithParent({userId, threadId, content, commentUuid, parentCommentUuid, photoUrl = null}) {
         const [result] = await db.execute(
             `
-                INSERT INTO comments (comment_uuid, parent_comment_id, user_id, thread_id, content)
-                SELECT UUID_TO_BIN(?), p.comment_id, ?, ?, ?
+                INSERT INTO comments (comment_uuid, parent_comment_id, user_id, thread_id, content, photo_url)
+                SELECT UUID_TO_BIN(?), p.comment_id, ?, ?, ?, ?
                 FROM comments p
                 WHERE p.comment_uuid = UUID_TO_BIN(?)
                   AND p.thread_id = ?
                   AND p.deleted_at IS NULL
             `,
-            [commentUuid, userId, threadId, content, parentCommentUuid, threadId]
+            [commentUuid, userId, threadId, content, photoUrl, parentCommentUuid, threadId]
         )
         const inserted = result.affectedRows > 0
         return {inserted, insertId: result.insertId}
     }
 
 
-    async function insertComment({ userId, threadId, content, commentUuid}) {
+    async function insertComment({ userId, threadId, content, commentUuid, photoUrl = null}) {
         const [result] = await db.execute(
             `
                 INSERT INTO comments
-                    (comment_uuid, user_id, thread_id, content)
-                VALUES (UUID_TO_BIN(?), ?, ?, ?) 
+                    (comment_uuid, user_id, thread_id, content, photo_url)
+                VALUES (UUID_TO_BIN(?), ?, ?, ?, ?) 
             `,
-            [commentUuid, userId, threadId, content]
+            [commentUuid, userId, threadId, content, photoUrl]
         )
         const inserted = result.affectedRows > 0
         return {inserted, insertId: result.insertId}
@@ -175,7 +187,8 @@ export function createCommentRepo(db){
         dataList.push(commentUuid)
         dataList.push(userId)
         const [result] = await db.execute(
-            sqlQuery + ' where comment_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
+            // edited_at is what makes the page show "edited" next to the reply
+            sqlQuery + ', edited_at = NOW() where comment_uuid = UUID_TO_BIN(?) and user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -209,5 +222,61 @@ export function createCommentRepo(db){
             [commentUuid, userId]
         )
         return result.affectedRows > 0
+    }
+
+        // No user_id check: lets an admin edit anyone's reply.
+    async function updateAnyByCommentUuid({commentUuid, sqlQuery, dataList}) {
+        dataList.push(commentUuid)
+        const [result] = await db.execute(
+            sqlQuery + ', edited_at = NOW() where comment_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            dataList
+        )
+        return {existed: result.affectedRows > 0, changed: result.changedRows > 0}
+    }
+
+    // No user_id check: lets an admin remove anyone's reply.
+    async function deleteAnyByCommentUuid({commentUuid}) {
+        const [result] = await db.execute(
+            `
+                UPDATE comments
+                SET deleted_at = NOW()  , content = null , status = 'deleted'
+                WHERE comment_uuid = UUID_TO_BIN(?)
+                    AND deleted_at IS NULL
+            `,
+            [commentUuid]
+        )
+        return result.affectedRows > 0
+    }
+
+        // Likes: one row per user per reply (UNIQUE user_id + comment_id). Returns true if the
+    // reply is liked after the call, false if the like was taken back.
+    async function toggleLike({ commentId, userId }) {
+        const [removed] = await db.execute(
+            "DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ? AND reaction_value = 'like'",
+            [userId, commentId]
+        )
+        if (removed.affectedRows > 0) return false
+        await db.execute(
+            "INSERT INTO comment_reactions (user_id, comment_id, reaction_value) VALUES (?, ?, 'like') ON DUPLICATE KEY UPDATE reaction_value = 'like'",
+            [userId, commentId]
+        )
+        return true
+    }
+
+    async function countLikes(commentId) {
+        const [rows] = await db.execute(
+            "SELECT COUNT(*) AS n FROM comment_reactions WHERE comment_id = ? AND reaction_value = 'like'",
+            [commentId]
+        )
+        return Number(rows[0].n)
+    }
+
+    // Ids of the replies this user has liked (used to fill in the heart on a thread's replies).
+    async function findLikedCommentIds(userId) {
+        const [rows] = await db.execute(
+            "SELECT comment_id FROM comment_reactions WHERE user_id = ? AND reaction_value = 'like'",
+            [userId]
+        )
+        return rows.map((row) => row.comment_id)
     }
 }

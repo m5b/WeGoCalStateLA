@@ -9,8 +9,11 @@ const BASE_SELECT = `
         e.started_at,
         e.ended_at,
         e.photo_url,
+        e.is_public,
         e.created_at,
         e.updated_at,
+        e.created_by_user_id,
+        e.thread_id,
         u.username as author_username,
         u.alias as author_alias,
         BIN_TO_UUID(u.user_uuid) as author_uuid,
@@ -27,6 +30,8 @@ export function createEventsRepo(db) {
         findByEventUuid,
         findByUserId,
         insertEvent,
+        updateByEventUuid,
+        deleteByEventUuid,
     }
 
     async function findAll() {
@@ -50,13 +55,38 @@ export function createEventsRepo(db) {
         return rows
     }
 
-    async function insertEvent({eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl}) {
+    async function insertEvent({eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl, isPublic = false}) {
         const [result] = await db.execute(
             `INSERT INTO events
-                (event_uuid, event_title, event_description, started_at, ended_at, created_by_user_id, thread_id, photo_url, created_at, updated_at)
-             VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-            [eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl]
+                (event_uuid, event_title, event_description, started_at, ended_at, created_by_user_id, thread_id, photo_url, is_public, created_at, updated_at)
+             VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+            [eventUuid, title, description, startedAt, endedAt, createdByUserId, threadId, photoUrl, isPublic]
         )
         return result.insertId
+    }
+
+    // fields uses db column names. Only the event's creator can update it, unless isAdmin.
+    async function updateByEventUuid({eventUuid, userId, fields, isAdmin = false}) {
+        const columns = Object.keys(fields)
+        if (columns.length === 0) return true
+        const setClause = columns.map((column) => `${column} = ?`).join(', ')
+        const ownerCheck = isAdmin ? '' : ' AND created_by_user_id = ?'
+        const [result] = await db.execute(
+            `UPDATE events SET ${setClause}, updated_at = NOW()
+             WHERE event_uuid = UUID_TO_BIN(?)${ownerCheck} AND deleted_at IS NULL`,
+            [...columns.map((column) => fields[column]), eventUuid, ...(isAdmin ? [] : [userId])]
+        )
+        return result.affectedRows > 0
+    }
+
+    // Soft delete (the row stays, hidden from every list). Only the creator, unless isAdmin.
+    async function deleteByEventUuid({eventUuid, userId, isAdmin = false}) {
+        const ownerCheck = isAdmin ? '' : ' AND created_by_user_id = ?'
+        const [result] = await db.execute(
+            `UPDATE events SET deleted_at = NOW(), updated_at = NOW()
+             WHERE event_uuid = UUID_TO_BIN(?)${ownerCheck} AND deleted_at IS NULL`,
+            [eventUuid, ...(isAdmin ? [] : [userId])]
+        )
+        return result.affectedRows > 0
     }
 }

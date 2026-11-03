@@ -23,14 +23,11 @@ const RELATIONSHIP_OPTIONS = [
 ];
 
 const INTEREST_OPTIONS = [
-  'Campus events',
-  'Family resources',
-  'Mental health support',
-  'Academic support',
-  'Community volunteering',
-  'Social activities',
-  'Financial aid info',
-  'Housing resources',
+  'Career Wellness',
+  'Social Wellness',
+  'Financial Wellness',
+  'Physical Wellness',
+  'Community Wellness',
 ];
 
 function parseInterests(value) {

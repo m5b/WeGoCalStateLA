@@ -1,59 +1,51 @@
-import { apiGet, apiJson } from "./api";
+import { apiGet, apiJson, apiForm } from "./api";
 import { getEvent } from "./events";
+import { prepareImageBlob, resolveUploadUrl } from "../utils/imageData";
+import { buildReplyTree } from "../utils/replyTree";
 
 export const THREAD_CATEGORIES = [
   { key: "general", label: "General" },
   { key: "events", label: "Events" },
-  { key: "faq", label: "FAQs" },
+  // Stored as "faq" (the original name) -- shown to users as Questions.
+  { key: "faq", label: "Questions" },
 ];
 
-// Checks for a real backend UUID (every real thread/event has one) vs. the
-// faq-N ids used by the static placeholder content below.
+// Checks for a well-formed thread id (the server's uuid format).
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Static FAQ content -- not stored on the server, since there's no
-// FAQ-authoring feature yet. Replace with real content once that exists.
-const FAQ_THREADS = [
-  {
-    id: "faq-1",
-    author: "WeGo Community Team",
-    caption: "How do I find important dates like registration and financial-aid deadlines?",
-    text: "Check the Cal State LA academic calendar and the Events tab here for upcoming deadlines and reminders.",
-  },
-  {
-    id: "faq-2",
-    author: "WeGo Community Team",
-    caption: "Where can my student get mental health or wellness support on campus?",
-    text: "The Student Health Center and counseling services offer free support. See the Events tab for wellness workshops.",
-  },
-  {
-    id: "faq-3",
-    author: "WeGo Community Team",
-    caption: "Can family members attend campus events?",
-    text: "Many events are open to families. Check each event's details for who can attend.",
-  },
-].map((faq, i) => ({
-  likes: 0,
-  imageUri: null,
-  date: "",
-  time: "",
-  location: "",
-  category: "faq",
-  createdAt: Date.now() - 1000 * 60 * 60 * 24 * (i + 1),
-  replies: [],
-  repliesLoaded: true,
-  ...faq,
-}));
 
 // Maps a real thread (from GET /api/threads) to the shape the UI uses.
 function mapThread(dto) {
+  // A thread has its own title only when it wasn't generated from the body
+  // by deriveTitle -- e.g. the seeded questions, whose title is the question
+  // and whose body is the answer.
+  const customTitle =
+    !dto.locked && dto.title && dto.title !== deriveTitle(dto.body)
+      ? dto.title
+      : null;
   return {
     id: dto.threadUuid,
     author: dto.author,
-    caption: dto.title,
-    text: dto.body,
-    likes: 0, // no reactions backend yet -- see toggleLike below
-    imageUri: null, // threads don't support image attachments yet
+    authorUuid: dto.userUuid,
+    // Shows the real post content, not dto.title -- the server requires a
+    // 20 character title (see deriveTitle below), so title often has
+    // trailing dots padding it out and was never meant to be displayed.
+    // Questions with their own title are the exception: the title is the
+    // question (shown as the heading) and the body is the answer.
+    // Private threads come back locked (content stripped) for signed-out
+    // visitors -- see server/src/util/visibility.mjs.
+    caption: dto.locked
+      ? "Private conversation"
+      : dto.category === "faq" && customTitle ? customTitle : dto.body,
+    text: dto.locked ? "" : dto.body,
+    customTitle,
+    isPublic: !!dto.isPublic,
+    locked: !!dto.locked,
+    likes: dto.likeCount ?? 0,
+    likedByMe: dto.likedByMe ?? false,
+    // Sent with the feed so the count shows before the post is opened.
+    replyCount: dto.replyCount ?? 0,
+    // The post's cover picture (for event posts, the event's picture).
+    imageUri: resolveUploadUrl(dto.photoUrl),
     date: "",
     time: "",
     location: "",
@@ -70,7 +62,17 @@ function mapComment(dto) {
   return {
     id: dto.commentUuid,
     author: dto.username,
+    authorUuid: dto.userUuid,
     text: dto.content,
+    // A picture attached to the reply (shown small -- see FlexibleImage maxHeight on the screens).
+    imageUri: resolveUploadUrl(dto.photoUrl),
+    parentId: dto.parentCommentUuid ?? null,
+    likes: dto.likeCount ?? 0,
+    likedByMe: !!dto.likedByMe,
+    // True once the reply's text has been changed after posting (shown as "edited").
+    edited: !!dto.editedAt,
+    // Filled in by buildReplyTree: the replies to this reply.
+    replies: [],
     createdAt: dto.createdAt ? new Date(dto.createdAt).getTime() : Date.now(),
   };
 }
@@ -82,62 +84,96 @@ function mapComment(dto) {
 function deriveTitle(text) {
   const trimmed = (text || "").trim();
   if (trimmed.length >= 20) {
-    return trimmed.length <= 200 ? trimmed : trimmed.slice(0, 197) + "...";
+    return trimmed.length <= 200 ? trimmed : `${trimmed.slice(0, 197)}...`;
   }
   return (trimmed || "Community post").padEnd(20, ".");
 }
 
+// True for a well-formed thread id (the server's uuid format).
+export function isRealThread(threadId) {
+  return UUID_RE.test(String(threadId));
+}
+
 export async function getFeed() {
   const res = await apiGet("/api/threads");
-  const real = res.data.threads.map(mapThread);
-  return [...real, ...FAQ_THREADS];
+  return res.data.threads.map(mapThread);
 }
 
 export async function getThreadDetail(threadId) {
   if (!UUID_RE.test(String(threadId))) {
-    // FAQ (or any other non-real) id -- nothing to fetch.
-    throw new Error("Not a real thread");
+    throw new Error("Not a valid thread id");
   }
   const res = await apiGet(`/api/comments/thread/${threadId}`);
-  const seen = new Set();
-  const topLevelReplies = res.data.comments
-    .filter((c) => c.parentCommentUuid == null)
-    .filter((c) => {
-      // the server's tree builder currently lists top-level comments twice;
-      // de-dupe defensively here until that's fixed server-side
-      if (seen.has(c.commentUuid)) return false;
-      seen.add(c.commentUuid);
-      return true;
-    })
-    .map(mapComment);
+  // The server sends every reply in one list (some repeated); build the nested replies from it.
+  const replies = buildReplyTree(res.data.comments.map(mapComment));
 
   const dto = res.data.threadDto;
-  return { ...mapThread(dto), replies: topLevelReplies };
+  return { ...mapThread(dto), replies };
 }
 
 export async function getThreadByEventId(eventId) {
   const event = await getEvent(eventId);
   if (!event?.threadId) return null;
-  return getThreadDetail(event.threadId);
+  try {
+    return await getThreadDetail(event.threadId);
+  } catch {
+    // The event's linked community post was deleted (the server now 404s
+    // deleted threads) -- the event page should still load without it.
+    return null;
+  }
 }
 
 export async function createThread(data) {
   const content = data.caption || data.text || "";
-  const res = await apiJson("/api/threads/me", "POST", {
-    title: deriveTitle(content),
-    content,
-    category: data.category || "general",
-  });
-  // Note: data.imageUri is intentionally not sent -- the real threads table
-  // has no image column yet, so a photo attached in the composer currently
-  // isn't persisted.
+  // Sent as a form (not JSON) so a cover photo can travel with the text.
+  const formData = new FormData();
+  formData.append("title", deriveTitle(content));
+  formData.append("content", content);
+  formData.append("category", data.category || "general");
+  formData.append("isPublic", data.isPublic ? "true" : "false");
+  if (data.imageUri) {
+    const blob = await prepareImageBlob(data.imageUri);
+    const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+    formData.append("image", blob, `cover.${extension}`);
+  }
+  const res = await apiForm("/api/threads/me", "POST", formData);
   return mapThread(res.data.thread);
 }
 
-export async function createReply(threadId, { text }) {
-  const res = await apiJson(`/api/comments/me/thread/${threadId}`, "POST", {
-    content: text,
+export async function updateThread(threadId, data) {
+  const content = data.caption || data.text || "";
+  // Only the thread's author or an admin can edit it (the server checks).  
+  // Keeps a thread's own title (e.g. a seeded question) rather than
+  // replacing it with one generated from the edited body -- but only if the
+  // server will accept it (20-200 characters). An event's linked post is titled
+  // "<event name> — Event", which is too short for a short event name, so those
+  // get a generated title instead of failing to save.
+  const keepTitle =
+    data.customTitle && data.customTitle.length >= 20 && data.customTitle.length <= 200;
+  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
+    title: keepTitle ? data.customTitle : deriveTitle(content),
+    content,
+    category: data.category || "general",
+    isPublic: !!data.isPublic,
   });
+  return mapThread(res.data.thread);
+}
+
+export async function createReply(threadId, { text, imageUri, parentId }) {
+  // Sent as a form (not JSON) so a picture can travel with the text. The text may be empty
+  // when there is a picture.
+  const formData = new FormData();
+  formData.append("content", text || "");
+  if (imageUri) {
+    const blob = await prepareImageBlob(imageUri);
+    const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+    formData.append("image", blob, `reply.${extension}`);
+  }
+  // With parentId the reply goes under that reply; without it, at the top of the thread.
+  const path = parentId
+    ? `/api/comments/me/thread/${threadId}/comment/${parentId}`
+    : `/api/comments/me/thread/${threadId}`;
+  const res = await apiForm(path, "POST", formData);
   return mapComment(res.data.comment);
 }
 
@@ -154,13 +190,27 @@ export async function deleteReply(threadId, replyId) {
   return { ok: true };
 }
 
+// Likes the post, or takes the like back if you already liked it. Needs a signed-in
+// account (the server answers 401 otherwise). Returns { liked, likeCount }.
 export async function toggleLike(threadId) {
-  // No reactions backend yet -- no-op so the UI doesn't break; likes won't
-  // persist or be visible to others until that's built.
-  return 0;
+  const res = await apiJson(`/api/threads/${threadId}/like`, "POST", {});
+  return res.data;
+}
+
+// Changes a reply's text. Only the person who wrote it (or an admin) can; the server checks.
+export async function updateReply(replyId, text) {
+  await apiJson(`/api/comments/me/${replyId}`, "PATCH", { content: text });
+  return { text, edited: true };
+}
+
+// Likes a reply, or takes the like back if you already liked it. Needs a signed-in account (the
+// server answers 401 otherwise). Returns { liked, likeCount }.
+export async function toggleReplyLike(replyId) {
+  const res = await apiJson(`/api/comments/${replyId}/like`, "POST", {});
+  return res.data;
 }
 
 export async function reportContent(threadId, reason) {
-  // No reports backend yet -- same situation as toggleLike.
+  // No reports backend yet, so this does nothing.
   return { ok: false };
 }

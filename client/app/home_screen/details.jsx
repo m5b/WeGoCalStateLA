@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,13 +9,20 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CalendarDays, Clock, MapPin, MessageCircle } from "lucide-react-native";
+import { CalendarDays, Clock, Lock, MapPin, MessageCircle } from "lucide-react-native";
 import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
+import FlexibleImage from "../../components/FlexibleImage";
+import ReplyNode from "../../components/ReplyNode";
+import { addReplyToTree, removeReplyFromTree, updateReplyInTree } from "../../utils/replyTree";
 import { Colors } from "../../constant/Colors";
-import { getEvent } from "../../services/events";
-import { createReply, deleteReply, getThreadByEventId } from "../../services/threads";
+import { getEvent, deleteEvent } from "../../services/events";
+import { createReply, deleteReply, getThreadByEventId, toggleReplyLike, updateReply } from "../../services/threads";
 import { confirmAction } from "../../utils/confirmAction";
+import { useAuth } from "../../context/AuthContext";
+import { canManage } from "../../utils/permissions";
+import { formatEventDate } from "../../utils/formatEventDate";
+import { replyErrorMessage } from "../../utils/replyError";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -28,10 +34,12 @@ function getEventTitle(event) {
 export default function EventDetails() {
   const { eventId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
+  const [replyError, setReplyError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -83,18 +91,65 @@ export default function EventDetails() {
   const submitReply = async () => {
     const text = replyText.trim();
     if ((!text && !replyImage) || !thread) return;
+    setReplyError("");
     try {
       const reply = await createReply(thread.id, { text, imageUri: replyImage });
       setThread((current) => ({
         ...current,
-        replies: [...(current.replies ?? []), reply],
+        replies: addReplyToTree(current.replies ?? [], reply, null),
       }));
       setReplyText("");
       setReplyImage(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
+      setReplyError(replyErrorMessage(error));
     }
   };
+
+  // Posts a reply under another reply.
+  const replyTo = async (parent, text) => {
+    const reply = await createReply(thread.id, { text, parentId: parent.id });
+    setThread((current) => ({
+      ...current,
+      replies: addReplyToTree(current.replies ?? [], reply, parent.id),
+    }));
+  };
+
+  // Changes the text of a reply you wrote and marks it edited.
+  const editReply = async (reply, text) => {
+    const changes = await updateReply(reply.id, text);
+    setThread((current) => ({
+      ...current,
+      replies: updateReplyInTree(current.replies ?? [], reply.id, changes),
+    }));
+  };
+
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const likeReply = async (reply) => {
+    try {
+      const { liked, likeCount } = await toggleReplyLike(reply.id);
+      setThread((current) => ({
+        ...current,
+        replies: updateReplyInTree(current.replies ?? [], reply.id, { likes: likeCount, likedByMe: liked }),
+      }));
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
+
+  const confirmDeleteEvent = () =>
+    confirmAction({
+      title: "Delete event",
+      message: "Delete this event and its discussion? This can't be undone.",
+      onConfirm: async () => {
+        try {
+          await deleteEvent(event.id);
+          router.replace("/home_screen/events");
+        } catch (error) {
+          console.warn("Failed to delete event", error);
+        }
+      },
+    });
 
   const confirmDeleteReply = (replyId) =>
     confirmAction({
@@ -105,7 +160,7 @@ export default function EventDetails() {
           await deleteReply(thread.id, replyId);
           setThread((current) => ({
             ...current,
-            replies: (current.replies ?? []).filter((r) => r.id !== replyId),
+            replies: removeReplyFromTree(current.replies ?? [], replyId),
           }));
         } catch (error) {
           console.warn("Failed to delete reply", error);
@@ -113,18 +168,40 @@ export default function EventDetails() {
       },
     });
 
+  // Edit and delete: the person who created the event, or an admin.
+  const canManageEvent = canManage(user, event.authorUuid);
   const title = getEventTitle(event);
   const description = event.description || (event.text && event.text !== title ? event.text : "");
 
+  // Private events come back locked (details stripped) for signed-out
+  // visitors, so they get the sign-in prompt over the page instead.
   return (
-    <WebLayout>
+    <WebLayout requireSignIn={event.locked ? "events" : undefined}>
       <View style={styles.screen}>
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.backText}>{"\u2190"} Back to Events</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Event Details</Text>
-          <View style={{ width: 72 }} />
+          {canManageEvent ? (
+            <View style={{ width: 72, alignItems: "flex-end" }}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/home_screen/create_event",
+                    params: { eventId: event.id },
+                  })
+                }
+              >
+                <Text style={styles.backText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={confirmDeleteEvent}>
+                <Text style={styles.deleteEventText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+           ) : (
+            <View style={{ width: 72 }} />
+          )}
         </View>
 
         <ScrollView
@@ -133,10 +210,16 @@ export default function EventDetails() {
         >
           <View style={styles.eventCard}>
             {event.imageUri ? (
-              <Image source={{ uri: event.imageUri }} style={styles.heroImage} />
+              <FlexibleImage uri={event.imageUri} style={styles.heroImage} maxHeight={640} />
             ) : null}
 
             <View style={styles.eventBody}>
+              {!event.isPublic ? (
+                <View style={styles.privateBadge}>
+                  <Lock size={12} color={Colors.WHITE} />
+                  <Text style={styles.privateBadgeText}>Private event</Text>
+                </View>
+              ) : null}
               <Text style={styles.eventTitle}>{title}</Text>
               {event.author ? (
                 <Text style={styles.postedBy}>Posted by {event.author}</Text>
@@ -146,7 +229,7 @@ export default function EventDetails() {
                 {event.date ? (
                   <View style={styles.metaItem}>
                     <CalendarDays size={18} color={EVENT_TEXT_COLOR} />
-                    <Text style={styles.metaText}>{event.date}</Text>
+                    <Text style={styles.metaText}>{formatEventDate(event.date)}</Text>
                   </View>
                 ) : null}
 
@@ -199,24 +282,22 @@ export default function EventDetails() {
                 </Text>
               ) : (
                 thread.replies.map((reply) => (
-                  <View key={String(reply.id)} style={styles.replyCard}>
-                    <View style={styles.replyHeader}>
-                      <Text style={styles.replyAuthor}>{reply.author || "Anonymous"}</Text>
-                      <TouchableOpacity onPress={() => confirmDeleteReply(reply.id)}>
-                        <Text style={styles.replyDelete}>Delete</Text>
-                      </TouchableOpacity>
-                    </View>
-                    {!!reply.text && (
-                      <Text style={styles.replyText}>{reply.text}</Text>
-                    )}
-                    {reply.imageUri ? (
-                      <Image source={{ uri: reply.imageUri }} style={styles.replyImage} />
-                    ) : null}
-                  </View>
+                  <ReplyNode
+                    key={String(reply.id)}
+                    reply={reply}
+                    user={user}
+                    inset={0}
+                    cardColor={Colors.LIGHT_GRAY}
+                    onLike={likeReply}
+                    onReply={replyTo}
+                    onEdit={editReply}
+                    onDelete={(r) => confirmDeleteReply(r.id)}
+                  />
                 ))
               )}
 
               <View style={styles.replyBox}>
+                {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
                 <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
                   placeholder="Write a reply..."
@@ -239,6 +320,22 @@ export default function EventDetails() {
 }
 
 const styles = StyleSheet.create({
+  privateBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BLACK,
+  },
+  privateBadgeText: {
+    color: Colors.WHITE,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   screen: {
     flex: 1,
     backgroundColor: Colors.LIGHT_GRAY,
@@ -293,9 +390,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-    height: 320,
     backgroundColor: Colors.GRAY_200,
-    resizeMode: "cover",
   },
   eventBody: {
     padding: 22,
@@ -397,6 +492,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  deleteEventText: {
+    color: Colors.ERROR,
+    fontWeight: "700",
+    marginTop: 4,
+  },
   replyDelete: {
     color: Colors.ERROR,
     fontSize: 12,
@@ -408,10 +508,15 @@ const styles = StyleSheet.create({
   },
   replyImage: {
     width: "100%",
-    height: 200,
+    maxWidth: 300,
+    alignSelf: "flex-start",
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,
+  },
+  replyError: {
+    color: Colors.ERROR,
+    fontSize: 12,
   },
   replyText: {
     color: Colors.TEXT,

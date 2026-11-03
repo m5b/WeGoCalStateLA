@@ -1,67 +1,40 @@
 import React from 'react';
+import { parseEventTime } from '../utils/eventDateTime';
 
-const timeOptions = [];
+const timeOptions = Array.from({ length: 96 }, (_, index) => {
+  const hour = Math.floor(index / 4);
+  const minute = String((index % 4) * 15).padStart(2, '0');
+  return (hour % 12 || 12) + ':' + minute + (hour < 12 ? ' AM' : ' PM');
+});
+const controlStyle = {
+  minWidth: 0, border: 'none', backgroundColor: 'transparent', fontSize: 14,
+  color: '#111827', fontFamily: 'inherit', cursor: 'pointer', padding: '12px 2px',
+};
 
-for (let hour = 0; hour < 24; hour++) {
-  for (let minute = 0; minute < 60; minute += 30) {
-    const value =
-      `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-
-    const displayHour = hour % 12 || 12;
-    const period = hour < 12 ? 'AM' : 'PM';
-
-    const label =
-      `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
-
-    timeOptions.push({ value, label });
-  }
-}
-
-export default function DateTimeInput({ type, value, onChange }) {
+export default function DateTimeInput({ type, value, onChange, disabled = false }) {
   if (type === 'time') {
+    const selectedTime = parseEventTime(value) ? value : '';
+    // Keep an exact AI-populated time visible even when it is between presets.
+    const extraTime = selectedTime && !timeOptions.includes(selectedTime) ? selectedTime : null;
     return (
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        style={{
-          flex: 1,
-          width: '100%',
-          border: 'none',
-          outline: 'none',
-          backgroundColor: 'transparent',
-          fontSize: 16,
-          color: '#111827',
-          fontFamily: 'inherit',
-          cursor: 'pointer',
-        }}
-      >
-        <option value="">Select time</option>
-
-        {timeOptions.map((option) => (
-          <option key={option.value} value={option.label}>
-            {option.label}
-          </option>
-        ))}
+      <select aria-label="Event time" value={selectedTime} disabled={disabled}
+        onChange={(event) => {
+          const nextTime = event.target.value;
+          if (timeOptions.includes(nextTime) || nextTime === extraTime) onChange(nextTime);
+        }} style={{ ...controlStyle, flex: 1, width: '100%' }}>
+        <option value="" disabled>Select time</option>
+        {extraTime && <option value={extraTime}>{extraTime}</option>}
+        {timeOptions.map((time) => <option key={time} value={time}>{time}</option>)}
       </select>
     );
   }
 
   return (
-    <input
-      type="date"
-      value={value}
+    <input type="date" aria-label="Event date" value={value} disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
-      style={{
-        flex: 1,
-        width: '100%',
-        border: 'none',
-        outline: 'none',
-        backgroundColor: 'transparent',
-        fontSize: 16,
-        color: '#111827',
-        fontFamily: 'inherit',
-        cursor: 'pointer',
+      onClick={(event) => {
+        try { event.currentTarget.showPicker?.(); } catch { /* Native input remains usable if showPicker is unavailable. */ }
       }}
-    />
+      style={{ ...controlStyle, flex: 1, width: '100%' }} />
   );
 }
