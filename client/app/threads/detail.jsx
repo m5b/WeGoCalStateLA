@@ -16,15 +16,23 @@ import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import ReplyNode from "../../components/ReplyNode";
+import Avatar from "../../components/Avatar";
 import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
 import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
 import { replyErrorMessage } from "../../utils/replyError";
 
+// The thread page as a screen.
 export default function ThreadDetail() {
-  const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
+  return <ThreadView threadId={threadId} />;
+}
+
+// The thread itself: the post, its replies, and the reply box. Used by the screen above, and inside
+// the right-hand pane of the Community list on wide screens (embedded: no Back button).
+export function ThreadView({ threadId, embedded = false, onRemoved }) {
+  const { state, actions } = useThreads();
   const router = useRouter();
   const { user } = useAuth();
   const [text, setText] = useState("");
@@ -92,7 +100,8 @@ export default function ThreadDetail() {
     setDeleting(true);
     try {
       await actions.removeThread(thread.id);
-      router.back();
+      if (embedded) onRemoved?.();
+      else router.back();
     } catch (err) {
       console.warn("Failed to delete thread", err);
       setDeleting(false);
@@ -133,9 +142,13 @@ export default function ThreadDetail() {
     <GatedContent variant="threads" locked={thread.locked}>
     <View style={{ flex: 1, backgroundColor: Colors.BACKGROUND_SECONDARY }}>
       <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
+        {embedded ? (
+          <View style={{ width: 56 }} />
+        ) : (
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.backText}>← Back</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.title}>Thread</Text>
         <View style={styles.headerActions}>
           {canEdit ? (
@@ -175,6 +188,11 @@ export default function ThreadDetail() {
               {!thread.isPublic ? (
                 <Text style={styles.privateTag}>Private</Text>
               ) : null}
+            </View>
+
+            <View style={styles.authorRow}>
+              <Avatar name={thread.author} size={32} />
+              <Text style={styles.authorName}>{thread.author || "Anonymous"}</Text>
             </View>
 
             {!!thread.caption && (
@@ -221,6 +239,7 @@ export default function ThreadDetail() {
             reply={item}
             user={user}
             onLike={handleReplyLike}
+            chat
             onReply={(parent, text) => actions.addReply(thread.id, { text, parentId: parent.id })}
             onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
             onDelete={(reply) => confirmDeleteReply(reply.id)}
@@ -306,6 +325,17 @@ const styles = StyleSheet.create({
   imageCapped: {
     maxWidth: 520,
     alignSelf: "center",
+  },
+  authorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 4,
+  },
+  authorName: {
+    color: Colors.TEXT,
+    fontWeight: "700",
+    fontSize: 15,
   },
   tagRow: {
     flexDirection: "row",

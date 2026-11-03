@@ -5,6 +5,7 @@ import { formatTimestamp } from "../utils/formatTimestamp";
 import { canManage } from "../utils/permissions";
 import { countReplies } from "../utils/replyTree";
 import FlexibleImage from "./FlexibleImage";
+import Avatar from "./Avatar";
 
 const INDENT = 16;
 const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they don't squeeze to nothing
@@ -21,6 +22,7 @@ const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they do
 //   onDelete  (reply) => void
 //   inset     space left and right of a top-level reply
 //   cardColor background of each reply
+//   chat      chat-app look: a round name badge, and the like button as a small pill
 export default function ReplyNode({
   reply,
   depth = 0,
@@ -31,6 +33,7 @@ export default function ReplyNode({
   onDelete,
   inset = 14,
   cardColor = Colors.WHITE,
+  chat = false,
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [replying, setReplying] = useState(false);
@@ -101,6 +104,7 @@ export default function ReplyNode({
             >
               <Text style={styles.foldText}>{collapsed ? "+" : "\u2212"}</Text>
             </TouchableOpacity>
+            {chat ? <Avatar name={reply.author} size={26} /> : null}
             <Text style={styles.author}>{reply.author || "Anonymous"}</Text>
           </View>
           {reply.createdAt ? (
@@ -151,7 +155,7 @@ export default function ReplyNode({
 
             <View style={styles.actions}>
               <TouchableOpacity onPress={() => onLike(reply)}>
-                <Text style={[styles.like, reply.likedByMe && styles.likeOn]}>
+                <Text style={[styles.like, chat && styles.likePill, reply.likedByMe && styles.likeOn]}>
                   {reply.likedByMe ? "\u2764" : "\u2661"} {reply.likes ?? 0}
                 </Text>
               </TouchableOpacity>
@@ -211,6 +215,7 @@ export default function ReplyNode({
               onDelete={onDelete}
               inset={inset}
               cardColor={cardColor}
+              chat={chat}
             />
           </View>
         ))}
@@ -291,6 +296,15 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_MUTED,
     fontWeight: "700",
     fontSize: 13,
+  },
+  // The like button as a small pill, like the reactions under a chat message.
+  likePill: {
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    overflow: "hidden",
   },
   likeOn: {
     color: Colors.SECONDARY,

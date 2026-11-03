@@ -15,6 +15,8 @@ import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
+import { formatShortDate } from "../../utils/formatShortDate";
+import { ThreadView } from "./detail";
 
 function ThreadItem({ item, onPress, onLike, compact = false }) {
   // An empty slot that keeps the last row's cards the same width as the rows above it.
@@ -90,6 +92,39 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
   );
 }
 
+// A row in the left-hand list on wide screens, like a message list: a small picture, who posted it and
+// when, the start of the post, and how many replies and likes it has. The open one is highlighted.
+function ThreadRow({ item, selected, onPress }) {
+  const title =
+    item.caption ||
+    item.text ||
+    (item.imageUri ? "New event shared" : "New thread");
+  const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
+
+  return (
+    <TouchableOpacity onPress={onPress} style={[styles.row, selected && styles.rowSelected]}>
+      <View style={styles.rowThumb}>
+        {item.imageUri ? (
+          <Image source={{ uri: item.imageUri }} resizeMode="cover" style={styles.rowThumbImage} />
+        ) : (
+          <MessageCircle size={22} color={Colors.TEXT_MUTED} />
+        )}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={styles.rowTop}>
+          <Text style={styles.rowAuthor} numberOfLines={1}>{item.author || "Anonymous"}</Text>
+          {item.createdAt ? <Text style={styles.rowDate}>{formatShortDate(item.createdAt)}</Text> : null}
+        </View>
+        <Text style={[styles.rowTitle, item.locked && styles.lockedTitle]} numberOfLines={2}>{title}</Text>
+        <Text style={styles.rowMeta}>
+          {replyTotal} {replyTotal === 1 ? "reply" : "replies"} · {item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}
+          {!item.isPublic ? " · Private" : ""}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function ThreadFeed() {
   const { state, actions } = useThreads();
   const router = useRouter();
@@ -102,9 +137,12 @@ export default function ThreadFeed() {
     }
   };
   const params = useLocalSearchParams();
-  // Cards sit side by side, like the Events page: 3 across on wide screens, 2 on medium, 1 on phones.
-  const { width } = useWindowDimensions();
-  const columns = width >= 1100 ? 3 : width >= 700 ? 2 : 1;
+  // Wide screens show a list on the left and the open conversation on the right, like a chat app.
+  // Narrower ones show cards (2 across on medium screens, 1 on phones) that open the conversation.
+  const { width, height } = useWindowDimensions();
+  const wide = width >= 1000;
+  const columns = width >= 700 ? 2 : 1;
+  const [selectedId, setSelectedId] = useState(null);
   const [category, setCategory] = useState(
     THREAD_CATEGORIES.some((c) => c.key === params.category)
       ? params.category
@@ -114,7 +152,10 @@ export default function ThreadFeed() {
   const visibleThreads = state.threads
     .filter((t) => (t.category ?? "general") === category)
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
+  // The conversation open on the right (the first one until you pick another).
+  const selected = visibleThreads.find((t) => t.id === selectedId) ?? visibleThreads[0] ?? null;
+
+  // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
   const gridData = [...visibleThreads];
   while (columns > 1 && gridData.length % columns !== 0) {
     gridData.push({ id: `empty-${gridData.length}`, placeholder: true });
@@ -165,6 +206,46 @@ export default function ThreadFeed() {
         })}
       </View>
 
+      {wide ? (
+        <View style={[styles.panes, { height: Math.max(520, height - 250) }]}>
+          <View style={styles.listPane}>
+            <FlatList
+              data={visibleThreads}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => (
+                <ThreadRow
+                  item={item}
+                  selected={item.id === selected?.id}
+                  onPress={() => setSelectedId(item.id)}
+                />
+              )}
+              ListEmptyComponent={() => (
+                <View style={{ padding: 16 }}>
+                  <Text style={{ color: Colors.TEXT_MUTED }}>
+                    No threads in this category yet. Be the first to post!
+                  </Text>
+                </View>
+              )}
+            />
+          </View>
+          <View style={styles.detailPane}>
+            {selected ? (
+              <ThreadView
+                key={selected.id}
+                threadId={selected.id}
+                embedded
+                onRemoved={() => setSelectedId(null)}
+              />
+            ) : (
+              <View style={styles.centered}>
+                <MessageCircle size={40} color={Colors.TEXT_MUTED} />
+                <Text style={styles.emptyPaneText}>Pick a conversation on the left to read it.</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      ) : (
+
       <FlatList
         // A new key makes the list rebuild when the number of columns changes (e.g. resizing the window).
         key={columns}
@@ -194,6 +275,7 @@ export default function ThreadFeed() {
           </View>
         )}
       />
+      )}
     </View>
   );
 }
@@ -281,6 +363,84 @@ const styles = StyleSheet.create({
   },
   gridRow: {
     paddingHorizontal: 6,
+  },
+
+  // Wide screens: the list on the left and the open conversation on the right.
+  panes: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  listPane: {
+    width: 380,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.WHITE,
+    overflow: "hidden",
+  },
+  detailPane: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    overflow: "hidden",
+  },
+  emptyPaneText: {
+    color: Colors.TEXT_MUTED,
+    marginTop: 10,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 10,
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.BORDER,
+    borderLeftWidth: 4,
+    borderLeftColor: "transparent",
+  },
+  rowSelected: {
+    backgroundColor: Colors.LIGHT_GRAY,
+    borderLeftColor: Colors.BRAND_GOLD,
+  },
+  rowThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: Colors.GRAY_800,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowThumbImage: {
+    width: "100%",
+    height: "100%",
+  },
+  rowTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  rowAuthor: {
+    color: Colors.TEXT,
+    fontWeight: "700",
+    flexShrink: 1,
+  },
+  rowDate: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+  },
+  rowTitle: {
+    color: Colors.TEXT,
+    marginTop: 2,
+  },
+  rowMeta: {
+    color: Colors.TEXT_MUTED,
+    fontSize: 12,
+    marginTop: 4,
   },
   cardImage: {
     width: "100%",
