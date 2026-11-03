@@ -14,6 +14,10 @@ function openWebsite(website) {
   Linking.openURL(website);
 }
 
+function openDirections(address) {
+  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
+}
+
 // "https://www.211la.org" -> "211la.org", for showing a website as text.
 function shortUrl(website) {
   return website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
@@ -45,10 +49,22 @@ export default function ResourceCard({ resource, category, saved, onToggleSave }
         <Text style={styles.name}>{resource.name}</Text>
         <Text style={styles.description}>{resource.description}</Text>
 
-        <View style={styles.detail}>
-          <MapPin size={18} color={Colors.GRAY} />
-          <Text style={styles.detailText}>{resource.location}</Text>
-        </View>
+        {resource.address ? (
+          <TouchableOpacity
+            style={styles.detail}
+            onPress={() => openDirections(resource.address)}
+            accessibilityRole="link"
+            accessibilityLabel={`Get directions to ${resource.location}`}
+          >
+            <MapPin size={18} color={Colors.GRAY} />
+            <Text style={[styles.detailText, styles.detailLink]}>{resource.location}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.detail}>
+            <MapPin size={18} color={Colors.GRAY} />
+            <Text style={styles.detailText}>{resource.location}</Text>
+          </View>
+        )}
         {resource.phone ? (
           <TouchableOpacity
             style={styles.detail}
