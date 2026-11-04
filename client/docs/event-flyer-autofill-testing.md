@@ -46,7 +46,8 @@ web uses browser controls and does not import the native picker.
    POST /api/ai/extract-event with multipart content and the login cookie.
 5. **Missing information:** Type your own description or location, then use a flyer
    without that field. The existing manual value must survive the empty AI result.
-   A flyer without an explicitly stated year should return an empty date; do not infer it.
+   A flyer with a clear month/day but no year should use the current year. An explicit
+   year must be preserved. A missing month/day or invalid date should stay empty.
 6. **Uncertain image:** Use an incomplete/ambiguous flyer. If eventStatus is uncertain,
    supported fields apply and a warning includes the concise reason and asks you to verify
    all information. Classification is model-dependent, not a numeric confidence score.
