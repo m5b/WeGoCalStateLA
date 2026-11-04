@@ -17,7 +17,7 @@ jobs:
       github.event.pull_request.author_association)
     runs-on: ubuntu-latest
     steps:
-      - name: Merge verified application work and start deployment
+      - name: Queue verified application work for merge
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -35,5 +35,4 @@ jobs:
           fi
 
           gh pr checks "$PR_URL" --required --watch --fail-fast
-          gh pr merge --squash "$PR_URL"
-          gh workflow run deploy.yml --ref main
+          gh pr merge --auto --squash "$PR_URL"
