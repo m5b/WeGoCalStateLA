@@ -5,6 +5,7 @@ const image = { buffer: Buffer.from('flyer'), mimetype: 'image/png' }
 const fields = { eventStatus: 'likely_event', eventStatusReason: 'A named workshop with date, start time, and location.', title: 'Campus workshop', description: '', date: '2026-10-20', time: '2:30 PM', location: 'Room 101' }
 
 afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllEnvs()
     vi.unstubAllGlobals()
 })
@@ -30,6 +31,20 @@ describe('event flyer extraction', () => {
                 { inlineData: { mimeType: 'image/png', data: image.buffer.toString('base64') } },
             ] })],
         }))
+    })
+
+    it('updates the missing-year default at request time across a year change', async () => {
+        vi.useFakeTimers()
+        const { service, generateContent } = setup()
+
+        for (const year of [2026, 2027]) {
+            vi.setSystemTime(new Date(year, 0, 1))
+            await service.extractEvent(image)
+            const requestPrompt = generateContent.mock.lastCall[0].contents[0].parts[0].text
+            expect(requestPrompt).toContain(`if only the year is missing, use the current year ${year}`)
+            expect(requestPrompt).toContain('Preserve an explicitly stated year')
+            expect(requestPrompt).toContain('Leave date empty if the month or day is missing')
+        }
     })
 
     it('preserves empty fields without inventing missing information', async () => {

@@ -16,8 +16,10 @@ POST /api/ai/extract-event
 - The same Gemini response includes eventStatus (likely_event, uncertain, or not_event)
   and a concise eventStatusReason. Classification considers event/activity and attendance
   indicators, not just an organization name, promotion, or date. There is no numeric confidence.
-- Missing, unreadable, or ambiguous information stays empty. A date without a stated
-  year stays empty rather than inferring the current year. Time is the stated start time.
+- Missing, unreadable, or ambiguous information stays empty. When a month and day are
+  clear but the year is omitted, use the server's current year at extraction time.
+  Explicit years are preserved; missing month/day or invalid dates stay empty.
+  Time is the stated start time.
 
 Example success response (illustrative):
 
