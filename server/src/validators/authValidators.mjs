@@ -59,7 +59,9 @@ export const verifyOTPSchema = z.object({
 })}).strict()
 
 
-export const uuidSchema = z.uuidv4()
+// Any standard UUID version: our own ids are v4, but the seeded questions
+// (seed_faq_threads migration) got v1 ids from MySQL's UUID().
+export const uuidSchema = z.uuid()
 
 export const passwordOnlySchema = z.object({
     password: z

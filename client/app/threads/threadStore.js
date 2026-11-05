@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, reportContent } from '../../services/threads';
+import { useAuth } from '../../context/AuthContext';
+import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, updateReply, reportContent } from '../../services/threads';
+import { addReplyToTree, removeReplyFromTree, updateReplyInTree, countReplies, findReply } from '../../utils/replyTree';
 
 const ThreadsContext = createContext(null);
 
@@ -26,7 +28,7 @@ function reducer(state, action) {
         threads: state.threads.map((t) =>
           // Keep the already-loaded replies; the PATCH response has none.
           t.id === updated.id
-            ? { ...updated, replies: t.replies, repliesLoaded: t.repliesLoaded }
+            ? { ...updated, replies: t.replies, repliesLoaded: t.repliesLoaded, likedByMe: t.likedByMe }
             : t
         ),
       };
@@ -37,11 +39,17 @@ function reducer(state, action) {
         threads: state.threads.filter((t) => t.id !== action.payload),
       };
     case 'ADD_REPLY': {
-      const { threadId, reply } = action.payload;
+      const { threadId, reply, parentId } = action.payload;
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, replies: [...t.replies, reply] } : t
+          t.id === threadId
+            ? {
+                ...t,
+                replies: addReplyToTree(t.replies ?? [], reply, parentId),
+                replyCount: (t.replyCount ?? countReplies(t.replies ?? [])) + 1,
+              }
+            : t
         ),
       };
     }
@@ -51,7 +59,14 @@ function reducer(state, action) {
         ...state,
         threads: state.threads.map((t) =>
           t.id === threadId
-            ? { ...t, replies: t.replies.filter((r) => r.id !== replyId) }
+            ? {
+                ...t,
+                replies: removeReplyFromTree(t.replies ?? [], replyId),
+                replyCount: Math.max(
+                  0,
+                  (t.replyCount ?? countReplies(t.replies ?? [])) - (findReply(t.replies ?? [], replyId) ? 1 : 0)
+                ),
+              }
             : t
         ),
       };
@@ -61,16 +76,36 @@ function reducer(state, action) {
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, replies, repliesLoaded: true } : t
+          t.id === threadId ? { ...t, replies, repliesLoaded: true, replyCount: countReplies(replies) } : t
         ),
       };
     }
     case 'LIKE_THREAD': {
-      const { threadId, likes } = action.payload;
+      const { threadId, liked, likeCount } = action.payload;
       return {
         ...state,
         threads: state.threads.map((t) =>
-          t.id === threadId ? { ...t, likes } : t
+          t.id === threadId ? { ...t, likes: likeCount, likedByMe: liked } : t
+        ),
+      };
+    }
+    case 'EDIT_REPLY': {
+      const { threadId, replyId, changes } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId ? { ...t, replies: updateReplyInTree(t.replies ?? [], replyId, changes) } : t
+        ),
+      };
+    }
+    case 'LIKE_REPLY': {
+      const { threadId, replyId, liked, likeCount } = action.payload;
+      return {
+        ...state,
+        threads: state.threads.map((t) =>
+          t.id === threadId
+            ? { ...t, replies: updateReplyInTree(t.replies ?? [], replyId, { likes: likeCount, likedByMe: liked }) }
+            : t
         ),
       };
     }
@@ -81,6 +116,7 @@ function reducer(state, action) {
 
 export function ThreadsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const loadFeed = async () => {
     dispatch({ type: 'LOAD_START' });
@@ -113,10 +149,23 @@ export function ThreadsProvider({ children }) {
     return detail;
   };
 
-  const addReply = async (threadId, { text, imageUri }) => {
-    const created = await createReply(threadId, { text, imageUri });
-    dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created } });
+  // parentId makes it a reply to that reply; without it the reply goes at the top of the thread.
+  const addReply = async (threadId, { text, imageUri, parentId }) => {
+    const created = await createReply(threadId, { text, imageUri, parentId });
+    dispatch({ type: 'ADD_REPLY', payload: { threadId, reply: created, parentId } });
     return created;
+  };
+
+  // Changes the text of a reply and marks it edited.
+  const editReply = async (threadId, replyId, text) => {
+    const changes = await updateReply(replyId, text);
+    dispatch({ type: 'EDIT_REPLY', payload: { threadId, replyId, changes } });
+  };
+
+  // Throws with status 401 when nobody is signed in; the screens send those people to log in.
+  const likeReply = async (threadId, replyId) => {
+    const { liked, likeCount } = await toggleReplyLike(replyId);
+    dispatch({ type: 'LIKE_REPLY', payload: { threadId, replyId, liked, likeCount } });
   };
 
   const removeReply = async (threadId, replyId) => {
@@ -130,21 +179,25 @@ export function ThreadsProvider({ children }) {
   };
 
   const likeThread = async (threadId) => {
-    const likes = await toggleLike(threadId);
-    dispatch({ type: 'LIKE_THREAD', payload: { threadId, likes } });
+    // Throws with status 401 when nobody is signed in; the screens send those people to log in.
+    const { liked, likeCount } = await toggleLike(threadId);
+    dispatch({ type: 'LIKE_THREAD', payload: { threadId, liked, likeCount } });
   };
 
   const reportThread = async (threadId, reason) => {
     return reportContent(threadId, reason);
   };
 
+  // Reloads when the visitor signs in or out, since private threads come
+  // back locked for signed-out visitors and unlocked for members.
   useEffect(() => {
+    if (authLoading) return;
     loadFeed();
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const value = {
     state,
-    actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, removeReply, removeThread, likeThread, reportThread },
+        actions: { loadFeed, loadThreadDetail, addThread, editThread, addReply, likeReply, editReply, removeReply, removeThread, likeThread, reportThread },
   };
 
   return (

@@ -95,8 +95,8 @@ export function createApp(db, redis, emailService){
     const resetPasswordService = createResetPasswordService({resetTokenStore, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
-    const threadService = createThreadService(threadRepo)
-    const commentService = createCommentService({commentRepo: commentRepo, threadService: threadService, userService,})
+    const threadService = createThreadService(threadRepo, { uploadBuffer })
+    const commentService = createCommentService({commentRepo: commentRepo, threadService: threadService, userService, uploadBuffer})
     const eventService = createEventService({eventRepo: eventsRepo, threadService, uploadBuffer})
     const eventExtractionService = createEventExtractionService()
     //launch up the router

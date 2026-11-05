@@ -5,28 +5,53 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Lock, MessageCircle } from "lucide-react-native";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
-import FlexibleImage from "../../components/FlexibleImage";
 
-function ThreadItem({ item, onPress, onLike }) {
+function ThreadItem({ item, onPress, onLike, compact = false }) {
+  // An empty slot that keeps the last row's cards the same width as the rows above it.
+  if (item.placeholder) return <View style={styles.placeholderCard} />;
   const title =
     item.caption ||
     item.text ||
     (item.imageUri ? "New event shared" : "New thread");
+  // Counted by the server, so it shows before the post has been opened.
+  const replyTotal = item.replyCount ?? item.replies?.length ?? 0;
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
-      {item.imageUri ? (
-        <FlexibleImage uri={item.imageUri} style={styles.image} />
-      ) : null}
+    <TouchableOpacity onPress={onPress} style={[styles.card, compact && styles.cardGrid]}>
+      {/* Every card gets the same picture box: the photo is cropped to fit, and posts without a
+          photo show a placeholder, so all the cards come out the same size. */}
+      <View>
+        {item.imageUri ? (
+          <Image source={{ uri: item.imageUri }} resizeMode="cover" style={styles.cardImage} />
+        ) : (
+          <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+            <MessageCircle size={36} color={Colors.TEXT_MUTED} />
+          </View>
+        )}
+        {!item.isPublic ? (
+          <View style={styles.privateBadge}>
+            <Lock size={12} color={Colors.BLACK} />
+            <Text style={styles.privateBadgeText}>Private</Text>
+          </View>
+        ) : null}
+      </View>
 
-      <Text style={styles.title}>{title}</Text>
+      <View style={styles.textBlock}>
+        <Text style={[styles.title, item.locked && styles.lockedTitle]} numberOfLines={3}>{title}</Text>
+        {item.locked ? (
+          <Text style={styles.lockedHint} numberOfLines={2}>Sign in or create an account to read this conversation.</Text>
+        ) : null}
+      </View>
 
       {item.createdAt ? (
         <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
@@ -47,15 +72,18 @@ function ThreadItem({ item, onPress, onLike }) {
         ) : null}
       </View>
 
+      {/* Pushes the likes/replies row to the bottom when neighbouring cards are taller. */}
+      <View style={{ flexGrow: 1 }} />
+
       <View style={styles.footerRow}>
         <TouchableOpacity
           onPress={onLike}
           style={{ flexDirection: "row", alignItems: "center" }}
         >
-          <Text style={styles.likesText}>❤ {item.likes ?? 0}</Text>
+          <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
         </TouchableOpacity>
         <Text style={styles.metaText}>
-          {(item.replies?.length ?? 0)} replies
+          {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
         </Text>
       </View>
     </TouchableOpacity>
@@ -65,7 +93,18 @@ function ThreadItem({ item, onPress, onLike }) {
 export default function ThreadFeed() {
   const { state, actions } = useThreads();
   const router = useRouter();
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const handleLike = async (threadId) => {
+    try {
+      await actions.likeThread(threadId);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
   const params = useLocalSearchParams();
+  // Cards sit side by side, like the Events page: 3 across on wide screens, 2 on medium, 1 on phones.
+  const { width } = useWindowDimensions();
+  const columns = width >= 1100 ? 3 : width >= 700 ? 2 : 1;
   const [category, setCategory] = useState(
     THREAD_CATEGORIES.some((c) => c.key === params.category)
       ? params.category
@@ -75,6 +114,11 @@ export default function ThreadFeed() {
   const visibleThreads = state.threads
     .filter((t) => (t.category ?? "general") === category)
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
+  const gridData = [...visibleThreads];
+  while (columns > 1 && gridData.length % columns !== 0) {
+    gridData.push({ id: `empty-${gridData.length}`, placeholder: true });
+  }
 
   if (state.loading && !state.threads.length) {
     return (
@@ -89,7 +133,7 @@ export default function ThreadFeed() {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.screenTitle}>Community conversations</Text>
-          <Text style={styles.previewText}>Posts are visible to everyone, even without an account. Do not share private information.</Text>
+          <Text style={styles.previewText}>Public posts are visible to everyone, even without an account. Private posts are only for signed-in members.</Text>
         </View>
         <TouchableOpacity
           style={styles.newButton}
@@ -97,7 +141,7 @@ export default function ThreadFeed() {
             router.push({ pathname: "/threads/composer", params: { category } })
           }
         >
-          <Text style={styles.newButtonText}>+ Start a conversation</Text>
+          <Text style={styles.newButtonText}> Start a conversation</Text>
         </TouchableOpacity>
       </View>
 
@@ -122,18 +166,23 @@ export default function ThreadFeed() {
       </View>
 
       <FlatList
-        data={visibleThreads}
+        // A new key makes the list rebuild when the number of columns changes (e.g. resizing the window).
+        key={columns}
+        numColumns={columns}
+        columnWrapperStyle={columns > 1 ? styles.gridRow : undefined}
+        data={gridData}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <ThreadItem
             item={item}
+            compact={columns > 1}
             onPress={() =>
               router.push({
                 pathname: "/threads/detail",
                 params: { threadId: item.id },
               })
             }
-            onLike={() => actions.likeThread(item.id)}
+            onLike={() => handleLike(item.id)}
           />
         )}
         contentContainerStyle={{ paddingVertical: 12 }}
@@ -216,16 +265,69 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
   },
-  image: {
+  // Side-by-side cards: share the row equally (the row adds 6px each side, so the outer
+  // margin and the gap between cards match the single-column layout).
+  cardGrid: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 6,
+  },
+  // Same padding as a real card, so an empty slot takes exactly the width a card would.
+  placeholderCard: {
+    flex: 1,
+    minWidth: 0,
+    marginHorizontal: 6,
+    padding: 14,
+  },
+  gridRow: {
+    paddingHorizontal: 6,
+  },
+  cardImage: {
     width: "100%",
+    height: 170,
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
-    marginBottom: 10,
+  },
+  cardImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Room for a 3-line title, so short and long posts take the same space.
+  textBlock: {
+    minHeight: 78,
+    marginTop: 10,
   },
   title: {
     color: Colors.WHITE,
     fontSize: 16,
+    lineHeight: 22,
     fontWeight: "700",
+  },
+  // Sits on the corner of the picture box, so it doesn't change the card's height.
+  privateBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BRAND_GOLD,
+  },
+  privateBadgeText: {
+    color: Colors.BLACK,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  lockedTitle: {
+    fontStyle: "italic",
+  },
+  lockedHint: {
+    color: Colors.GRAY_300,
+    fontSize: 13,
+    marginTop: 4,
   },
   timestamp: {
     color: Colors.TEXT_MUTED,

@@ -1,13 +1,16 @@
 import {Router} from 'express'
 import CommentDto from "../dtos/commentDto.mjs";
 import {jsend} from "../util/jSend.mjs";
-import {commentSchema} from "../validators/commentsValidators.mjs";
+import {commentSchema, commentPostSchema} from "../validators/commentsValidators.mjs";
 import {uuidSchema} from "../validators/authValidators.mjs";
 import buildCommentTree from "../util/commentTreeBuilder.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import ThreadDto from '../dtos/threadDto.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
+import { assertCanView } from '../util/visibility.mjs'
+import { createImageUpload } from '../lib/imageUpload.mjs'
 
+const upload = createImageUpload()
 
 export function createCommentRouter({userService, commentService}) {
 
@@ -24,6 +27,7 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.post(
         '/me/thread/:threadUuid',
+        upload.single('image'),
         optionalAuth(userService),
         async (req, res) => {
             const userId = req.user ? req.user.userId : null
@@ -34,6 +38,7 @@ export function createCommentRouter({userService, commentService}) {
                 threadUuid,
                 payload,
                 parentCommentUuid: null,
+                imageFile: req.file,
             })
             res.json(
                 jsend.success({
@@ -46,18 +51,20 @@ export function createCommentRouter({userService, commentService}) {
     router.post(
         '/me/thread/:threadUuid/comment/:parentCommentUuid',
         optionalAuth(userService),
+        upload.single('image'),
         async (req, res) => {
             const userId = req.user ? req.user.userId : null
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
             const parentCommentUuid = uuidSchema.parse(
                 req.params.parentCommentUuid
             )
-            const payload = commentSchema.parse(req.body)
+            const payload = commentPostSchema.parse(req.body)
             const comment = await commentService.postComment({
                 userId,
                 threadUuid,
                 payload,
                 parentCommentUuid,
+                imageFile: req.file,
             })
             res.json(
                 jsend.success({
@@ -75,6 +82,8 @@ export function createCommentRouter({userService, commentService}) {
             commentUuid,
             userId,
             payload,
+            // Admins can edit any reply, not only their own.
+            isAdmin: Boolean(req.user.isAdmin),
         })
         res.send(
             jsend.success({
@@ -90,7 +99,8 @@ export function createCommentRouter({userService, commentService}) {
         async (req, res) => {
             const commentUuid = uuidSchema.parse(req.params.commentUuid)
             const userId = req.user.userId
-            await commentService.deleteByCommentUuid({ commentUuid, userId})
+            // Admins can delete any reply, not only their own.
+            await commentService.deleteByCommentUuid({ commentUuid, userId, isAdmin: Boolean(req.user.isAdmin) })
             res.send(jsend.success(null))
         }
     )
@@ -105,11 +115,22 @@ export function createCommentRouter({userService, commentService}) {
         )
     })
 
+    // Like or un-like a reply. Needs an account so one person can't like it many times.
+    router.post('/:commentUuid/like', requireAuth(userService), async (req, res) => {
+        const commentUuid = uuidSchema.parse(req.params.commentUuid)
+        const result = await commentService.toggleLike({ commentUuid, userId: req.user.userId })
+        res.json(jsend.success(result))
+    })
+
     //tested
-    // Public: anyone can read a thread's replies without being signed in.
-    router.get('/thread/:threadUuid', async (req, res) => {
+    // Public: anyone can read a public thread's replies without being signed
+    // in. Private threads' replies need an account.
+    router.get('/thread/:threadUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const {thread, comments} = await commentService.getByThreadUuid(threadUuid)
+        assertCanView(thread, req.user)
+        // Fills in which replies the signed-in person has liked (nothing is marked for visitors).
+        await commentService.markLikedBy(comments, req.user?.userId)
         const threadDto = new ThreadDto(thread)
         const commentDtos = comments.map((comment) => new CommentDto(comment))
 
@@ -119,11 +140,12 @@ export function createCommentRouter({userService, commentService}) {
         res.json(jsend.success({threadDto, comments: commentDtoTreeList}))
     })
 
-    router.get('/thread/:threadUuid/comment/:commentUuid', async (req, res) => {
+    router.get('/thread/:threadUuid/comment/:commentUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const commentUuid = uuidSchema.parse(req.params.commentUuid)
         const { thread, comments } =
             await commentService.getByThreadUuid(threadUuid)
+        assertCanView(thread, req.user)
         const commentDtos = comments.map((comment) => new CommentDto(comment))
 
         const { commentDtoTreeList, commentTreeMap } =

@@ -15,14 +15,21 @@ import { formatTimestamp } from "../../utils/formatTimestamp";
 import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
+import ReplyNode from "../../components/ReplyNode";
 import { confirmAction } from "../../utils/confirmAction";
+import { GatedContent } from "../../components/SignInGate";
+import { useAuth } from "../../context/AuthContext";
+import { canManage } from "../../utils/permissions";
+import { replyErrorMessage } from "../../utils/replyError";
 
 export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
+  const [replyError, setReplyError] = useState("");
   const [loadingReplies, setLoadingReplies] = useState(false);
 
   const [deleting, setDeleting] = useState(false);
@@ -31,8 +38,27 @@ export default function ThreadDetail() {
     state.threads.find((t) => String(t.id) === String(threadId)) ??
     state.threads[0];
 
+  // Liking needs an account, so signed-out visitors are sent to log in.
+  const handleLike = async () => {
+    try {
+      await actions.likeThread(thread.id);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
+
+  // Same for liking a reply.
+  const handleReplyLike = async (reply) => {
+    try {
+      await actions.likeReply(thread.id, reply.id);
+    } catch (error) {
+      if (error?.status === 401) router.push("/authentication/login");
+    }
+  };
+
   useEffect(() => {
-    if (!thread || thread.repliesLoaded) return;
+    // Locked threads' replies need an account, so there's nothing to fetch.
+    if (!thread || thread.repliesLoaded || thread.locked) return;
     setLoadingReplies(true);
     actions
       .loadThreadDetail(thread.id)
@@ -42,7 +68,7 @@ export default function ThreadDetail() {
       // object references every render, so including them would refetch on
       // every state update instead of once per thread.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thread?.id]);
+  }, [thread?.id, thread?.locked]);
 
   if (!thread) {
     return (
@@ -52,8 +78,11 @@ export default function ThreadDetail() {
     );
   }
 
-  // Anyone can edit any real thread for now; FAQ placeholders aren't stored.
-  const canEdit = isRealThread(thread.id) && thread.category !== "faq";
+  // Edit: the person who wrote the thread, or an admin. Private threads are shown
+  // behind the sign-in prompt to signed-out visitors (the server has already
+  // stripped their content).
+  const canEdit =
+    isRealThread(thread.id) && !thread.locked && canManage(user, thread.authorUuid);
 
   const categoryLabel = THREAD_CATEGORIES.find(
     (c) => c.key === (thread.category ?? "general")
@@ -89,12 +118,19 @@ export default function ThreadDetail() {
 
   const submit = async () => {
     if (!text.trim() && !replyImage) return;
-    await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
-    setText("");
-    setReplyImage(null);
+    setReplyError("");
+    try {
+      await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
+      setText("");
+      setReplyImage(null);
+    } catch (error) {
+      console.warn("Failed to post reply", error);
+      setReplyError(replyErrorMessage(error));
+    }
   };
 
   return (
+    <GatedContent variant="threads" locked={thread.locked}>
     <View style={{ flex: 1, backgroundColor: Colors.BACKGROUND_SECONDARY }}>
       <View style={styles.topRow}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -114,11 +150,14 @@ export default function ThreadDetail() {
               <Text style={styles.editText}>Edit</Text>
             </TouchableOpacity>
           ) : null}
-          <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
-            <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
-              {deleting ? "Deleting..." : "Delete"}
-            </Text>
-          </TouchableOpacity>
+          {/* Delete: the person who wrote the thread, or an admin. */}
+          {thread.locked || !canManage(user, thread.authorUuid) ? null : (
+            <TouchableOpacity onPress={confirmDelete} disabled={deleting}>
+              <Text style={[styles.deleteText, deleting && { opacity: 0.5 }]}>
+                {deleting ? "Deleting..." : "Delete"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -126,12 +165,17 @@ export default function ThreadDetail() {
         ListHeaderComponent={
           <View style={styles.threadCard}>
             {thread.imageUri ? (
-              <FlexibleImage uri={thread.imageUri} style={styles.image} />
+              <FlexibleImage uri={thread.imageUri} maxHeight={340} style={[styles.image, styles.imageCapped]} />
             ) : null}
 
-            {categoryLabel ? (
-              <Text style={styles.categoryTag}>{categoryLabel}</Text>
-            ) : null}
+            <View style={styles.tagRow}>
+              {categoryLabel ? (
+                <Text style={styles.categoryTag}>{categoryLabel}</Text>
+              ) : null}
+              {!thread.isPublic ? (
+                <Text style={styles.privateTag}>Private</Text>
+              ) : null}
+            </View>
 
             {!!thread.caption && (
               <Text style={styles.threadCaption}>{thread.caption}</Text>
@@ -163,35 +207,24 @@ export default function ThreadDetail() {
             </View>
 
             <TouchableOpacity
-              onPress={() => actions.likeThread(thread.id)}
+              onPress={handleLike}
               style={{ marginTop: 10 }}
             >
-              <Text style={styles.likesText}>❤ {thread.likes ?? 0}</Text>
+              <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
             </TouchableOpacity>
           </View>
         }
         data={thread.replies ?? []}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={styles.replyCard}>
-            <View style={styles.replyHeader}>
-              <Text style={styles.replyAuthor}>{item.author || "Anonymous"}</Text>
-              <View style={styles.replyMeta}>
-                {item.createdAt ? (
-                  <Text style={styles.replyTimestamp}>
-                    {formatTimestamp(item.createdAt)}
-                  </Text>
-                ) : null}
-                <TouchableOpacity onPress={() => confirmDeleteReply(item.id)}>
-                  <Text style={styles.replyDelete}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            {!!item.text && <Text style={styles.replyText}>{item.text}</Text>}
-            {item.imageUri ? (
-              <FlexibleImage uri={item.imageUri} style={styles.replyImage} />
-            ) : null}
-          </View>
+                renderItem={({ item }) => (
+          <ReplyNode
+            reply={item}
+            user={user}
+            onLike={handleReplyLike}
+            onReply={(parent, text) => actions.addReply(thread.id, { text, parentId: parent.id })}
+            onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
+            onDelete={(reply) => confirmDeleteReply(reply.id)}
+          />
         )}
         ListFooterComponent={
           loadingReplies ? (
@@ -204,6 +237,7 @@ export default function ThreadDetail() {
       />
       
       <View style={styles.replyBox}>
+        {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
         <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
           placeholder="Write a reply..."
@@ -217,6 +251,7 @@ export default function ThreadDetail() {
         </TouchableOpacity>
       </View>
     </View>
+    </GatedContent>
   );
 }
 
@@ -267,9 +302,28 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
+  // Keeps a big photo from filling the whole screen: at most 520px wide and 340px tall, centered.
+  imageCapped: {
+    maxWidth: 520,
+    alignSelf: "center",
+  },
+  tagRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  privateTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.BRAND_GOLD,
+    color: Colors.BLACK,
+    fontSize: 12,
+    fontWeight: "700",
+    overflow: "hidden",
+  },
   categoryTag: {
     alignSelf: "flex-start",
-    marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 999,
@@ -343,11 +397,19 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,                  
     marginTop: 4,
   },
+  // A reply's picture is a small preview (at most 300px wide and 220px tall), not full width.
   replyImage: {
     width: "100%",
+    maxWidth: 300,
+    alignSelf: "flex-start",
     borderRadius: 10,
     marginTop: 8,
     backgroundColor: Colors.GRAY_200,
+  },
+  replyError: {
+    color: Colors.ERROR,
+    fontSize: 12,
+    marginBottom: 6,
   },
   replyBox: {
     position: "absolute",

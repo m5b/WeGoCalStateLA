@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import {
     threadPatchSchema, threadPostSchema,
 } from '../validators/threadsValidators.mjs'
@@ -7,13 +8,32 @@ import { jsend } from '../util/jSend.mjs'
 import {uuidSchema} from "../validators/authValidators.mjs";
 import { requireAuth } from '../middlewares/requireAuth.mjs'
 import { optionalAuth } from '../middlewares/optionalAuth.mjs'
+import { BadRequestError } from '../errors/badRequestError.mjs'
+import { threadForViewer } from '../util/visibility.mjs'
+
+// Photos are held in memory and saved by threadService. Only real picture types are
+// accepted, since uploads are served back to browsers from /api/uploads.
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 },
+    fileFilter(req, file, callback) {
+        if (!IMAGE_TYPES.has(file.mimetype)) {
+            return callback(new BadRequestError(null, 'Use a JPEG, PNG, WebP, or GIF image.'))
+        }
+        callback(null, true)
+    },
+})
 
 export function createThreadRouter({userService, threadService}){
     const router = Router()
-    // Public: anyone can read the Community feed without being signed in.
-    router.get('/', async (req, res) => {
+    // Public: anyone can read the Community feed without being signed in,
+    // though private threads come back locked for signed-out visitors.
+    // optionalAuth also fills in which posts the signed-in person has liked; it never blocks.
+    router.get('/', optionalAuth(userService), async (req, res) => {
         const threads = await threadService.getAll()
-        const threadDtos = threads.map((thread) => new ThreadDto(thread))
+        await threadService.markLikedBy(threads, req.user?.userId)
+        const threadDtos = threads.map((thread) => threadForViewer(new ThreadDto(thread), req.user))
         res.send(jsend.success({ threads: threadDtos }))
     })
 
@@ -28,10 +48,10 @@ export function createThreadRouter({userService, threadService}){
     // Posting doesn't require an account: optionalAuth attaches req.user if
     // the person is signed in, but never blocks the request if not -- an
     // unauthenticated post is attributed to "Anonymous" (see threadsRepository).
-    router.post('/me', optionalAuth(userService), async (req, res) => {
+    router.post('/me', optionalAuth(userService), upload.single('image'), async (req, res) => {
         const payload = threadPostSchema.parse(req.body)
         const userId = req.user ? req.user.userId : null
-        const thread = await threadService.postByUserId(userId, payload)
+        const thread = await threadService.postByUserId(userId, payload, req.file)
         const threadDto = new ThreadDto(thread)
         res.json(jsend.success({thread: threadDto}))
     })
@@ -45,6 +65,8 @@ export function createThreadRouter({userService, threadService}){
             userId: user.userId,
             threadUuid,
             payload,
+            // Admins can edit any thread, not only their own.
+            isAdmin: Boolean(user.isAdmin),
         })
         res.send(jsend.success({ thread: new ThreadDto(thread) }))
     })
@@ -56,27 +78,27 @@ export function createThreadRouter({userService, threadService}){
         await threadService.deleteByThreadUuid({
             threadUuid,
             userId: user.userId,
+            // Admins can delete any thread, not only their own.
+            isAdmin: Boolean(user.isAdmin),
         })
         res.send(jsend.success(null))
     })
 
-
-    // Public: anyone can edit any thread, signed in or not. Temporary, to
-    // keep things simple -- the author-only PATCH /me/:threadUuid above is
-    // still available.
-    router.patch('/:threadUuid', async (req, res) => {
+    // Like or un-like a post. Needs an account so one person can't like it many times.
+    router.post('/:threadUuid/like', requireAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
-        const payload = threadPatchSchema.parse(req.body)
-        const thread = await threadService.patchAnyByThreadUuid({ threadUuid, payload })
-        res.send(jsend.success({ thread: new ThreadDto(thread) }))
+        const result = await threadService.toggleLike({ threadUuid, userId: req.user.userId })
+        res.json(jsend.success(result))
     })
 
     //tested
-    // Public: anyone can view a single thread without being signed in.
-    router.get('/:threadUuid', async (req, res) => {
+    // Public: anyone can view a single thread without being signed in
+    // (private threads come back locked for signed-out visitors).
+    router.get('/:threadUuid', optionalAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)
         const thread = await threadService.getByThreadUuid(threadUuid)
-        res.json(jsend.success({thread: new ThreadDto(thread)}))
+        await threadService.markLikedBy(thread, req.user?.userId)
+        res.json(jsend.success({thread: threadForViewer(new ThreadDto(thread), req.user)}))
     })
 
     return router

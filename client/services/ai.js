@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { apiForm } from './api';
+import { compressImageBlob } from '../utils/imageData';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const imageExtensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
@@ -32,8 +33,12 @@ export async function extractEventFromFlyer(imageUri, asset = {}) {
       image = await response.blob();
     }
     type = image.type || type;
+    // Big photos are shrunk to under ~2 MB first (the text stays readable) instead of being rejected.
+    const original = image;
+    image = await compressImageBlob(image);
+    if (image !== original) type = image.type || type;
     checkImage(type, image.size);
-    body.append('image', image, asset.fileName || 'flyer.' + imageExtensions[type]);
+    body.append('image', image, image !== original ? 'flyer.' + imageExtensions[type] : (asset.fileName || 'flyer.' + imageExtensions[type]));
   } else {
     checkImage(type, asset.fileSize);
     body.append('image', { uri: imageUri, type, name: 'flyer.' + imageExtensions[type] });

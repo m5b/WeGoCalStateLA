@@ -5,6 +5,7 @@ import { adminUserPatchSchema } from '../validators/userValidators.mjs'
 import { uuidSchema } from '../validators/authValidators.mjs'
 import UserDto from '../dtos/userDto.mjs'
 import { jsend } from '../util/jSend.mjs'
+import { assertNotDeletingSelf, assertNotDemotingSelf } from '../util/adminGuards.mjs'
 
 export function createAdminRouter(userService){
     const router = Router()
@@ -26,12 +27,14 @@ export function createAdminRouter(userService){
     router.patch('/users/:userUuid', async (req, res) => {
         const userUuid = uuidSchema.parse(req.params.userUuid)
         const payload = adminUserPatchSchema.parse(req.body)
+        assertNotDemotingSelf(req.user, userUuid, payload)
         const user = await userService.patchByUserUuid(userUuid, payload)
         res.json(jsend.success({ user: new UserDto(user, { scope: 'public' }) }))
     })
 
     router.delete('/users/:userUuid', async (req, res) => {
         const userUuid = uuidSchema.parse(req.params.userUuid)
+        assertNotDeletingSelf(req.user, userUuid)
         await userService.deleteByUserUuid(userUuid)
         res.json(jsend.success(null))
     })

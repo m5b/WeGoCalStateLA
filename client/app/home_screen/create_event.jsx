@@ -18,6 +18,7 @@ import { createEvent, getEvent, updateEvent } from '../../services/events';
 import DateTimeInput from '../../components/DateTimeInput';
 import WebLayout from '../../components/WebLayout';
 import FlexibleImage from '../../components/FlexibleImage';
+import VisibilityToggle from '../../components/VisibilityToggle';
 import { extractEventFromFlyer } from '../../services/ai';
 import usePastedImage from '../../hooks/usePastedImage';
 
@@ -32,6 +33,7 @@ export default function CreateEventScreen() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoadingEvent, setIsLoadingEvent] = useState(Boolean(eventId));
 
@@ -121,6 +123,7 @@ export default function CreateEventScreen() {
         setDate(event.date || '');
         setTime(event.time || '');
         setLocation(event.location || '');
+        setIsPublic(!!event.isPublic);
         setImageUri(event.imageUri || null);
         setExistingImageUri(event.imageUri || null);
         setImageAsset(null);
@@ -189,6 +192,7 @@ export default function CreateEventScreen() {
           date: date.trim(),
           time: time.trim(),
           location: location.trim(),
+          isPublic,
         });
         goBack();
       } catch (error) {
@@ -209,6 +213,7 @@ export default function CreateEventScreen() {
         date: date.trim(),
         time: time.trim(),
         location: location.trim(),
+        isPublic,
       });
 
       router.replace('/home_screen/events');
@@ -221,7 +226,7 @@ export default function CreateEventScreen() {
   }
 
   return (
-    <WebLayout>
+    <WebLayout requireSignIn="events">
       <View style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.content}
@@ -362,6 +367,13 @@ export default function CreateEventScreen() {
                 onChangeText={setLocation}
               />
             </View>
+
+            <VisibilityToggle
+              isPublic={isPublic}
+              onChange={setIsPublic}
+              disabled={isBusy}
+              noun="event"
+            />
 
             <TouchableOpacity
               style={[styles.submitButton, isBusy && styles.submitButtonDisabled]}
