@@ -5,7 +5,7 @@ import { Colors } from '../constant/Colors';
 const OPTIONS = [
   { id: 'all', label: 'All' },
   { id: 'csula', label: 'Cal State LA' },
-  { id: 'other', label: 'Outside CSULA' },
+  { id: 'other', label: 'External Resources' },
 ];
 
 // Lets families narrow a list of resources by who provides them.

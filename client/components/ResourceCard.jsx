@@ -39,7 +39,7 @@ export default function ResourceCard({ resource, category, saved, onToggleSave }
 
       <View style={styles.body}>
         <Text style={[styles.badge, isCsula ? styles.badgeCsula : styles.badgeOther]}>
-          {isCsula ? 'Cal State LA' : 'Outside CSULA'}
+          {isCsula ? 'Cal State LA' : 'External Resources'}
         </Text>
         <Text style={styles.title}>{resource.title}</Text>
         <Text style={styles.name}>{resource.name}</Text>
