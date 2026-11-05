@@ -227,16 +227,36 @@ export default function ThreadDetail() {
           />
         )}
         ListFooterComponent={
-          loadingReplies ? (
-            <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
-          ) : null
+          <View>
+            {loadingReplies ? (
+              <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
+            ) : null}
+
+            <View style={styles.replyBox}>
+              {replyError ? (
+                <Text style={styles.replyError}>{replyError}</Text>
+              ) : null}
+              <TextInput
+                placeholder="Write a reply..."
+                placeholderTextColor={Colors.TEXT_MUTED}
+                value={text}
+                onChangeText={setText}
+                onSubmitEditing={submit}
+                style={styles.replyInput}
+              />
+              <TouchableOpacity style={styles.replyButton} onPress={submit}>
+                <Text style={styles.replyButtonText}>Reply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         }
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
+
         contentContainerStyle={{ paddingBottom: replyImage ? 300 : 180 }}
       />
       
-      <View style={styles.replyBox}>
+      {/*<View style={styles.replyBox}>
         {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
         <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
@@ -249,7 +269,7 @@ export default function ThreadDetail() {
         <TouchableOpacity style={styles.replyButton} onPress={submit}>
           <Text style={styles.replyButtonText}>Reply</Text>
         </TouchableOpacity>
-      </View>
+      </View>*/}
     </View>
     </GatedContent>
   );
@@ -412,7 +432,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   replyBox: {
-    position: "absolute",
+    marginTop: 6,
+    gap: 10,
+    backgroundColor: Colors.WHITE,
+    /*position: "absolute",
     left: 14,
     right: 14,
     bottom: 14,
@@ -420,7 +443,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.BORDER,
-    padding: 12,
+    padding: 12,8*/
   },
   replyInput: {
     backgroundColor: Colors.WHITE,
