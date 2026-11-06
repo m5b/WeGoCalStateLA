@@ -78,7 +78,9 @@ export default function Composer() {
   }
 
   async function submit() {
-    if (!imageUri && !caption.trim()) {
+    // While editing, the thread's current picture counts too.
+    const hasPicture = !!(imageUri || (isEditing && editingThread?.imageUri));
+    if (!hasPicture && !caption.trim()) {
       setError("Please add a photo or a caption.");
       return;
     }
@@ -96,11 +98,13 @@ export default function Composer() {
           category,
           isPublic,
           customTitle: editingThread?.customTitle,
+           // Only a newly chosen picture is sent; leaving it alone keeps the current one.
+          imageUri,
         });
         router.back();
       } catch (e) {
         console.warn("Failed to update thread", e);
-        setError("Couldn't save your changes. Please try again.");
+        setError(imageUri ? "Couldn't save your changes or the picture. Please try again." : "Couldn't save your changes. Please try again.");
         setSaving(false);
       }
       return;
@@ -158,22 +162,22 @@ export default function Composer() {
       </View>
 
       <View style={styles.card}>
-        {/* Threads don't store images yet, so there's nothing to edit here. */}
-        {isEditing ? null : (
-          // Tap the preview (or the empty box) to pick a photo from the library.
-          <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
-            {imageUri ? (
-              <FlexibleImage uri={imageUri} style={styles.image} />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
+        {/* Tap the preview (or the empty box) to pick a photo from the library. While editing, the
+            thread's current picture is shown, and picking a new one replaces it. */}
+        <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
+          {imageUri || (isEditing && editingThread?.imageUri) ? (
+            <FlexibleImage uri={imageUri || editingThread.imageUri} style={styles.image} />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {isEditing && !imageUri && editingThread?.imageUri ? (
+          <Text style={{ color: Colors.TEXT_MUTED, fontSize: 12 }}>Tap the picture, or use Gallery or Camera, to replace it.</Text>
+        ) : null}
 
-        {isEditing ? null : (
-          <View style={styles.row}>
+        <View style={styles.row}>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
               onPress={() => pickFrom("library")}
@@ -189,7 +193,6 @@ export default function Composer() {
     </Text>
   </TouchableOpacity>
           </View>
-        )}
 
         <TextInput
           placeholder="Share a question, resource, or encouraging thought…"
