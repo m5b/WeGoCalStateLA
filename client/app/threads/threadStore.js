@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getFeed, getThreadDetail, createThread, updateThread, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, updateReply, reportContent } from '../../services/threads';
+import { getFeed, getThreadDetail, createThread, updateThread, setThreadPhoto, createReply, deleteReply, deleteThread, toggleLike, toggleReplyLike, updateReply, reportContent } from '../../services/threads';
 import { addReplyToTree, removeReplyFromTree, updateReplyInTree, countReplies, findReply } from '../../utils/replyTree';
 
 const ThreadsContext = createContext(null);
@@ -134,10 +134,15 @@ export function ThreadsProvider({ children }) {
     return created;
   };
   
+  // A picture chosen while editing is sent after the text, as its own upload. If that upload fails the
+  // text changes are already saved, and the error is passed on so the screen can say so.
   const editThread = async (threadId, data) => {
     const updated = await updateThread(threadId, data);
     dispatch({ type: 'UPDATE_THREAD', payload: updated });
-    return updated;
+    if (!data.imageUri) return updated;
+    const withPhoto = await setThreadPhoto(threadId, data.imageUri);
+    dispatch({ type: 'UPDATE_THREAD', payload: withPhoto });
+    return withPhoto;
   };
 
   const loadThreadDetail = async (threadId) => {

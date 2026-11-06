@@ -140,6 +140,16 @@ export async function createThread(data) {
   return mapThread(res.data.thread);
 }
 
+// Adds a picture to a thread, or replaces the one it has. Only the thread's author (or an admin) can.
+export async function setThreadPhoto(threadId, imageUri) {
+  const blob = await prepareImageBlob(imageUri);
+  const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+  const formData = new FormData();
+ formData.append("image", blob, `cover.${extension}`);
+  const res = await apiForm(`/api/threads/me/${threadId}/photo`, "PUT", formData);
+  return mapThread(res.data.thread);
+}
+
 export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
   // Only the thread's author or an admin can edit it (the server checks).  
