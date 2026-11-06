@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {jsend} from "../util/jSend.mjs";
 
-export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, signupRouter, userRouter, threadRouter, commentRouter,voprfRouter, resetPasswordRouter, adminRouter, eventsRouter, aiRouter }){
+export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, signupRouter, userRouter, threadRouter, commentRouter, messagesRouter, voprfRouter, resetPasswordRouter, adminRouter, eventsRouter, aiRouter }){
     const router = new Router()
     router.use('/auth', emailOTPRouter)
     router.use('/auth', googleAuthRouter)
@@ -10,6 +10,7 @@ export function createAPIRouter({emailOTPRouter, googleAuthRouter, loginRouter, 
     router.use('/user', userRouter)
     router.use('/threads', threadRouter)
     router.use('/comments', commentRouter)
+    router.use('/messages', messagesRouter)
     router.use('/auth', resetPasswordRouter)
     router.use('/admin', adminRouter)
     router.use('/events', eventsRouter)
