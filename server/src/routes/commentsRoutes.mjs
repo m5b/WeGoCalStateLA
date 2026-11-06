@@ -32,7 +32,7 @@ export function createCommentRouter({userService, commentService}) {
         async (req, res) => {
             const userId = req.user ? req.user.userId : null
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
-            const payload = commentSchema.parse(req.body)
+            const payload = commentPostSchema.parse(req.body)
             const comment = await commentService.postComment({
                 userId,
                 threadUuid,
