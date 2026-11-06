@@ -27,7 +27,7 @@ export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [replyError, setReplyError] = useState("");
@@ -240,7 +240,8 @@ export default function ThreadDetail() {
             user={user}
             onLike={handleReplyLike}
             //onReply={(parent, { text, imageUri }) => actions.addReply(thread.id, { text, imageUri, parentId: parent.id })}
-            onReplyTo={startReplyTo}
+            // Replying needs an account; signed-out visitors can only read.
+            onReplyTo={isAuthenticated ? startReplyTo : undefined}
             replyingToId={replyTarget?.id}
             onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
             onDelete={(reply) => confirmDeleteReply(reply.id)}
@@ -253,10 +254,13 @@ export default function ThreadDetail() {
         }
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
-        contentContainerStyle={{ paddingBottom: (replyImage ? 300 : 180) + (replyTarget ? 60 : 0) }}
+        contentContainerStyle={{
+          paddingBottom: isAuthenticated ? (replyImage ? 300 : 180) + (replyTarget ? 60 : 0) : 100,
+        }}
         
       />
       
+      {isAuthenticated ? (
       <View style={styles.replyBox}>
         <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
         {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
@@ -274,6 +278,17 @@ export default function ThreadDetail() {
           <Text style={styles.replyButtonText}>Reply</Text>
         </TouchableOpacity>
       </View>
+      ) : (
+      <View style={styles.replyBox}>
+        <Text style={styles.signInText}>Sign in or create an account to reply.</Text>
+        <TouchableOpacity
+          style={styles.replyButton}
+          onPress={() => router.push("/authentication/login")}
+        >
+          <Text style={styles.replyButtonText}>Sign in to reply</Text>
+        </TouchableOpacity>
+      </View>
+      )}
     </View>
     </GatedContent>
   );
@@ -445,6 +460,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.BORDER,
     padding: 12,
+  },
+  signInText: {
+    color: Colors.TEXT_MUTED,
+    textAlign: "center",
+    marginBottom: 10,
   },
   replyInput: {
     backgroundColor: Colors.WHITE,

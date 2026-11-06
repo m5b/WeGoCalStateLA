@@ -47,7 +47,7 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
       </View>
 
       <View style={styles.textBlock}>
-        <Text style={[styles.title, item.locked && styles.lockedTitle]} numberOfLines={3}>{title}</Text>
+        <Text style={[styles.title, item.locked && !item.customTitle && styles.lockedTitle]} numberOfLines={3}>{title}</Text>
         {item.locked ? (
           <Text style={styles.lockedHint} numberOfLines={2}>Sign in or create an account to read this conversation.</Text>
         ) : null}
