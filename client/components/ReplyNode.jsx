@@ -5,8 +5,6 @@ import { formatTimestamp } from "../utils/formatTimestamp";
 import { canManage } from "../utils/permissions";
 import { countReplies } from "../utils/replyTree";
 import FlexibleImage from "./FlexibleImage";
-import ReplyImagePicker from "./ReplyImagePicker";
-import { replyErrorMessage } from "../utils/replyError";
 
 const INDENT = 16;
 const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they don't squeeze to nothing
@@ -18,7 +16,8 @@ const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they do
 //   reply     the reply ({ id, author, authorUuid, text, imageUri, createdAt, edited, likes, likedByMe, replies })
 //   user      the signed-in user (decides who sees Edit and Delete)
 //   onLike    (reply) => void
-//   onReply   (reply, { text, imageUri }) => Promise -- posts a reply under `reply` (text, a picture, or both); throws if it fails
+//   onReplyTo (reply) => void -- starts answering this reply from the reply bar at the bottom
+//   replyingToId  id of the reply the bar is answering now (that one is highlighted)
 //   onEdit    (reply, text) => Promise -- changes the reply's text; throws if it fails (no Edit button without it)
 //   onDelete  (reply) => void
 //   inset     space left and right of a top-level reply
@@ -28,18 +27,14 @@ export default function ReplyNode({
   depth = 0,
   user,
   onLike,
-  onReply,
+  onReplyTo,
+  replyingToId,
   onEdit,
   onDelete,
   inset = 14,
   cardColor = Colors.WHITE,
 }) {
   const [collapsed, setCollapsed] = useState(false);
-  const [replying, setReplying] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [draftImage, setDraftImage] = useState(null);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState("");
   const [saving, setSaving] = useState(false);
@@ -48,28 +43,9 @@ export default function ReplyNode({
   const hidden = countReplies(reply.replies ?? []);
   const canEdit = !!onEdit && canManage(user, reply.authorUuid);
 
-  const send = async () => {
-    const text = draft.trim();
-    if ((!text && !draftImage) || sending) return;
-    setSending(true);
-    setError("");
-    try {
-      await onReply(reply, { text, imageUri: draftImage });
-      setDraft("");
-      setDraftImage(null);
-      setReplying(false);
-    } catch (err) {
-      console.warn("Failed to post reply", err);
-      setError(replyErrorMessage(err));
-    } finally {
-      setSending(false);
-    }
-  };
-
   const startEdit = () => {
     setEditDraft(reply.text ?? "");
     setEditError("");
-    setReplying(false);
     setEditing(true);
   };
 
@@ -95,7 +71,13 @@ export default function ReplyNode({
 
   return (
     <View style={depth === 0 ? { marginHorizontal: inset } : null}>
-      <View style={[styles.card, { backgroundColor: cardColor }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: cardColor },
+          replyingToId === reply.id && styles.cardReplyingTo,
+        ]}
+      >
         <View style={styles.header}>
           <View style={styles.who}>
             <TouchableOpacity
@@ -159,9 +141,11 @@ export default function ReplyNode({
                   {reply.likedByMe ? "\u2764" : "\u2661"} {reply.likes ?? 0}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setReplying((open) => !open)}>
-                <Text style={styles.action}>{replying ? "Cancel" : "Reply"}</Text>
-              </TouchableOpacity>
+              {onReplyTo ? (
+                <TouchableOpacity onPress={() => onReplyTo(reply)}>
+                  <Text style={styles.action}>{replyingToId === reply.id ? "Replying..." : "Reply"}</Text>
+                </TouchableOpacity>
+              ) : null}
               {canEdit && !editing ? (
                 <TouchableOpacity onPress={startEdit}>
                   <Text style={styles.action}>Edit</Text>
@@ -173,30 +157,6 @@ export default function ReplyNode({
                 </TouchableOpacity>
               ) : null}
             </View>
-
-            {replying ? (
-              <View style={styles.replyBox}>
-                {/* A reply can be text, a picture, or both. Pasting is left to the main reply box. */}
-                <ReplyImagePicker imageUri={draftImage} onChange={setDraftImage} pasteEnabled={false} />
-                <TextInput
-                  placeholder={`Reply to ${reply.author || "Anonymous"}...`}
-                  placeholderTextColor={Colors.TEXT_MUTED}
-                  value={draft}
-                  onChangeText={setDraft}
-                  onSubmitEditing={send}
-                  autoFocus
-                  style={styles.input}
-                />
-                <TouchableOpacity
-                  style={[styles.send, ((!draft.trim() && !draftImage) || sending) && { opacity: 0.5 }]}
-                  onPress={send}
-                  disabled={(!draft.trim() && !draftImage) || sending}
-                >
-                  <Text style={styles.sendText}>{sending ? "Sending..." : "Send"}</Text>
-                </TouchableOpacity>
-                {error ? <Text style={styles.error}>{error}</Text> : null}
-              </View>
-            ) : null}
           </>
         )}
       </View>
@@ -212,7 +172,8 @@ export default function ReplyNode({
               depth={depth + 1}
               user={user}
               onLike={onLike}
-              onReply={onReply}
+              onReplyTo={onReplyTo}
+              replyingToId={replyingToId}
               onEdit={onEdit}
               onDelete={onDelete}
               inset={inset}
@@ -231,6 +192,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.BORDER,
+  },
+  // The reply the bar at the bottom is answering right now.
+  cardReplyingTo: {
+    borderColor: Colors.BRAND_GOLD,
+    borderWidth: 2,
   },
   header: {
     flexDirection: "row",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,6 +14,7 @@ import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import ReplyNode from "../../components/ReplyNode";
+import ReplyingToBar from "../../components/ReplyingToBar";
 import { addReplyToTree, removeReplyFromTree, updateReplyInTree } from "../../utils/replyTree";
 import { Colors } from "../../constant/Colors";
 import { getEvent, deleteEvent } from "../../services/events";
@@ -40,6 +41,10 @@ export default function EventDetails() {
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [replyError, setReplyError] = useState("");
+  // The reply the reply bar is answering (null = answering the event's discussion itself), like Discord.
+  const [replyTarget, setReplyTarget] = useState(null);
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,26 +98,28 @@ export default function EventDetails() {
     if ((!text && !replyImage) || !thread) return;
     setReplyError("");
     try {
-      const reply = await createReply(thread.id, { text, imageUri: replyImage });
+      const reply = await createReply(thread.id, { text, imageUri: replyImage, parentId: replyTarget?.id });
       setThread((current) => ({
         ...current,
-        replies: addReplyToTree(current.replies ?? [], reply, null),
+        replies: addReplyToTree(current.replies ?? [], reply, replyTarget?.id ?? null),
       }));
       setReplyText("");
       setReplyImage(null);
+      setReplyTarget(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
       setReplyError(replyErrorMessage(error));
     }
   };
 
-  // Posts a reply under another reply.
-  const replyTo = async (parent, { text, imageUri }) => {
-    const reply = await createReply(thread.id, { text, imageUri, parentId: parent.id });
-    setThread((current) => ({
-      ...current,
-      replies: addReplyToTree(current.replies ?? [], reply, parent.id),
-    }));
+  // "Reply" on a reply points the reply bar at it: scroll down to the bar, and typing, uploading and
+  // Ctrl+V all go there.
+  const startReplyTo = (reply) => {
+    setReplyTarget(reply);
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      inputRef.current?.focus();
+    }, 50);
   };
 
   // Changes the text of a reply you wrote and marks it edited.
@@ -157,6 +164,8 @@ export default function EventDetails() {
       message: "Delete this reply? This can't be undone.",
       onConfirm: async () => {
         try {
+          // Don't leave the bar answering a reply that is gone.
+          if (replyTarget?.id === replyId) setReplyTarget(null);
           await deleteReply(thread.id, replyId);
           setThread((current) => ({
             ...current,
@@ -205,6 +214,7 @@ export default function EventDetails() {
         </View>
 
         <ScrollView
+          ef={scrollRef}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
         >
@@ -289,7 +299,8 @@ export default function EventDetails() {
                     inset={0}
                     cardColor={Colors.LIGHT_GRAY}
                     onLike={likeReply}
-                    onReply={replyTo}
+                    onReplyTo={startReplyTo}
+                    replyingToId={replyTarget?.id}
                     onEdit={editReply}
                     onDelete={(r) => confirmDeleteReply(r.id)}
                   />
@@ -297,10 +308,12 @@ export default function EventDetails() {
               )}
 
               <View style={styles.replyBox}>
+                <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
                 {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
                 <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
-                  placeholder="Write a reply..."
+                  ref={inputRef}
+                  placeholder={replyTarget ? `Reply to ${replyTarget.author || "Anonymous"}...` : "Write a reply..."}
                   placeholderTextColor={Colors.TEXT_MUTED}
                   value={replyText}
                   onChangeText={setReplyText}

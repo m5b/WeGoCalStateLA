@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -16,6 +16,7 @@ import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import ReplyNode from "../../components/ReplyNode";
+import ReplyingToBar from "../../components/ReplyingToBar";
 import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
 import { useAuth } from "../../context/AuthContext";
@@ -30,6 +31,9 @@ export default function ThreadDetail() {
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [replyError, setReplyError] = useState("");
+  // The reply the bottom bar is answering (null = answering the thread itself), like Discord's reply.
+  const [replyTarget, setReplyTarget] = useState(null);
+  const inputRef = useRef(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
   const [deleting, setDeleting] = useState(false);
@@ -110,19 +114,33 @@ export default function ThreadDetail() {
     confirmAction({
       title: "Delete reply",
       message: "Delete this reply? This can't be undone.",
-      onConfirm: () =>
-        actions
+      onConfirm: () => {
+        // Don't leave the bar answering a reply that is gone.
+        if (replyTarget?.id === replyId) setReplyTarget(null);
+        return actions
           .removeReply(thread.id, replyId)
-          .catch((err) => console.warn("Failed to delete reply", err)),
+          .catch((err) => console.warn("Failed to delete reply", err));
+      },
     });
+
+  // "Reply" on a reply points the bottom bar at it, so typing, uploading and Ctrl+V all go there.
+  const startReplyTo = (reply) => {
+    setReplyTarget(reply);
+    inputRef.current?.focus();
+  };
 
   const submit = async () => {
     if (!text.trim() && !replyImage) return;
     setReplyError("");
     try {
-      await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
+      await actions.addReply(thread.id, {
+        text: text.trim(),
+        imageUri: replyImage,
+        parentId: replyTarget?.id,
+      });
       setText("");
       setReplyImage(null);
+      setReplyTarget(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
       setReplyError(replyErrorMessage(error));
@@ -221,7 +239,9 @@ export default function ThreadDetail() {
             reply={item}
             user={user}
             onLike={handleReplyLike}
-            onReply={(parent, { text, imageUri }) => actions.addReply(thread.id, { text, imageUri, parentId: parent.id })}
+            //onReply={(parent, { text, imageUri }) => actions.addReply(thread.id, { text, imageUri, parentId: parent.id })}
+            onReplyTo={startReplyTo}
+            replyingToId={replyTarget?.id}
             onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
             onDelete={(reply) => confirmDeleteReply(reply.id)}
           />
@@ -233,17 +253,21 @@ export default function ThreadDetail() {
         }
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
-        contentContainerStyle={{ paddingBottom: replyImage ? 300 : 180 }}
+        contentContainerStyle={{ paddingBottom: (replyImage ? 300 : 180) + (replyTarget ? 60 : 0) }}
+        
       />
       
       <View style={styles.replyBox}>
+        <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
         {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
         <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
-          placeholder="Write a reply..."
+          ref={inputRef}
+          placeholder={replyTarget ? `Reply to ${replyTarget.author || "Anonymous"}...` : "Write a reply..."}
           placeholderTextColor={Colors.TEXT_MUTED}
           value={text}
           onChangeText={setText}
+          onSubmitEditing={submit}
           style={styles.replyInput}
         />
         <TouchableOpacity style={styles.replyButton} onPress={submit}>
