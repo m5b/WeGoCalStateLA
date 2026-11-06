@@ -10,7 +10,12 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED, DIRECT_MESSAGES, DIRECT_REPORTS } from './demoData.mjs'
+import * as baseData from './demoData.mjs'
+import { buildDemoSet } from './demoMerge.mjs'
+
+// The original demo data (demoData.mjs) plus the extra data and everything generated from the topic banks
+// (demoMerge.mjs).
+const { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED, DIRECT_MESSAGES, DIRECT_REPORTS, DIRECT_BLOCKS } = buildDemoSet(baseData)
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const IMAGE_DIR = path.resolve(HERE, '../demo/images')
@@ -153,10 +158,10 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0, messages: 0, reports: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0, messages: 0, reports: 0, blocks: 0 }
         // Likes: each post gets a steady, made-up number of likes from the demo people (never the
         // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
-        const LIKE_COUNTS = [9, 14, 11, 16, 7, 12, 18, 6, 13, 10, 15, 8, 17, 5, 12, 9, 14, 11, 7, 16]
+        const LIKE_COUNTS = [24, 31, 18, 40, 12, 27, 35, 9, 22, 30, 16, 38, 14, 26, 33, 11, 29, 20, 36, 15]
         const likePool = USERS.filter((u) => !u.isAdmin && !u.isDean).map((u) => u.username)
         const addLikes = async (threadId, index, author) => {
             const pool = likePool.filter((name) => name !== author)
@@ -260,7 +265,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         for (const [postIndex, p] of POSTS.entries()) {
             if (p.user === null && !anonymousOk) continue
             const threadId = await insertThread({
-                who: p.user, text: p.text, title: p.text.slice(0, 200), category: 'general',
+                who: p.user, text: p.text, title: p.title, category: 'general',
                 photo: photoUrl(p.photo), createdAt: ago(p.ago), isPublic: p.isPublic ?? publicPost(postIndex),
             })
             counts.posts++
@@ -328,12 +333,17 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             for (const r of DIRECT_REPORTS) {
                 const message = stored[r.conversation][r.message]
                 await conn.execute(
-                    'INSERT INTO message_reports (report_uuid, message_id, reporter_id, reported_user_id, reason, message_content, message_photo_key) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)',
-                    [randomUUID(), message.id, idFor(r.reporter), idFor(message.sender), r.reason, message.text, message.photoKey]
+                    'INSERT INTO message_reports (report_uuid, message_id, reporter_id, reported_user_id, reason, message_content, message_photo_key, resolved_at, resolved_by_user_id) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [randomUUID(), message.id, idFor(r.reporter), idFor(message.sender), r.reason, message.text, message.photoKey,
+                        r.resolved ? ago([1, 0]) : null, r.resolved ? idFor('Admin') : null]
                 )
                 counts.reports++
             }
-            log(`Direct messages: ${counts.messages} messages in ${DIRECT_MESSAGES.length} conversations, ${counts.reports} report waiting for the admins.`)
+            for (const b of DIRECT_BLOCKS) {
+                await conn.execute('INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)', [idFor(b.blocker), idFor(b.blocked)])
+                counts.blocks++
+            }
+            log(`Direct messages: ${counts.messages} messages in ${DIRECT_MESSAGES.length} conversations, ${counts.reports} reports for the admins, ${counts.blocks} blocks.`)
         }
 
         await conn.commit()
