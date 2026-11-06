@@ -35,7 +35,7 @@ function getEventTitle(event) {
 export default function EventDetails() {
   const { eventId } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
@@ -299,7 +299,8 @@ export default function EventDetails() {
                     inset={0}
                     cardColor={Colors.LIGHT_GRAY}
                     onLike={likeReply}
-                    onReplyTo={startReplyTo}
+                    // Replying needs an account; signed-out visitors can only read.
+                    onReplyTo={isAuthenticated ? startReplyTo : undefined}
                     replyingToId={replyTarget?.id}
                     onEdit={editReply}
                     onDelete={(r) => confirmDeleteReply(r.id)}
@@ -307,6 +308,7 @@ export default function EventDetails() {
                 ))
               )}
 
+              {isAuthenticated ? (
               <View style={styles.replyBox}>
                 <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
                 {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
@@ -324,6 +326,17 @@ export default function EventDetails() {
                   <Text style={styles.replyButtonText}>Reply</Text>
                 </TouchableOpacity>
               </View>
+              ) : (
+              <View style={styles.replyBox}>
+                <Text style={styles.signInText}>Sign in or create an account to reply.</Text>
+                <TouchableOpacity
+                  style={styles.replyButton}
+                  onPress={() => router.push("/authentication/login")}
+                >
+                  <Text style={styles.replyButtonText}>Sign in to reply</Text>
+                </TouchableOpacity>
+              </View>
+              )}
             </View>
           ) : null}
         </ScrollView>
@@ -556,6 +569,11 @@ const styles = StyleSheet.create({
   replyButtonText: {
     color: Colors.WHITE,
     fontWeight: "700",
+  },
+  signInText: {
+    color: Colors.TEXT_MUTED,
+    textAlign: "center",
+    marginBottom: 10,
   },
   backButton: {
     backgroundColor: Colors.PRIMARY,
