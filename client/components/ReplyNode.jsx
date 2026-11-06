@@ -5,6 +5,8 @@ import { formatTimestamp } from "../utils/formatTimestamp";
 import { canManage } from "../utils/permissions";
 import { countReplies } from "../utils/replyTree";
 import FlexibleImage from "./FlexibleImage";
+import ReplyImagePicker from "./ReplyImagePicker";
+import { replyErrorMessage } from "../utils/replyError";
 
 const INDENT = 16;
 const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they don't squeeze to nothing
@@ -16,7 +18,7 @@ const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they do
 //   reply     the reply ({ id, author, authorUuid, text, imageUri, createdAt, edited, likes, likedByMe, replies })
 //   user      the signed-in user (decides who sees Edit and Delete)
 //   onLike    (reply) => void
-//   onReply   (reply, text) => Promise -- posts a reply under `reply`; throws if it fails
+//   onReply   (reply, { text, imageUri }) => Promise -- posts a reply under `reply` (text, a picture, or both); throws if it fails
 //   onEdit    (reply, text) => Promise -- changes the reply's text; throws if it fails (no Edit button without it)
 //   onDelete  (reply) => void
 //   inset     space left and right of a top-level reply
@@ -35,6 +37,7 @@ export default function ReplyNode({
   const [collapsed, setCollapsed] = useState(false);
   const [replying, setReplying] = useState(false);
   const [draft, setDraft] = useState("");
+  const [draftImage, setDraftImage] = useState(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
@@ -47,16 +50,17 @@ export default function ReplyNode({
 
   const send = async () => {
     const text = draft.trim();
-    if (!text || sending) return;
+    if ((!text && !draftImage) || sending) return;
     setSending(true);
     setError("");
     try {
-      await onReply(reply, text);
+      await onReply(reply, { text, imageUri: draftImage });
       setDraft("");
+      setDraftImage(null);
       setReplying(false);
     } catch (err) {
       console.warn("Failed to post reply", err);
-      setError("Couldn't post your reply. Please try again.");
+      setError(replyErrorMessage(err));
     } finally {
       setSending(false);
     }
@@ -172,6 +176,8 @@ export default function ReplyNode({
 
             {replying ? (
               <View style={styles.replyBox}>
+                {/* A reply can be text, a picture, or both. Pasting is left to the main reply box. */}
+                <ReplyImagePicker imageUri={draftImage} onChange={setDraftImage} pasteEnabled={false} />
                 <TextInput
                   placeholder={`Reply to ${reply.author || "Anonymous"}...`}
                   placeholderTextColor={Colors.TEXT_MUTED}
@@ -182,9 +188,9 @@ export default function ReplyNode({
                   style={styles.input}
                 />
                 <TouchableOpacity
-                  style={[styles.send, (!draft.trim() || sending) && { opacity: 0.5 }]}
+                  style={[styles.send, ((!draft.trim() && !draftImage) || sending) && { opacity: 0.5 }]}
                   onPress={send}
-                  disabled={!draft.trim() || sending}
+                  disabled={(!draft.trim() && !draftImage) || sending}
                 >
                   <Text style={styles.sendText}>{sending ? "Sending..." : "Send"}</Text>
                 </TouchableOpacity>
