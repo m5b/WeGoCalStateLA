@@ -107,8 +107,8 @@ export default function EventDetails() {
   };
 
   // Posts a reply under another reply.
-  const replyTo = async (parent, text) => {
-    const reply = await createReply(thread.id, { text, parentId: parent.id });
+  const replyTo = async (parent, { text, imageUri }) => {
+    const reply = await createReply(thread.id, { text, imageUri, parentId: parent.id });
     setThread((current) => ({
       ...current,
       replies: addReplyToTree(current.replies ?? [], reply, parent.id),
