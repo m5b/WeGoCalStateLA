@@ -5,7 +5,6 @@ import { createAPIRouter } from '../routes/index.mjs'
 import errorHandler from '../middlewares/errorHandler.mjs'
 import { createLoginTokenStore } from '../repositories/redis/loginTokenStore.mjs'
 import { redisKeysConfig } from '../config/redisKeysConfig.mjs'
-import { createOIDCStore } from '../repositories/redis/oidcStore.mjs'
 import { createSignupTokenStore } from '../repositories/redis/signupTokenStore.mjs'
 import { createAuthRepo } from '../repositories/authRepository.mjs'
 import { createCommentRepo } from '../repositories/commentsRepository.mjs'
@@ -14,10 +13,8 @@ import { createUserRepo } from '../repositories/userRepository.mjs'
 import { createUserService } from '../services/users/userService.mjs'
 import { createLoginTokenService } from '../services/auth/login/loginTokenService.mjs'
 import { createSignupTokenService } from '../services/auth/signup/signupTokenService.mjs'
-import { createOIDCService } from '../services/auth/oidc/oidcService.mjs'
-import { createGoogleAuthService } from '../services/auth/oidc/googleAuthServices.mjs'
-import { openIdClient } from '../lib/openIdClient.mjs'
-import { openIdConfig } from '../config/openIdConfig.mjs'
+import { createFirebaseIdentityRepo } from '../repositories/firebaseIdentityRepository.mjs'
+import { createFirebaseGoogleService } from '../services/auth/firebaseGoogleService.mjs'
 import { createPasswordService } from '../services/users/passwordService.mjs'
 import { createVOPRFService } from '../services/auth/voprf/voprfService.mjs'
 import { evaluator, voprfClient } from '../lib/voprf.mjs'
@@ -66,7 +63,6 @@ export function createApp(db, redis, emailService){
     app.use('/api/uploads', express.static(UPLOAD_ROOT))
     //launch up the store / repo
     const loginTokenStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken})
-    const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
     const resetTokenStore = createResetTokenStore({redis, resetTokenPrefix: redisKeysConfig.resetToken})
@@ -88,9 +84,7 @@ export function createApp(db, redis, emailService){
     const usernameService = createUsernameService(userRepo)
     const passwordService = createPasswordService(12)
 
-    const googleAuthService = createGoogleAuthService(createOIDCService(
-        {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
-    ))
+    const googleAuthService = createFirebaseGoogleService({ identityRepo: createFirebaseIdentityRepo(db), voprfService, passwordService })
     const loginService= createLoginService({authRepo, passwordService, jwtTokenService, voprfService})
     const resetPasswordService = createResetPasswordService({resetTokenStore, jwtTokenService})
 
@@ -101,7 +95,7 @@ export function createApp(db, redis, emailService){
     const eventExtractionService = createEventExtractionService()
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
-    const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
+    const googleAuthRouter = createGoogleAuthRouter({ googleAuthService, userService, jwtTokenService, allowedOrigins })
     const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})

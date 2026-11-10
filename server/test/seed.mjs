@@ -3,8 +3,6 @@ import { hkdf } from '../src/util/hash.mjs'
 import bcrypt from 'bcrypt'
 import {uint8ArrayToBase64UrlString} from "../src/util/encoding.mjs";
 import crypto from "crypto";
-import * as client from "openid-client";
-import {randomPKCECodeVerifier} from "openid-client";
 import {createVOPRFService} from "../src/services/auth/voprf/voprfService.mjs";
 import {evaluator, voprfClient} from "../src/lib/voprf.mjs";
 
@@ -76,18 +74,6 @@ export async function createRandomOtp() {
         email: faker.internet.email()
     }
     return {key, otpVal}
-}
-
-export async function createRandomOidc(provider){
-    const codeVerifier  = randomPKCECodeVerifier()
-    const oidcVal = {
-        provider,
-        codeVerifier,
-        state: client.randomState(),
-        nonce: client.randomNonce(),
-        codeChallenge: await client.calculatePKCECodeChallenge(codeVerifier)
-    }
-    return oidcVal
 }
 
 export async function seedUsers(db, count){

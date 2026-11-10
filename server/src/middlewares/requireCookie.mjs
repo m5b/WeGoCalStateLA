@@ -46,31 +46,6 @@ export const requireJWTAuth = requireCookie(
 
 
 
-export const requireOIDCId = requireCookie(
-    'oidc_tx',
-    async function (token) {
-        //perform jwt check
-        let decoded
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET)
-        } catch (err) {
-            throw new UnauthorizedError(
-                { error: 'invalid_jwt' },
-                'Sign up session expired. Please try again'
-            )
-        }
-        const { sub } = decoded
-        if (!sub) {
-            throw new UnauthorizedError(
-                { error: 'invalid_jwt_format' },
-                'Sign up session expired. Please try again'
-            )
-        }
-        return sub
-    },
-    { signed: false, attachTo: 'oidc', clearCookie: true }
-)
-
 export const requireOTPToken = requireCookie(
     'otp_tx',
     async function (token) {
