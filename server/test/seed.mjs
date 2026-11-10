@@ -3,7 +3,6 @@ import { hkdf } from '../src/util/hash.mjs'
 import bcrypt from 'bcrypt'
 import {uint8ArrayToBase64UrlString} from "../src/util/encoding.mjs";
 import crypto from "crypto";
-import {openIdClient} from "../src/lib/openIdClient.mjs";
 import * as client from "openid-client";
 import {randomPKCECodeVerifier} from "openid-client";
 import {createVOPRFService} from "../src/services/auth/voprf/voprfService.mjs";

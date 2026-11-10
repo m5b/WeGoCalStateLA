@@ -46,7 +46,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      # The temporary initialization server accepts socket connections before TCP.
+      test: ["CMD-SHELL", "mysqladmin ping --protocol=TCP -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
       timeout: 20s
       interval: 10s
       retries: 5

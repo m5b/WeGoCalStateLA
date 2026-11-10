@@ -2,6 +2,7 @@ import * as client from 'openid-client'
 import { BadRequestError } from '../../../errors/badRequestError.mjs'
 import {generateKey} from "../../../util/keyGenerator.mjs";
 import {UnauthorizedError} from "../../../errors/unauthorizedError.mjs";
+import { ServiceUnavailable } from '../../../errors/serviceUnavailable.mjs'
 
 export function createOIDCService({oidcStore, jwtTokenService, openIdClient, openIdConfig, provider}){
     return{
@@ -10,6 +11,7 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
     }
 
     async function startOIDCSignup() {
+        requireConfiguredClient()
         //perform pkrf generation
         const codeVerifier = client.randomPKCECodeVerifier()
         const codeChallenge =
@@ -46,6 +48,7 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
     }
 
     async function completeOIDCSignup(key, currentURL) {
+        requireConfiguredClient()
         const oidcValue = await oidcStore.consume(key)
         if (!oidcValue || Object.keys(oidcValue).length === 0) {
             throw new UnauthorizedError(
@@ -73,5 +76,11 @@ export function createOIDCService({oidcStore, jwtTokenService, openIdClient, ope
         }
 
         return token.claims().email
+    }
+
+    function requireConfiguredClient() {
+        if (!openIdClient) {
+            throw new ServiceUnavailable(null, 'Google sign-in is not configured on this server.')
+        }
     }
 }

@@ -1,9 +1,8 @@
 # Firebase Google sign-in: configuration checkpoint
 
-This first commit adds the SDKs and lazy initialization helpers only. It does not
-change the login button, create Firebase users, exchange tokens, link accounts, or
-replace SES. Existing authentication still runs without Firebase settings.
-The first implementation targets the web app.
+This branch provides the Firebase SDKs and lazy initialization helpers. The web
+Google button and backend token exchange still need implementation. Existing
+email/password authentication and SES remain in place.
 
 ## Configure a development project
 
@@ -31,6 +30,17 @@ Firebase web configuration is public. Admin credentials are private and must nev
 be committed, copied into the client, or placed in `EXPO_PUBLIC_*` variables.
 No credentials are needed to build this checkpoint. Enabling Google in the console
 alone will not make the existing Google button use Firebase yet.
+
+## Local backend startup
+
+The existing redirect flow uses `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`,
+separate from Firebase configuration. Missing credentials leave the API running;
+Google OAuth requests return HTTP 503. MySQL readiness checks use TCP so migrations
+wait for database initialization. Run authentication regression tests from `server/`:
+
+```bash
+npx vitest run --config vitest.auth.config.mjs
+```
 
 ## Next commits
 
