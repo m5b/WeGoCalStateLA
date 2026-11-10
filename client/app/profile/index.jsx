@@ -5,6 +5,7 @@ import { Check, ChevronDown, ShieldCheck, UserRound } from 'lucide-react-native'
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { getProfile, updateProfile } from '../../services/userService';
+import { disconnectGoogle, getGoogleConnection, initiateGoogleLogin } from '../../services/authService';
 
 const DEFAULT_PROFILE = {
   alias: '',
@@ -48,12 +49,21 @@ export default function ProfileScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [relationshipPickerOpen, setRelationshipPickerOpen] = useState(false);
   const [interestsPickerOpen, setInterestsPickerOpen] = useState(false);
+  const [googleLinked, setGoogleLinked] = useState(false);
+  const [connectingGoogle, setConnectingGoogle] = useState(false);
+  const [googleMessage, setGoogleMessage] = useState('');
+  const [canDisconnectGoogle, setCanDisconnectGoogle] = useState(false);
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [disconnectPassword, setDisconnectPassword] = useState('');
+  const [disconnectingGoogle, setDisconnectingGoogle] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    getProfile()
-      .then((user) => {
+    Promise.all([getProfile(), getGoogleConnection()])
+      .then(([user, connection]) => {
         if (!isMounted) return;
+        setGoogleLinked(connection.linked);
+        setCanDisconnectGoogle(connection.canDisconnect);
         setProfile({
           alias: user.alias || '',
           relationship: user.relationship || '',
@@ -70,6 +80,45 @@ export default function ProfileScreen() {
       isMounted = false;
     };
   }, []);
+
+  const connectGoogle = async () => {
+    setConnectingGoogle(true);
+    setGoogleMessage('');
+    try {
+      const response = await initiateGoogleLogin({ link: true });
+      if (response) {
+        setGoogleLinked(true);
+        const connection = await getGoogleConnection();
+        setCanDisconnectGoogle(connection.canDisconnect);
+        setGoogleMessage('Google is connected. You can use it to sign in to this account.');
+      }
+    } catch (error) {
+      setGoogleMessage(error.message || 'Could not connect Google. Please try again.');
+    } finally {
+      setConnectingGoogle(false);
+    }
+  };
+
+  const removeGoogle = async () => {
+    if (!disconnectPassword) {
+      setGoogleMessage('Enter your current WeGo password to disconnect Google.');
+      return;
+    }
+    setDisconnectingGoogle(true);
+    setGoogleMessage('');
+    try {
+      await disconnectGoogle(disconnectPassword);
+      setGoogleLinked(false);
+      setCanDisconnectGoogle(false);
+      setDisconnectOpen(false);
+      setGoogleMessage('Google is disconnected. You can still sign in with your WeGo password.');
+    } catch (error) {
+      setGoogleMessage(error.status ? error.message : 'Could not disconnect Google. Please try again.');
+    } finally {
+      setDisconnectPassword('');
+      setDisconnectingGoogle(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -211,6 +260,51 @@ export default function ProfileScreen() {
                   <Text style={styles.buttonText}>{saved ? 'Saved' : 'Save profile'}</Text>
                 )}
               </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                <View style={{ marginTop: 28 }}>
+                  <Text style={styles.label}>Google sign-in</Text>
+                  <Text style={{ marginBottom: 12, color: '#475569' }}>
+                    {googleLinked ? 'Google is connected to this account.' : 'Connect Google to sign in to your existing WeGo account.'}
+                  </Text>
+                  {!googleLinked ? (
+                    <TouchableOpacity style={styles.button} onPress={connectGoogle} disabled={connectingGoogle}>
+                      {connectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Connect Google</Text>}
+                    </TouchableOpacity>
+                  ) : null}
+                  {googleLinked && canDisconnectGoogle && !disconnectOpen ? (
+                    <TouchableOpacity style={styles.button} onPress={() => { setGoogleMessage(''); setDisconnectOpen(true); }}>
+                      <Text style={styles.buttonText}>Disconnect Google</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {googleLinked && !canDisconnectGoogle ? (
+                    <Text style={{ color: '#475569' }}>Google is your only sign-in method. Keep it connected to retain access.</Text>
+                  ) : null}
+                  {disconnectOpen ? (
+                    <View>
+                      <Text style={{ marginVertical: 12 }}>Disconnect Google from this WeGo account? Your profile and password login will stay available.</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={disconnectPassword}
+                        onChangeText={setDisconnectPassword}
+                        placeholder="Current WeGo password"
+                        accessibilityLabel="Current WeGo password"
+                        autoComplete="current-password"
+                        autoCapitalize="none"
+                        secureTextEntry
+                        editable={!disconnectingGoogle}
+                      />
+                      <TouchableOpacity style={styles.button} onPress={removeGoogle} disabled={disconnectingGoogle}>
+                        {disconnectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirm disconnect</Text>}
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ padding: 14, alignItems: 'center' }} disabled={disconnectingGoogle}
+                        onPress={() => { setDisconnectPassword(''); setDisconnectOpen(false); setGoogleMessage(''); }}>
+                        <Text>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  {googleMessage ? <Text accessibilityLiveRegion="polite" style={{ marginTop: 12 }}>{googleMessage}</Text> : null}
+                </View>
+              ) : null}
             </>
           )}
         </View>
