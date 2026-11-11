@@ -10,7 +10,12 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED } from './demoData.mjs'
+import * as baseData from './demoData.mjs'
+import { buildDemoSet } from './demoMerge.mjs'
+
+// The original demo data (demoData.mjs) plus the extra data and everything generated from the topic banks
+// (demoMerge.mjs).
+const { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED, DIRECT_MESSAGES, DIRECT_REPORTS, DIRECT_BLOCKS } = buildDemoSet(baseData)
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const IMAGE_DIR = path.resolve(HERE, '../demo/images')
@@ -53,6 +58,14 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
     const threadPhotos = await hasColumn('threads', 'photo_url')
     const commentPhotos = await hasColumn('comments', 'photo_url')
     const commentEdited = await hasColumn('comments', 'edited_at')
+    const hasTable = async (table) => {
+        const [rows] = await conn.execute(
+            'SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
+            [table]
+        )
+        return Number(rows[0].n) > 0
+    }
+    const messagesReady = (await hasTable('direct_messages')) && (await hasTable('user_blocks')) && (await hasTable('message_reports'))
     const threadPublic = await hasColumn('threads', 'is_public')
     const eventPublic = await hasColumn('events', 'is_public')
     const [[nullRow]] = await conn.execute(
@@ -62,6 +75,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
     if (!threadPhotos) log('Note: the post photo column was not found, so posts show only the event pictures. Run the migrations to add post pictures.')
     if (!commentPhotos) log('Note: replies cannot carry pictures yet, so the two replies with pictures are added without them.')
     if (!anonymousOk) log('Note: anonymous posting columns not found, so anonymous posts/replies are skipped.')
+    if (!messagesReady) log('Note: the direct message tables were not found, so there are no demo messages. Run the migrations to add them.')
 
     // Make the sample pictures available to the API (served from /api/uploads).
     let available = new Set()
@@ -88,6 +102,12 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         // ---- wipe previous demo content (this database only) ----
         for (const table of ['comment_reactions', 'thread_reactions', 'comment_reports', 'thread_reports']) {
             await conn.execute(`DELETE FROM ${table}`)
+        }
+        // Messages point at users, so they go before the demo people do.
+        if (messagesReady) {
+            for (const table of ['message_reports', 'user_blocks', 'direct_messages']) {
+                await conn.execute(`DELETE FROM ${table}`)
+            }
         }
         // A reply can point at a parent reply, and MySQL checks that one row at a time (it refuses to
         // delete a parent before the replies under it), so detach them first.
@@ -138,10 +158,10 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0, messages: 0, reports: 0, blocks: 0 }
         // Likes: each post gets a steady, made-up number of likes from the demo people (never the
         // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
-        const LIKE_COUNTS = [9, 14, 11, 16, 7, 12, 18, 6, 13, 10, 15, 8, 17, 5, 12, 9, 14, 11, 7, 16]
+        const LIKE_COUNTS = [24, 31, 18, 40, 12, 27, 35, 9, 22, 30, 16, 38, 14, 26, 33, 11, 29, 20, 36, 15]
         const likePool = USERS.filter((u) => !u.isAdmin && !u.isDean).map((u) => u.username)
         const addLikes = async (threadId, index, author) => {
             const pool = likePool.filter((name) => name !== author)
@@ -245,7 +265,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         for (const [postIndex, p] of POSTS.entries()) {
             if (p.user === null && !anonymousOk) continue
             const threadId = await insertThread({
-                who: p.user, text: p.text, title: p.text.slice(0, 200), category: 'general',
+                who: p.user, text: p.text, title: p.title, category: 'general',
                 photo: photoUrl(p.photo), createdAt: ago(p.ago), isPublic: p.isPublic ?? publicPost(postIndex),
             })
             counts.posts++
@@ -283,6 +303,47 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
             counts.events++
             await addLikes(threadId, eventIndex + 7, e.organizer)
             await insertReplies(threadId, e.replies, EVENT_NESTED[eventIndex])
+        }
+
+        // ---- direct messages (private conversations for the Messages page) ----
+        if (messagesReady) {
+            const stored = []
+            for (const [convoIndex, convo] of DIRECT_MESSAGES.entries()) {
+                stored[convoIndex] = []
+                const [first, second] = convo.between
+                for (const m of convo.messages) {
+                    const recipient = m.from === first ? second : first
+                    const sentAt = ago(m.ago)
+                    // A picture is copied into the private folder (not the public uploads one).
+                    let photoKey = null
+                    if (m.photo && available.has(m.photo) && uploadDir) {
+                        await fs.mkdir(path.join(uploadDir, '_private', 'messages'), { recursive: true })
+                        await fs.copyFile(path.join(imageDir, m.photo), path.join(uploadDir, '_private', 'messages', `demo-${m.photo}`))
+                        photoKey = `_private/messages/demo-${m.photo}`
+                    }
+                    const readAt = m.read ? new Date(Math.min(now.getTime(), sentAt.getTime() + 10 * 60 * 1000)) : null
+                    const [res] = await conn.execute(
+                        'INSERT INTO direct_messages (message_uuid, sender_id, recipient_id, content, photo_key, created_at, read_at) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)',
+                        [randomUUID(), idFor(m.from), idFor(recipient), m.text ?? '', photoKey, sentAt, readAt]
+                    )
+                    stored[convoIndex].push({ id: res.insertId, sender: m.from, text: m.text ?? '', photoKey })
+                    counts.messages++
+                }
+            }
+            for (const r of DIRECT_REPORTS) {
+                const message = stored[r.conversation][r.message]
+                await conn.execute(
+                    'INSERT INTO message_reports (report_uuid, message_id, reporter_id, reported_user_id, reason, message_content, message_photo_key, resolved_at, resolved_by_user_id) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [randomUUID(), message.id, idFor(r.reporter), idFor(message.sender), r.reason, message.text, message.photoKey,
+                        r.resolved ? ago([1, 0]) : null, r.resolved ? idFor('Admin') : null]
+                )
+                counts.reports++
+            }
+            for (const b of DIRECT_BLOCKS) {
+                await conn.execute('INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)', [idFor(b.blocker), idFor(b.blocked)])
+                counts.blocks++
+            }
+            log(`Direct messages: ${counts.messages} messages in ${DIRECT_MESSAGES.length} conversations, ${counts.reports} reports for the admins, ${counts.blocks} blocks.`)
         }
 
         await conn.commit()

@@ -100,6 +100,9 @@ async function main() {
     const visitorThreads = (await call(null, 'GET', '/api/threads')).json?.data?.threads ?? []
     const open = visitorThreads.filter((t) => !t.locked).length
     check('Signed-out visitors can read some posts and not others', open > 0 && open < visitorThreads.length, `${open} open, ${visitorThreads.length - open} private`)
+    // A private post shows its title (never its text) to visitors; "Private conversation" means the post has no title of its own.
+    const privatePosts = visitorThreads.filter((t) => t.locked && t.category === 'general')
+    check('Private posts show their own titles to signed-out visitors', privatePosts.length > 0 && privatePosts.every((t) => t.title), `${privatePosts.filter((t) => t.title).length} of ${privatePosts.length} private posts show a title`)
 
     // 5. Replies: nesting and likes on replies exist in the demo data
     let sawNested = false

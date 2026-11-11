@@ -1,6 +1,8 @@
 import dbMapper from '../../util/dbMapper.mjs'
 import { NotFoundError } from '../../errors/notFoundError.mjs'
 import { UnauthorizedError } from '../../errors/unauthorizedError.mjs'
+import { BadRequestError } from '../../errors/badRequestError.mjs'
+import { IMAGE_EXTENSIONS } from '../../lib/imageTypes.mjs'
 import {GoneError} from "../../errors/goneError.mjs";
 import buildPatchQuery from "../../util/buildPatchQuery.mjs";
 
@@ -21,7 +23,8 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
         deleteByThreadId,
         deleteByThreadUuid,
         markLikedBy,
-        toggleLike
+        toggleLike,
+        setPhotoByThreadUuid
     }
     async function getAll() {
         const threads = dbMapper.fromDb(await threadRepo.findAll())
@@ -126,6 +129,18 @@ export function createThreadService(threadRepo, { uploadBuffer } = {}) {
         }
         const thread = await getByThreadUuid(threadUuid)
         return thread
+    }
+
+    // Adds a picture to a thread, or replaces the one it has. Only the thread's author (or an admin)
+    // can; imageFile is multer's req.file.
+    async function setPhotoByThreadUuid({ userId, threadUuid, imageFile, isAdmin = false }) {
+        if (!imageFile) {
+            throw new BadRequestError({ image: 'Attach a picture.' }, 'Attach a picture.')
+        }
+        // Name the file from its type, never from the uploaded file name.
+        const ext = IMAGE_EXTENSIONS[imageFile.mimetype] ?? 'jpg'
+        const photoUrl = await uploadBuffer({ buffer: imageFile.buffer, key: `threads/${uuidv4()}.${ext}` })
+        return patchByThreadUuid({ userId, threadUuid, payload: { photoUrl }, isAdmin })
     }
 
     // Edits a thread regardless of who wrote it.

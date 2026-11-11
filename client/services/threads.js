@@ -10,32 +10,40 @@ export const THREAD_CATEGORIES = [
   { key: "faq", label: "Questions" },
 ];
 
+// Tags people can pick when they post. "events" is left out: those threads
+// are made automatically when someone creates an event on the Events tab.
+export const COMPOSER_CATEGORIES = THREAD_CATEGORIES.filter((c) => c.key !== "events");
+
+// The server's limits for a thread's title.
+export const TITLE_MIN = 10;
+export const TITLE_MAX = 200;
+
 // Checks for a well-formed thread id (the server's uuid format).
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Maps a real thread (from GET /api/threads) to the shape the UI uses.
 function mapThread(dto) {
   // A thread has its own title only when it wasn't generated from the body
-  // by deriveTitle -- e.g. the seeded questions, whose title is the question
-  // and whose body is the answer.
-  const customTitle =
-    !dto.locked && dto.title && dto.title !== deriveTitle(dto.body)
+  // by deriveTitle (older threads were posted without one). For locked
+  // threads the server only sends a title the author wrote, and nothing
+  // else -- see server/src/util/visibility.mjs.
+  const customTitle = dto.locked
+    ? dto.title || null
+    : dto.title && dto.title !== deriveTitle(dto.body)
       ? dto.title
       : null;
   return {
     id: dto.threadUuid,
     author: dto.author,
     authorUuid: dto.userUuid,
-    // Shows the real post content, not dto.title -- the server requires a
-    // 20 character title (see deriveTitle below), so title often has
-    // trailing dots padding it out and was never meant to be displayed.
-    // Questions with their own title are the exception: the title is the
-    // question (shown as the heading) and the body is the answer.
+    // The heading: the thread's own title, or for older threads without
+    // one, the post content (their generated title has trailing dots
+    // padding it out and was never meant to be displayed).
     // Private threads come back locked (content stripped) for signed-out
-    // visitors -- see server/src/util/visibility.mjs.
+    // visitors, so only the title is left to show.
     caption: dto.locked
-      ? "Private conversation"
-      : dto.category === "faq" && customTitle ? customTitle : dto.body,
+      ? customTitle || "Private conversation"
+      : customTitle || dto.body,
     text: dto.locked ? "" : dto.body,
     customTitle,
     isPublic: !!dto.isPublic,
@@ -77,10 +85,9 @@ function mapComment(dto) {
   };
 }
 
-// The real threads table requires a title of 20-200 characters, but the
-// composer only collects one free-text caption. Pads a short caption so it
-// always satisfies that, without changing what's actually shown anywhere
-// (screens display .caption/.text, built from the real content, not title).
+// How older threads got their title, before the composer asked for one: the
+// start of the caption, padded to the 20 characters the server used to
+// require. Used to tell those apart from real titles.
 function deriveTitle(text) {
   const trimmed = (text || "").trim();
   if (trimmed.length >= 20) {
@@ -127,7 +134,7 @@ export async function createThread(data) {
   const content = data.caption || data.text || "";
   // Sent as a form (not JSON) so a cover photo can travel with the text.
   const formData = new FormData();
-  formData.append("title", deriveTitle(content));
+  formData.append("title", (data.title || "").trim());
   formData.append("content", content);
   formData.append("category", data.category || "general");
   formData.append("isPublic", data.isPublic ? "true" : "false");
@@ -140,22 +147,28 @@ export async function createThread(data) {
   return mapThread(res.data.thread);
 }
 
+// Adds a picture to a thread, or replaces the one it has. Only the thread's author (or an admin) can.
+export async function setThreadPhoto(threadId, imageUri) {
+  const blob = await prepareImageBlob(imageUri);
+  const extension = (blob.type && blob.type.split("/")[1]) || "jpg";
+  const formData = new FormData();
+ formData.append("image", blob, `cover.${extension}`);
+  const res = await apiForm(`/api/threads/me/${threadId}/photo`, "PUT", formData);
+  return mapThread(res.data.thread);
+}
+
 export async function updateThread(threadId, data) {
   const content = data.caption || data.text || "";
-  // Only the thread's author or an admin can edit it (the server checks).  
-  // Keeps a thread's own title (e.g. a seeded question) rather than
-  // replacing it with one generated from the edited body -- but only if the
-  // server will accept it (20-200 characters). An event's linked post is titled
-  // "<event name> — Event", which is too short for a short event name, so those
-  // get a generated title instead of failing to save.
-  const keepTitle =
-    data.customTitle && data.customTitle.length >= 20 && data.customTitle.length <= 200;
-  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", {
-    title: keepTitle ? data.customTitle : deriveTitle(content),
-    content,
-    category: data.category || "general",
-    isPublic: !!data.isPublic,
-  });
+  // Only the thread's author or an admin can edit it (the server checks).
+  // An event's linked post is titled "<event name> — Event", which can be
+  // shorter than the server allows, so if the title is too short it's left
+  // as it is rather than failing to save.
+  const title = (data.title || "").trim();
+  const payload = { content, isPublic: !!data.isPublic };
+  if (title.length >= TITLE_MIN && title.length <= TITLE_MAX) payload.title = title;
+  // Event posts keep their tag; it can't be picked, so it isn't sent.
+  if (data.category !== "events") payload.category = data.category || "general";
+  const res = await apiJson(`/api/threads/me/${threadId}`, "PATCH", payload);
   return mapThread(res.data.thread);
 }
 

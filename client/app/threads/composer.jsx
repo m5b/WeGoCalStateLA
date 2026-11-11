@@ -11,7 +11,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useThreads } from "./threadStore";
-import { THREAD_CATEGORIES } from "../../services/threads";
+import { COMPOSER_CATEGORIES, TITLE_MIN, TITLE_MAX } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import FlexibleImage from "../../components/FlexibleImage";
 import VisibilityToggle from "../../components/VisibilityToggle";
@@ -31,6 +31,7 @@ export default function Composer() {
   const isEditing = !!params.threadId;
 
   const [imageUri, setImageUri] = useState(null);
+  const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState(null);
   const [isPublic, setIsPublic] = useState(false);
@@ -41,6 +42,7 @@ export default function Composer() {
   // when this screen opens).
   useEffect(() => {
     if (!editingThread) return;
+    setTitle(editingThread.customTitle || "");
     setCaption(editingThread.text || editingThread.caption || "");
     setCategory(editingThread.category || "general");
     setIsPublic(!!editingThread.isPublic);
@@ -77,8 +79,18 @@ export default function Composer() {
     }
   }
 
+  // An event's post gets its tag (and title) from the event, so neither can be changed here.
+  const isEventThread = isEditing && editingThread?.category === "events";
+
   async function submit() {
-    if (!imageUri && !caption.trim()) {
+    const trimmedTitle = title.trim();
+    if (!isEventThread && (trimmedTitle.length < TITLE_MIN || trimmedTitle.length > TITLE_MAX)) {
+      setError(`Please give your thread a title (${TITLE_MIN}-${TITLE_MAX} characters).`);
+      return;
+    }
+    // While editing, the thread's current picture counts too.
+    const hasPicture = !!(imageUri || (isEditing && editingThread?.imageUri));
+    if (!hasPicture && !caption.trim()) {
       setError("Please add a photo or a caption.");
       return;
     }
@@ -92,15 +104,17 @@ export default function Composer() {
       setSaving(true);
       try {
         await actions.editThread(params.threadId, {
+          title: isEventThread ? editingThread?.customTitle : trimmedTitle,
           caption,
           category,
           isPublic,
-          customTitle: editingThread?.customTitle,
+           // Only a newly chosen picture is sent; leaving it alone keeps the current one.
+          imageUri,
         });
         router.back();
       } catch (e) {
         console.warn("Failed to update thread", e);
-        setError("Couldn't save your changes. Please try again.");
+        setError(imageUri ? "Couldn't save your changes or the picture. Please try again." : "Couldn't save your changes. Please try again.");
         setSaving(false);
       }
       return;
@@ -108,6 +122,7 @@ export default function Composer() {
 
     try {
       await actions.addThread({
+        title: trimmedTitle,
         caption,
         imageUri,
         category,
@@ -121,6 +136,7 @@ export default function Composer() {
     }
 
     setImageUri(null);
+    setTitle("");
     setCaption("");
     setCategory(null);
     setIsPublic(false);
@@ -158,22 +174,22 @@ export default function Composer() {
       </View>
 
       <View style={styles.card}>
-        {/* Threads don't store images yet, so there's nothing to edit here. */}
-        {isEditing ? null : (
-          // Tap the preview (or the empty box) to pick a photo from the library.
-          <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
-            {imageUri ? (
-              <FlexibleImage uri={imageUri} style={styles.image} />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
+        {/* Tap the preview (or the empty box) to pick a photo from the library. While editing, the
+            thread's current picture is shown, and picking a new one replaces it. */}
+        <TouchableOpacity onPress={() => pickFrom("library")} activeOpacity={0.8}>
+          {imageUri || (isEditing && editingThread?.imageUri) ? (
+            <FlexibleImage uri={imageUri || editingThread.imageUri} style={styles.image} />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={{ color: Colors.TEXT_MUTED }}>Upload image</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {isEditing && !imageUri && editingThread?.imageUri ? (
+          <Text style={{ color: Colors.TEXT_MUTED, fontSize: 12 }}>Tap the picture, or use Gallery or Camera, to replace it.</Text>
+        ) : null}
 
-        {isEditing ? null : (
-          <View style={styles.row}>
+        <View style={styles.row}>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: Colors.PRIMARY }]}
               onPress={() => pickFrom("library")}
@@ -189,6 +205,16 @@ export default function Composer() {
     </Text>
   </TouchableOpacity>
           </View>
+
+        {isEventThread ? null : (
+          <TextInput
+            placeholder="Title"
+            placeholderTextColor={Colors.TEXT_MUTED}
+            value={title}
+            onChangeText={setTitle}
+            maxLength={TITLE_MAX}
+            style={styles.input}
+          />
         )}
 
         <TextInput
@@ -200,9 +226,11 @@ export default function Composer() {
           multiline
         />
 
+        {isEventThread ? null : (
+        <>
         <Text style={styles.tagLabel}>Tag (required)</Text>
         <View style={styles.tagRow}>
-          {THREAD_CATEGORIES.map((c) => {
+          {COMPOSER_CATEGORIES.map((c) => {
             const selected = category === c.key;
             return (
               <TouchableOpacity
@@ -225,6 +253,8 @@ export default function Composer() {
             );
           })}
         </View>
+        </>
+        )}
 
         <VisibilityToggle isPublic={isPublic} onChange={setIsPublic} noun="thread" />
 
