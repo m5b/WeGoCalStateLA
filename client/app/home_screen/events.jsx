@@ -246,7 +246,7 @@ export default function EventsScreen() {
           {/* Upcoming Events - Carousel */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {upcomingEvents.length} Upcoming Events
+              Events in the Next {UPCOMING_WINDOW_DAYS} Days ({upcomingEvents.length})
             </Text>
 
             {hasUpcomingEvents ? (
@@ -276,13 +276,13 @@ export default function EventsScreen() {
               </>
             ) : (
               <Text style={styles.noEventsText}>
-                No upcoming events yet. Create one to get started!
+                No events in the next {UPCOMING_WINDOW_DAYS} days. Create one to get started!
               </Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Later Events ({laterEvents.length})</Text>
+            <Text style={styles.sectionTitle}>Events More Than {UPCOMING_WINDOW_DAYS} Days Away ({laterEvents.length})</Text>
             {visibleLaterEvents.length ? (
               <>
               <View style={styles.laterEventsGrid}>
@@ -311,7 +311,7 @@ export default function EventsScreen() {
               </>
             ) : (
               <Text style={styles.noEventsText}>
-                No events scheduled more than 30 days out yet.
+                No events scheduled more than {UPCOMING_WINDOW_DAYS} days away yet.
               </Text>
             )}
           </View>
@@ -542,7 +542,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 16,
+    // Centered under the heading, and never wider than the page: a row that doesn't fit wraps instead of
+    // spilling off the left edge.
+    width: '100%',
     maxWidth: EVENT_CARD_WIDTH * 3 + 32,
+    alignSelf: 'center',
   },
   arrowButton: {
     paddingHorizontal: 8,
