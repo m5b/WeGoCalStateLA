@@ -16,6 +16,7 @@ import Avatar from "../Avatar";
 import ReplyImagePicker from "../ReplyImagePicker";
 import { confirmAction } from "../../utils/confirmAction";
 import { formatMessageTime } from "../../utils/formatMessageTime";
+import UserLink from "../UserLink";
 import {
   blockUser,
   deleteMessage,
@@ -154,6 +155,7 @@ export default function ChatPane({ person, onBack, onChanged }) {
         ) : null}
         <Avatar name={name} size={34} />
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <UserLink name={name} userUuid={person.userUuid} style={styles.name} numberOfLines={1} canMessage={false} />
         <TouchableOpacity onPress={toggleBlock}>
           <Text style={blocked ? styles.link : styles.danger}>{blocked ? "Unblock" : "Block"}</Text>
         </TouchableOpacity>

@@ -24,6 +24,7 @@ import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
 import { formatEventDate } from "../../utils/formatEventDate";
 import { replyErrorMessage } from "../../utils/replyError";
+import UserLink from "../../components/UserLink";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -232,7 +233,10 @@ export default function EventDetails() {
               ) : null}
               <Text style={styles.eventTitle}>{title}</Text>
               {event.author ? (
-                <Text style={styles.postedBy}>Posted by {event.author}</Text>
+                <View style={styles.postedByRow}>
+                  <Text style={styles.postedBy}>Posted by </Text>
+                  <UserLink name={event.author} userUuid={event.authorUuid} style={styles.postedBy} />
+                </View>
               ) : null}
 
               <View style={styles.metaGrid}>
@@ -426,6 +430,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     marginBottom: 16,
+  },
+  postedByRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
   },
   postedBy: {
     color: EVENT_TEXT_COLOR,
