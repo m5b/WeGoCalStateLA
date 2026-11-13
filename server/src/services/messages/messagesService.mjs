@@ -154,9 +154,14 @@ export function createMessagesService({ messagesRepo, savePrivate, privatePath, 
         await messagesRepo.reopenConversation({ userId, otherId: person.user_id })
     }
 
+    async function listBlocked(userId) {
+        const rows = await messagesRepo.listBlocked(userId)
+        return rows.map((row) => toPersonDto(row))
+    }
+
     return {
         searchPeople, listConversations, getConversation, send, deleteMessage, unreadCount, block, unblock,
-        closeConversation, openConversation,
+        closeConversation, openConversation, listBlocked,
         getPhotoFile, report, listReports, resolveReport, getReportPhotoFile,
     }
 }

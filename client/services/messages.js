@@ -56,6 +56,12 @@ export async function closeConversation(userUuid) {
   await apiJson(`/api/messages/conversations/${userUuid}/close`, "POST", {});
 }
 
+// The people you have blocked ({ userUuid, displayName, username }).
+export async function listBlocked() {
+  const res = await apiGet("/api/messages/blocks");
+  return res.data.blocked;
+}
+
 export async function openConversation(userUuid) {
   await apiJson(`/api/messages/conversations/${userUuid}/open`, "POST", {});
 }

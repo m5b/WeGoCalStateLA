@@ -59,6 +59,11 @@ export function createMessagesRouter({ userService, messagesService }) {
         res.json(jsend.success({ message }))
     })
 
+    // The people you have blocked.
+    router.get('/blocks', auth, async (req, res) => {
+        res.json(jsend.success({ blocked: await messagesService.listBlocked(req.user.userId) }))
+    })
+
     router.put('/blocks/:userUuid', auth, async (req, res) => {
         const personUuid = uuidSchema.parse(req.params.userUuid)
         await messagesService.block({ userId: req.user.userId, personUuid })
