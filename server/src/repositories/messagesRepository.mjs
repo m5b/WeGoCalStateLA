@@ -204,10 +204,22 @@ export function createMessagesRepo(db) {
         await db.execute('DELETE FROM conversation_closures WHERE user_id = ? AND other_id = ?', [userId, otherId])
     }
 
+    // The people you blocked, most recently blocked first.
+    async function listBlocked(userId) {
+        const [rows] = await db.execute(
+            `SELECT BIN_TO_UUID(u.user_uuid) AS user_uuid, u.username, u.alias
+             FROM user_blocks b JOIN users u ON u.user_id = b.blocked_id
+             WHERE b.blocker_id = ? AND u.deleted_at IS NULL
+             ORDER BY b.created_at DESC`,
+            [userId]
+        )
+        return rows
+    }
+
     return {
         findUserByUuid, searchUsers, listConversations, listMessages, markRead, insertMessage,
         findMessageById, findMessageByUuid, softDeleteOwn, countUnread, findBlock, addBlock, removeBlock,
         insertReport, listReports, resolveReport, findReportPhotoKey,
-        closeConversation, reopenConversation
+        closeConversation, reopenConversation, listBlocked,
     }
 }
