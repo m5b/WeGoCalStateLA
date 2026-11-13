@@ -1,6 +1,7 @@
 import buildPatchQuery from '../../util/buildPatchQuery.mjs'
 import dbMapper from '../../util/dbMapper.mjs'
 import { NotFoundError } from '../../errors/notFoundError.mjs'
+import { hasOwnTitle } from '../../util/visibility.mjs'
 export function createUserService({userRepo}) {
     return{
         getByUserId,
@@ -14,11 +15,52 @@ export function createUserService({userRepo}) {
         getByUserUuid,
         provisionUser,
         listUsers,
+        getPublicProfile,
     }
 
     async function listUsers(opts) {
         const rows = await userRepo.findAll(opts)
         return rows.map((row) => dbMapper.fromDb(row))
+    }
+
+    // What a signed-in person sees when they open someone's profile (their own profile includes their
+    // private posts and events; anyone else's only shows what is public).
+    async function getPublicProfile({ userUuid, viewerUserUuid }) {
+        const isSelf = String(userUuid).toLowerCase() === String(viewerUserUuid).toLowerCase()
+        const row = await userRepo.findPublicProfile(userUuid, { includePrivate: isSelf })
+        if (!row) {
+            throw new NotFoundError(null, 'Can not found the user')
+        }
+        const [threads, events] = await Promise.all([
+            userRepo.findRecentThreads(row.user_id, { includePrivate: isSelf, limit: 5 }),
+            userRepo.findRecentEvents(row.user_id, { includePrivate: isSelf, limit: 5 }),
+        ])
+        const alias = row.alias && row.alias.trim() ? row.alias.trim() : null
+        return {
+            userUuid: row.user_uuid,
+            username: row.username,
+            alias,
+            displayName: alias ?? row.username,
+            relationship: row.relationship ?? null,
+            interests: row.interests ?? '',
+            isAdmin: Boolean(row.is_admin),
+            memberSince: row.created_at,
+            isSelf,
+            stats: { posts: Number(row.post_count), replies: Number(row.reply_count), events: Number(row.event_count) },
+            // Older posts have no title of their own, so those show the start of their text instead.
+            recentPosts: threads.map((t) => ({
+                threadUuid: t.thread_uuid,
+                title: hasOwnTitle(t.title, t.content) ? t.title : (t.content ?? '').trim().slice(0, 80),
+                isPublic: Boolean(t.is_public),
+                createdAt: t.created_at,
+            })),
+            recentEvents: events.map((e) => ({
+                eventUuid: e.event_uuid,
+                title: e.event_title,
+                startsAt: e.started_at,
+                isPublic: Boolean(e.is_public),
+            })),
+        }
     }
 
     async function getUserCount(){

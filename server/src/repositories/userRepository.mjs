@@ -11,12 +11,50 @@ export function createUserRepo(db){
         getCount,
         checkUserExistsByUserUuid,
         findAll,
+        findPublicProfile,
+        findRecentThreads,
+        findRecentEvents,
     }
 
     async function findAll({ limit = 100, offset = 0 } = {}) {
         const [rows] = await db.query(
             'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, alias, relationship, interests, is_admin, email_hash IS NOT NULL as has_email, created_at, updated_at from users where deleted_at is NULL order by created_at desc limit ? offset ?',
             [limit, offset]
+        )
+        return rows
+    }
+    // Who someone is plus how much they have contributed. For anyone but the person themselves the counts
+    // only include what everyone may see: public posts, replies on public posts, and public events.
+    // (The visibility text added to the queries is fixed in this file, never typed by a person.)
+    async function findPublicProfile(userUuid, { includePrivate = false } = {}) {
+        const onlyPublic = includePrivate ? '' : 'and t.is_public = 1'
+        const [rows] = await db.query(
+            `select u.user_id, BIN_TO_UUID(u.user_uuid) as user_uuid, u.username, u.alias, u.relationship, u.interests, u.is_admin, u.created_at,
+                (select COUNT(*) from threads t where t.user_id = u.user_id and t.deleted_at is NULL and t.category = 'general' ${onlyPublic}) as post_count,
+                (select COUNT(*) from comments c join threads t on t.thread_id = c.thread_id where c.user_id = u.user_id and c.deleted_at is NULL and t.deleted_at is NULL ${onlyPublic}) as reply_count,
+                (select COUNT(*) from events e where e.created_by_user_id = u.user_id and e.deleted_at is NULL ${includePrivate ? '' : 'and e.is_public = 1'}) as event_count
+             from users u where u.user_uuid = UUID_TO_BIN(?) and u.deleted_at is NULL`,
+            [userUuid]
+        )
+        return rows[0] ?? null
+    }
+
+    async function findRecentThreads(userId, { includePrivate = false, limit = 5 } = {}) {
+        const [rows] = await db.query(
+            `select BIN_TO_UUID(thread_uuid) as thread_uuid, title, content, is_public, created_at from threads
+             where user_id = ? and deleted_at is NULL and category = 'general' ${includePrivate ? '' : 'and is_public = 1'}
+             order by created_at desc limit ?`,
+            [userId, limit]
+        )
+        return rows
+    }
+
+    async function findRecentEvents(userId, { includePrivate = false, limit = 5 } = {}) {
+        const [rows] = await db.query(
+            `select BIN_TO_UUID(event_uuid) as event_uuid, event_title, started_at, is_public from events
+             where created_by_user_id = ? and deleted_at is NULL ${includePrivate ? '' : 'and is_public = 1'}
+             order by started_at desc limit ?`,
+            [userId, limit]
         )
         return rows
     }
