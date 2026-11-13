@@ -56,7 +56,7 @@ export function createThreadRepo(db){
                     WHEN t.deleted_at IS NOT NULL THEN NULL
                     WHEN t.user_id IS NULL THEN 'Anonymous'
                     WHEN u.deleted_at IS NOT NULL THEN NULL
-                    ELSE u.username
+                    ELSE COALESCE(NULLIF(TRIM(u.alias), ''), u.username)
                     END AS username
             FROM
                 threads t
