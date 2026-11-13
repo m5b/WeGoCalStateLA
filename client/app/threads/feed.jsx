@@ -15,6 +15,8 @@ import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
 import { formatTimestamp } from "../../utils/formatTimestamp";
+import { matchesSearch } from "../../utils/searchMatch";
+import SearchBar from "../../components/SearchBar";
 
 function ThreadItem({ item, onPress, onLike, compact = false }) {
   // An empty slot that keeps the last row's cards the same width as the rows above it.
@@ -110,8 +112,13 @@ export default function ThreadFeed() {
       ? params.category
       : "general"
   );
+  const [query, setQuery] = useState("");
 
-  const visibleThreads = state.threads
+  // Threads that match the search box (all of them when it's empty).
+  const matchingThreads = state.threads.filter((t) =>
+    matchesSearch(query, [t.caption, t.text, t.author])
+  );
+  const visibleThreads = matchingThreads
     .filter((t) => (t.category ?? "general") === category)
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
@@ -145,10 +152,17 @@ export default function ThreadFeed() {
         </TouchableOpacity>
       </View>
 
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search conversations by title, text, or author"
+        style={styles.searchBar}
+      />
+
       <View style={styles.tabRow}>
         {THREAD_CATEGORIES.map((c) => {
           const selected = category === c.key;
-          const count = state.threads.filter(
+          const count = matchingThreads.filter(
             (t) => (t.category ?? "general") === c.key
           ).length;
           return (
@@ -189,7 +203,9 @@ export default function ThreadFeed() {
         ListEmptyComponent={() => (
           <View style={{ padding: 16 }}>
             <Text style={{ color: Colors.TEXT_MUTED }}>
-              No threads in this category yet. Be the first to post!
+              {query.trim()
+                ? `No conversations match "${query.trim()}".`
+                : "No threads in this category yet. Be the first to post!"}
             </Text>
           </View>
         )}
@@ -227,6 +243,10 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     fontWeight: "600",
     fontSize: 14,
+  },
+  searchBar: {
+    marginHorizontal: 12,
+    marginBottom: 10,
   },
   tabRow: {
     flexDirection: "row",

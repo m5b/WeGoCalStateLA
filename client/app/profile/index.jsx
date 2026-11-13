@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronDown, ShieldCheck, UserRound } from 'lucide-react-native';
+import { Check, ChevronDown, ShieldCheck } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
+import Avatar from '../../components/Avatar';
+import ProfileCard from '../../components/ProfileCard';
+import ProfileActivity from '../../components/ProfileActivity';
 import { Colors } from '../../constant/Colors';
-import { getProfile, updateProfile } from '../../services/userService';
+import { getProfile, getPublicProfile, updateProfile } from '../../services/userService';
+import { listBlocked, unblockUser } from '../../services/messages';
 
 const DEFAULT_PROFILE = {
   alias: '',
@@ -46,6 +50,15 @@ export default function ProfileScreen() {
   const [relationshipPickerOpen, setRelationshipPickerOpen] = useState(false);
   const [interestsPickerOpen, setInterestsPickerOpen] = useState(false);
 
+  // How others see you (the same card they get when they click your name), and the people you have blocked.
+  const [preview, setPreview] = useState(null);
+  const [blocked, setBlocked] = useState([]);
+
+  const loadPreview = (userUuid) =>
+    getPublicProfile(userUuid)
+      .then(setPreview)
+      .catch(() => {});
+
   useEffect(() => {
     let isMounted = true;
     getProfile()
@@ -56,6 +69,7 @@ export default function ProfileScreen() {
           relationship: user.relationship || '',
           interests: user.interests || '',
         });
+        if (user.userUuid) loadPreview(user.userUuid);
       })
       .catch(() => {
         if (isMounted) setErrorMessage('Could not load your profile. Please try again.');
@@ -63,6 +77,11 @@ export default function ProfileScreen() {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
+      listBlocked()
+      .then((people) => {
+        if (isMounted) setBlocked(people);
+      })
+      .catch(() => {});
     return () => {
       isMounted = false;
     };
@@ -79,6 +98,7 @@ export default function ProfileScreen() {
         interests: updated.interests || '',
       });
       setSaved(true);
+      if (updated.userUuid) loadPreview(updated.userUuid);
     } catch (err) {
       if (err.status === 400 && err.data) {
         setErrorMessage(Object.values(err.data).join('\n'));
@@ -89,6 +109,15 @@ export default function ProfileScreen() {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const unblock = async (person) => {
+    try {
+      await unblockUser(person.userUuid);
+      setBlocked((current) => current.filter((p) => p.userUuid !== person.userUuid));
+    } catch {
+      setErrorMessage('Could not unblock that person. Please try again.');
     }
   };
 
@@ -107,7 +136,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.page}>
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.header}>
-          <View style={styles.avatar}><UserRound size={32} color={Colors.PRIMARY} /></View>
+          <View style={styles.avatar}><Avatar name={profile.alias || preview?.displayName || '?'} size={70} /></View>
           <Text style={styles.title}>Your profile</Text>
           <Text style={styles.subtitle}>Choose a public username for your threads, replies, and events.</Text>
         </LinearGradient>
@@ -119,7 +148,18 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
+        {preview ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>How others see you</Text>
+            <Text style={styles.cardHint}>This is the card people get when they click your name.</Text>
+            <ProfileCard profile={preview} large>
+              <ProfileActivity profile={preview} />
+            </ProfileCard>
+          </View>
+        ) : null}
+
         <View style={styles.card}>
+          <Text style={styles.cardTitle}>Edit your profile</Text>
           {loading ? (
             <ActivityIndicator color={Colors.PRIMARY} style={{ marginVertical: 24 }} />
           ) : (
@@ -211,6 +251,23 @@ export default function ProfileScreen() {
             </>
           )}
         </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Blocked people</Text>
+          <Text style={styles.cardHint}>People you block can&apos;t message you. You can unblock them any time.</Text>
+          {blocked.length ? (
+            blocked.map((person) => (
+              <View key={person.userUuid} style={styles.blockedRow}>
+                <Avatar name={person.displayName} size={34} />
+                <Text style={styles.blockedName} numberOfLines={1}>{person.displayName}</Text>
+                <TouchableOpacity onPress={() => unblock(person)}>
+                  <Text style={styles.unblock}>Unblock</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.cardHint}>You haven&apos;t blocked anyone.</Text>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -222,12 +279,17 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#f8fafc' },
   content: { paddingBottom: 48 },
   header: { alignItems: 'center', paddingHorizontal: 24, paddingVertical: 46 },
-  avatar: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#fef3c7', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  avatar: { marginBottom: 16 },
   title: { color: '#fff', fontSize: 30, fontWeight: '850', textAlign: 'center' },
   subtitle: { color: '#dbeafe', fontSize: 16, lineHeight: 24, textAlign: 'center', maxWidth: 560, marginTop: 8 },
   notice: { flexDirection: 'row', gap: 14, width: '100%', maxWidth: 720, alignSelf: 'center', marginTop: 28, padding: 18, backgroundColor: '#fffbeb', borderColor: '#fde68a', borderWidth: 1, borderRadius: 12 },
   noticeText: { flex: 1, color: '#92400e', fontSize: 14, lineHeight: 21 },
   card: { width: '100%', maxWidth: 720, alignSelf: 'center', marginTop: 20, padding: 24, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0' },
+  cardTitle: { color: '#0f172a', fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  cardHint: { color: '#64748b', fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  blockedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  blockedName: { flex: 1, color: '#0f172a', fontSize: 15, fontWeight: '600' },
+  unblock: { color: Colors.PRIMARY, fontWeight: '800', fontSize: 14 },
   label: { color: '#334155', fontSize: 14, fontWeight: '700', marginTop: 14, marginBottom: 7 },
   input: { backgroundColor: '#f8fafc', borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#0f172a', fontSize: 15 },
   multiline: { minHeight: 100, textAlignVertical: 'top' },

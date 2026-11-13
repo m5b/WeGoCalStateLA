@@ -5,6 +5,7 @@ import { formatTimestamp } from "../utils/formatTimestamp";
 import { canManage } from "../utils/permissions";
 import { countReplies } from "../utils/replyTree";
 import FlexibleImage from "./FlexibleImage";
+import UserLink from "./UserLink";
 
 const INDENT = 16;
 const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they don't squeeze to nothing
@@ -87,7 +88,7 @@ export default function ReplyNode({
             >
               <Text style={styles.foldText}>{collapsed ? "+" : "\u2212"}</Text>
             </TouchableOpacity>
-            <Text style={styles.author}>{reply.author || "Anonymous"}</Text>
+            <UserLink name={reply.author || "Anonymous"} userUuid={reply.authorUuid} style={styles.author} />
           </View>
           {reply.createdAt ? (
             <Text style={styles.timestamp}>

@@ -13,19 +13,26 @@ import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
+  CalendarDays,
   Lock,
 } from 'lucide-react-native';
 import { Colors } from '../../constant/Colors';
 import { getEvents } from '../../services/events';
 import WebLayout from '../../components/WebLayout';
+import Pagination from '../../components/Pagination';
 import { formatEventDate } from '../../utils/formatEventDate';
+import { matchesSearch } from '../../utils/searchMatch';
+import SearchBar from '../../components/SearchBar';
 
 const { width } = Dimensions.get('window');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const UPCOMING_WINDOW_DAYS = 30;
-const MAX_LATER_EVENTS = 9;
+// How many events fit on one page of each list, and how tall a card is. Every card is the same size
+// whether or not the event has a picture, so the rows line up.
+const UPCOMING_PER_PAGE = width >= 1000 ? 3 : width >= 700 ? 2 : 1;
+const LATER_PER_PAGE = width >= 1200 ? 10 : 6;
+const EVENT_CARD_HEIGHT = 330;
+const LATER_EVENT_CARD_HEIGHT = 250;
 const EVENT_CARD_WIDTH =
   width >= 1200 ? 260 : Math.min(320, width - 88);
 const LATER_EVENT_CARD_WIDTH =
@@ -71,8 +78,8 @@ function EventCard({ title, date, location, description, author, onPress, imageU
         compact && eventStyles.compactCard,
       ]}
     >
-      {/* Image on top */}
-      {imageUrl ? (
+      {/* Every card has a picture area of the same size: the event's picture, or a plain panel without one. */}
+      {imageUrl && !locked ? (
         <Image
           source={{ uri: imageUrl }}
           style={[
@@ -80,20 +87,34 @@ function EventCard({ title, date, location, description, author, onPress, imageU
             compact && eventStyles.compactImage,
           ]}
         />
+      ) : (
+        <View
+          style={[
+            eventStyles.eventImage,
+            eventStyles.imagePlaceholder,
+            compact && eventStyles.compactImage,
+          ]}
+        >
+          {locked ? (
+            <Lock size={compact ? 22 : 30} color={Colors.TEXT_MUTED} />
+          ) : (
+            <CalendarDays size={compact ? 22 : 30} color={Colors.TEXT_MUTED} />
+          )}
+        </View>
+      )}
+      {!isPublic ? (
+        <View style={eventStyles.privateBadgeFloating}>
+          <Lock size={11} color={Colors.WHITE} />
+          <Text style={eventStyles.privateBadgeText}>Private</Text>
+        </View>
       ) : null}
 
       {/* Text content */}
       <View style={eventStyles.contentRow}>
         <View style={eventStyles.leftAccent} />
         <View style={[eventStyles.inner, compact && eventStyles.compactInner]}>
-          {!isPublic ? (
-            <View style={eventStyles.privateBadge}>
-              <Lock size={11} color={Colors.WHITE} />
-              <Text style={eventStyles.privateBadgeText}>Private</Text>
-            </View>
-          ) : null}
-          <Text style={[eventStyles.title, compact && eventStyles.compactTitle]}>{title}</Text>
-          {author ? <Text style={eventStyles.author}>by {author}</Text> : null}
+          <Text numberOfLines={2} style={[eventStyles.title, compact && eventStyles.compactTitle]}>{title}</Text>
+          {author ? <Text numberOfLines={1} style={eventStyles.author}>by {author}</Text> : null}
           {date ? <Text style={[eventStyles.date, compact && eventStyles.compactDate]}>{date}</Text> : null}
           {location ? (
             <Text style={[eventStyles.location, compact && eventStyles.compactLocation]}>
@@ -128,7 +149,28 @@ export default function EventsScreen() {
 
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [laterEvents, setLaterEvents] = useState([]);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [laterPage, setLaterPage] = useState(1);
+  const [query, setQuery] = useState('');
+
+  // A new search starts both lists back on their first page.
+  const handleSearch = (text) => {
+    setQuery(text);
+    setUpcomingPage(1);
+    setLaterPage(1);
+  };
+  const eventMatches = (event) =>
+    matchesSearch(query, [
+      event.title,
+      event.description,
+      event.location,
+      event.author,
+      event.date,
+      formatEventDate(event.date),
+    ]);
+  const filteredUpcoming = upcomingEvents.filter(eventMatches);
+  const filteredLater = laterEvents.filter(eventMatches);
+  const searching = query.trim().length > 0;
 
   useFocusEffect(
     useCallback(() => {
@@ -166,7 +208,8 @@ export default function EventsScreen() {
 
           setUpcomingEvents(mapped.filter(event => event.eventDate <= upcomingCutoff));
           setLaterEvents(mapped.filter(event => event.eventDate > upcomingCutoff));
-          setCurrentEventIndex(0);
+          setUpcomingPage(1);
+          setLaterPage(1);
         } catch (e) {
           console.warn('Failed to load events', e);
         }
@@ -176,25 +219,19 @@ export default function EventsScreen() {
     }, [])
   );
 
-  const handleNextEvent = () => {
-    if (!upcomingEvents.length) return;
-    setCurrentEventIndex(prev => (prev + 1) % upcomingEvents.length);
-  };
+  // Each list is shown a page at a time, with page numbers underneath.
+  const upcomingPages = Math.max(1, Math.ceil(filteredUpcoming.length / UPCOMING_PER_PAGE));
+  const laterPages = Math.max(1, Math.ceil(filteredLater.length / LATER_PER_PAGE));
 
-  const handlePrevEvent = () => {
-    if (!upcomingEvents.length) return;
-    setCurrentEventIndex(prev => (prev - 1 + upcomingEvents.length) % upcomingEvents.length);
-  };
-
-  const hasUpcomingEvents = upcomingEvents.length > 0;
-  const visibleUpcomingEvents = hasUpcomingEvents
-    ? Array.from(
-      { length: Math.min(3, upcomingEvents.length) },
-      (_, offset) => upcomingEvents[(currentEventIndex + offset) % upcomingEvents.length]
-    )
-    : [];
-  const visibleUpcomingIds = new Set(visibleUpcomingEvents.map(event => event.id));
-  const visibleLaterEvents = laterEvents.slice(0, MAX_LATER_EVENTS);
+  const hasUpcomingEvents = filteredUpcoming.length > 0;
+  const visibleUpcomingEvents = filteredUpcoming.slice(
+    (upcomingPage - 1) * UPCOMING_PER_PAGE,
+    upcomingPage * UPCOMING_PER_PAGE
+  );
+  const visibleLaterEvents = filteredLater.slice(
+    (laterPage - 1) * LATER_PER_PAGE,
+    laterPage * LATER_PER_PAGE
+  );
 
   return (
     <WebLayout>
@@ -228,85 +265,57 @@ export default function EventsScreen() {
             <Text style={styles.inspirationText}>{todayInspiration}</Text>
           </View>
 
+          <SearchBar
+            value={query}
+            onChangeText={handleSearch}
+            placeholder="Search events by name, place, host, or date"
+            style={styles.searchBar}
+          />
+
           {/* Upcoming Events - Carousel */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {upcomingEvents.length} Upcoming Events
+              Events in the Next {UPCOMING_WINDOW_DAYS} Days ({filteredUpcoming.length})
             </Text>
 
             {hasUpcomingEvents ? (
               <>
-                <View style={styles.carouselRow}>
-                  {/* Left Arrow */}
-                  <TouchableOpacity
-                    onPress={handlePrevEvent}
-                    style={styles.arrowButton}
-                    disabled={upcomingEvents.length <= 3}
-                  >
-                    <ChevronLeft
-                      size={26}
-                      color={upcomingEvents.length <= 3 ? Colors.GRAY : Colors.PRIMARY}
-                    />
-                  </TouchableOpacity>
-
-                  <View style={styles.carouselCardsContainer}>
-                    {visibleUpcomingEvents.map(event => (
-                      <EventCard
-                        key={event.id}
-                        title={event.title}
-                        date={`${formatEventDate(event.date)}${event.time ? ` at ${event.time}` : ''}`}
-                        location={event.location}
-                        description={event.description}
-                        imageUrl={event.imageUrl}
-                        author={event.author}
-                        isPublic={event.isPublic}
-                        locked={event.locked}
-                        onPress={() =>
-                          router.push({
-                            pathname: '/home_screen/details',
-                            params: { eventId: event.id },
-                          })
-                        }
-                      />
-                    ))}
-                  </View>
-
-                  {/* Right Arrow */}
-                  <TouchableOpacity
-                    onPress={handleNextEvent}
-                    style={styles.arrowButton}
-                    disabled={upcomingEvents.length <= 3}
-                  >
-                    <ChevronRight
-                      size={26}
-                      color={upcomingEvents.length <= 3 ? Colors.GRAY : Colors.PRIMARY}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Dots indicator */}
-                <View style={styles.dotsRow}>
-                  {upcomingEvents.map((event, index) => (
-                    <View
+                <View style={styles.carouselCardsContainer}>
+                  {visibleUpcomingEvents.map(event => (
+                    <EventCard
                       key={event.id}
-                      style={[
-                        styles.dot,
-                        visibleUpcomingIds.has(event.id) && styles.dotActive,
-                      ]}
+                      title={event.title}
+                      date={`${formatEventDate(event.date)}${event.time ? ` at ${event.time}` : ''}`}
+                      location={event.location}
+                      description={event.description}
+                      imageUrl={event.imageUrl}
+                      author={event.author}
+                      isPublic={event.isPublic}
+                      locked={event.locked}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/home_screen/details',
+                          params: { eventId: event.id },
+                        })
+                      }
                     />
                   ))}
                 </View>
+                <Pagination page={upcomingPage} totalPages={upcomingPages} onChange={setUpcomingPage} />
               </>
             ) : (
               <Text style={styles.noEventsText}>
-                No upcoming events yet. Create one to get started!
+                {searching
+                  ? `No upcoming events match "${query.trim()}".`
+                  : `No events in the next ${UPCOMING_WINDOW_DAYS} days. Create one to get started!`}
               </Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Later Events</Text>
+            <Text style={styles.sectionTitle}>Events More Than {UPCOMING_WINDOW_DAYS} Days Away ({filteredLater.length})</Text>
             {visibleLaterEvents.length ? (
+              <>
               <View style={styles.laterEventsGrid}>
                 {visibleLaterEvents.map(event => (
                   <EventCard
@@ -329,9 +338,13 @@ export default function EventsScreen() {
                   />
                 ))}
               </View>
+              <Pagination page={laterPage} totalPages={laterPages} onChange={setLaterPage} />
+              </>
             ) : (
               <Text style={styles.noEventsText}>
-                No events scheduled more than 30 days out yet.
+                {searching
+                  ? `No later events match "${query.trim()}".`
+                  : `No events scheduled more than ${UPCOMING_WINDOW_DAYS} days away yet.`}
               </Text>
             )}
           </View>
@@ -345,6 +358,7 @@ export default function EventsScreen() {
 const eventStyles = StyleSheet.create({
   card: {
     width: EVENT_CARD_WIDTH,
+    height: EVENT_CARD_HEIGHT,
     backgroundColor: EVENT_CARD_BACKGROUND,
     borderRadius: 16,
     overflow: 'hidden',
@@ -356,6 +370,7 @@ const eventStyles = StyleSheet.create({
   },
   compactCard: {
     width: LATER_EVENT_CARD_WIDTH,
+    height: LATER_EVENT_CARD_HEIGHT,
   },
   eventImage: {
     width: '100%',
@@ -366,6 +381,7 @@ const eventStyles = StyleSheet.create({
     height: 94,
   },
   contentRow: {
+    flex: 1,
     flexDirection: 'row',
     backgroundColor: EVENT_CARD_BACKGROUND,
   },
@@ -376,6 +392,7 @@ const eventStyles = StyleSheet.create({
   inner: {
     flex: 1,
     padding: 12,
+    overflow: 'hidden',
   },
   compactInner: {
     padding: 10,
@@ -439,6 +456,25 @@ const eventStyles = StyleSheet.create({
   compactDescription: {
     fontSize: 11,
     lineHeight: 15,
+  },
+  // The picture area when an event has no picture (or is private and locked).
+  imagePlaceholder: {
+    backgroundColor: '#fde9a6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // The "Private" tag sits on the picture area so the text underneath lines up on every card.
+  privateBadgeFloating: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: Colors.BLACK,
   },
 });
 
@@ -517,6 +553,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontStyle: 'italic',
   },
+  searchBar: {
+    marginBottom: 20,
+    marginHorizontal: 4,
+  },
   section: {
     marginBottom: 30,
   },
@@ -539,7 +579,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 16,
+    // Centered under the heading, and never wider than the page: a row that doesn't fit wraps instead of
+    // spilling off the left edge.
+    width: '100%',
     maxWidth: EVENT_CARD_WIDTH * 3 + 32,
+    alignSelf: 'center',
   },
   arrowButton: {
     paddingHorizontal: 8,

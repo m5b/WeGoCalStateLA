@@ -50,6 +50,22 @@ export async function deleteMessage(messageUuid) {
   await apiJson(`/api/messages/${messageUuid}`, "DELETE");
 }
 
+// Closing a conversation takes it off your list but deletes nothing; opening it again (or a new message in it)
+// brings it back with all of its messages.
+export async function closeConversation(userUuid) {
+  await apiJson(`/api/messages/conversations/${userUuid}/close`, "POST", {});
+}
+
+// The people you have blocked ({ userUuid, displayName, username }).
+export async function listBlocked() {
+  const res = await apiGet("/api/messages/blocks");
+  return res.data.blocked;
+}
+
+export async function openConversation(userUuid) {
+  await apiJson(`/api/messages/conversations/${userUuid}/open`, "POST", {});
+}
+
 export async function blockUser(userUuid) {
   await apiJson(`/api/messages/blocks/${userUuid}`, "PUT", {});
 }

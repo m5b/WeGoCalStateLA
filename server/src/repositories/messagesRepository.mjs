@@ -48,9 +48,11 @@ export function createMessagesRepo(db) {
                     r.content, r.photo_key, r.created_at, (r.sender_id = ?) AS last_from_me, r.unread_count,
                     EXISTS (SELECT 1 FROM user_blocks b WHERE b.blocker_id = ? AND b.blocked_id = r.other_id) AS blocked_by_me
              FROM ranked r JOIN users u ON u.user_id = r.other_id
+             LEFT JOIN conversation_closures cc ON cc.user_id = ? AND cc.other_id = r.other_id
              WHERE r.rn = 1 AND u.deleted_at IS NULL
+                AND (cc.closed_at IS NULL OR r.created_at > cc.closed_at)
              ORDER BY r.created_at DESC, r.message_id DESC`,
-            [userId, userId, userId, userId, userId, userId]
+            [userId, userId, userId, userId, userId, userId, userId]
         )
         return rows
     }
@@ -189,9 +191,35 @@ export function createMessagesRepo(db) {
         return rows[0]?.message_photo_key ?? null
     }
 
+    // Closing hides a conversation from your list (the messages stay); opening it again brings it back.
+    // listConversations leaves out a closed conversation until a newer message arrives.
+    async function closeConversation({ userId, otherId }) {
+        await db.execute(
+            `INSERT INTO conversation_closures (user_id, other_id, closed_at) VALUES (?, ?, NOW())
+             ON DUPLICATE KEY UPDATE closed_at = NOW()`,
+            [userId, otherId]
+        )
+    }
+    async function reopenConversation({ userId, otherId }) {
+        await db.execute('DELETE FROM conversation_closures WHERE user_id = ? AND other_id = ?', [userId, otherId])
+    }
+
+    // The people you blocked, most recently blocked first.
+    async function listBlocked(userId) {
+        const [rows] = await db.execute(
+            `SELECT BIN_TO_UUID(u.user_uuid) AS user_uuid, u.username, u.alias
+             FROM user_blocks b JOIN users u ON u.user_id = b.blocked_id
+             WHERE b.blocker_id = ? AND u.deleted_at IS NULL
+             ORDER BY b.created_at DESC`,
+            [userId]
+        )
+        return rows
+    }
+
     return {
         findUserByUuid, searchUsers, listConversations, listMessages, markRead, insertMessage,
         findMessageById, findMessageByUuid, softDeleteOwn, countUnread, findBlock, addBlock, removeBlock,
         insertReport, listReports, resolveReport, findReportPhotoKey,
+        closeConversation, reopenConversation, listBlocked,
     }
 }
