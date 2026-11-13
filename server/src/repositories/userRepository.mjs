@@ -11,17 +11,60 @@ export function createUserRepo(db){
         getCount,
         checkUserExistsByUserUuid,
         findAll,
+        countAll,
+        getAdminStats,
         findPublicProfile,
         findRecentThreads,
         findRecentEvents,
     }
 
-    async function findAll({ limit = 100, offset = 0 } = {}) {
+    // The admin list's search and role filter, shared by the list and its count. What is typed in the
+    // search box goes in as a value (never into the SQL text), and LIKE's own symbols are escaped so a
+    // search for "50%" means 50%.
+    function userFilter({ search, role } = {}) {
+        const where = ['deleted_at is NULL']
+        const params = []
+        if (role === 'admin') where.push('is_admin = 1')
+        if (role === 'member') where.push('is_admin = 0')
+        const text = (search ?? '').trim()
+        if (text) {
+            const like = `%${text.replace(/[\\%_]/g, '\\$&')}%`
+            where.push('(username LIKE ? OR alias LIKE ?)')
+            params.push(like, like)
+        }
+        return { where: where.join(' and '), params }
+    }
+
+    // Newest first. user_id breaks ties, so people who joined in the same second stay in a steady order
+    // from one page to the next.
+    async function findAll({ limit = 100, offset = 0, search, role } = {}) {
+        const filter = userFilter({ search, role })
         const [rows] = await db.query(
-            'select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, alias, relationship, interests, is_admin, email_hash IS NOT NULL as has_email, created_at, updated_at from users where deleted_at is NULL order by created_at desc limit ? offset ?',
-            [limit, offset]
+            `select user_id, BIN_TO_UUID(user_uuid) as user_uuid, username, alias, relationship, interests, is_admin, email_hash IS NOT NULL as has_email, created_at, updated_at from users where ${filter.where} order by created_at desc, user_id desc limit ? offset ?`,
+            [...filter.params, limit, offset]
         )
         return rows
+    }
+
+    async function countAll({ search, role } = {}) {
+        const filter = userFilter({ search, role })
+        const [rows] = await db.query(`select COUNT(*) as cnt from users where ${filter.where}`, filter.params)
+        return rows[0].cnt
+    }
+
+    // Totals for the admin page. Counts only, never anyone's content.
+    async function getAdminStats() {
+        const [rows] = await db.query(
+            `select
+                (select COUNT(*) from users where deleted_at is NULL) as members,
+                (select COUNT(*) from users where deleted_at is NULL and is_admin = 1) as admins,
+                (select COUNT(*) from users where deleted_at is NULL and created_at >= NOW() - INTERVAL 7 DAY) as new_members,
+                (select COUNT(*) from threads where deleted_at is NULL and category = 'general') as posts,
+                (select COUNT(*) from comments where deleted_at is NULL) as replies,
+                (select COUNT(*) from events where deleted_at is NULL) as events,
+                (select COUNT(*) from message_reports where resolved_at is NULL) as open_reports`
+        )
+        return rows[0]
     }
     // Who someone is plus how much they have contributed. For anyone but the person themselves the counts
     // only include what everyone may see: public posts, replies on public posts, and public events.
@@ -101,7 +144,7 @@ export function createUserRepo(db){
     async function updateByUserId(userId, sqlQuery, dataList) {
         dataList.push(userId)
         const [result] = await db.query(
-            sqlQuery + ' where user_id = ? and deleted_at is NULL',
+            sqlQuery  ' where user_id = ? and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0
@@ -113,7 +156,7 @@ export function createUserRepo(db){
     async function updateByUserUuid(userUuid, sqlQuery, dataList){
         dataList.push(userUuid)
         const [result] = await db.execute(
-            sqlQuery + ' where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
+            sqlQuery  ' where user_uuid = UUID_TO_BIN(?) and deleted_at is NULL',
             dataList
         )
         const existed = result.affectedRows > 0

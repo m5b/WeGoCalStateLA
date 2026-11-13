@@ -15,6 +15,8 @@ export function createUserService({userRepo}) {
         getByUserUuid,
         provisionUser,
         listUsers,
+        countUsers,
+        getAdminStats,
         getPublicProfile,
     }
 
@@ -60,6 +62,23 @@ export function createUserService({userRepo}) {
                 startsAt: e.started_at,
                 isPublic: Boolean(e.is_public),
             })),
+        }
+    }
+
+    async function countUsers(opts) {
+        return Number(await userRepo.countAll(opts))
+    }
+
+    async function getAdminStats() {
+        const row = await userRepo.getAdminStats()
+        return {
+            members: Number(row.members),
+            admins: Number(row.admins),
+            newMembers: Number(row.new_members),
+            posts: Number(row.posts),
+            replies: Number(row.replies),
+            events: Number(row.events),
+            openReports: Number(row.open_reports),
         }
     }
 
