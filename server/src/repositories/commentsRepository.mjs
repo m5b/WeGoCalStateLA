@@ -59,7 +59,7 @@ export function createCommentRepo(db){
                     WHEN c.deleted_at IS NOT NULL THEN NULL
                     WHEN c.user_id IS NULL THEN 'Anonymous'
                     WHEN u.deleted_at IS NOT NULL THEN NULL
-                    ELSE u.username
+                    ELSE COALESCE(NULLIF(TRIM(u.alias), ''), u.username)
                     END AS username
             FROM
                 comments c

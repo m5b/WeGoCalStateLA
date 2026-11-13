@@ -138,13 +138,13 @@ export default function ProfileScreen() {
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.header}>
           <View style={styles.avatar}><Avatar name={profile.alias || preview?.displayName || '?'} size={70} /></View>
           <Text style={styles.title}>Your profile</Text>
-          <Text style={styles.subtitle}>Share a public alias without sharing identifying information.</Text>
+          <Text style={styles.subtitle}>Choose a public username for your threads, replies, and events.</Text>
         </LinearGradient>
 
         <View style={styles.notice}>
           <ShieldCheck size={24} color="#92400e" />
           <Text style={styles.noticeText}>
-            Your profile is saved to your account and visible to the community by alias only.
+            Your community username is public. Use a pseudonym to protect your privacy.
           </Text>
         </View>
 
@@ -166,13 +166,13 @@ export default function ProfileScreen() {
             <>
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-              <Text style={styles.label}>Community alias</Text>
+              <Text style={styles.label}>Community username</Text>
               <TextInput
                 value={profile.alias}
                 onChangeText={(alias) => { setSaved(false); setProfile({ ...profile, alias }); }}
                 style={styles.input}
                 maxLength={40}
-                placeholder="Choose a public alias"
+                placeholder="Choose a public username"
               />
 
               <Text style={styles.label}>Connection to the community</Text>
