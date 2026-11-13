@@ -21,6 +21,8 @@ import { getEvents } from '../../services/events';
 import WebLayout from '../../components/WebLayout';
 import Pagination from '../../components/Pagination';
 import { formatEventDate } from '../../utils/formatEventDate';
+import { matchesSearch } from '../../utils/searchMatch';
+import SearchBar from '../../components/SearchBar';
 
 const { width } = Dimensions.get('window');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -149,6 +151,26 @@ export default function EventsScreen() {
   const [laterEvents, setLaterEvents] = useState([]);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [laterPage, setLaterPage] = useState(1);
+  const [query, setQuery] = useState('');
+
+  // A new search starts both lists back on their first page.
+  const handleSearch = (text) => {
+    setQuery(text);
+    setUpcomingPage(1);
+    setLaterPage(1);
+  };
+  const eventMatches = (event) =>
+    matchesSearch(query, [
+      event.title,
+      event.description,
+      event.location,
+      event.author,
+      event.date,
+      formatEventDate(event.date),
+    ]);
+  const filteredUpcoming = upcomingEvents.filter(eventMatches);
+  const filteredLater = laterEvents.filter(eventMatches);
+  const searching = query.trim().length > 0;
 
   useFocusEffect(
     useCallback(() => {
@@ -198,15 +220,15 @@ export default function EventsScreen() {
   );
 
   // Each list is shown a page at a time, with page numbers underneath.
-  const upcomingPages = Math.max(1, Math.ceil(upcomingEvents.length / UPCOMING_PER_PAGE));
-  const laterPages = Math.max(1, Math.ceil(laterEvents.length / LATER_PER_PAGE));
+  const upcomingPages = Math.max(1, Math.ceil(filteredUpcoming.length / UPCOMING_PER_PAGE));
+  const laterPages = Math.max(1, Math.ceil(filteredLater.length / LATER_PER_PAGE));
 
-  const hasUpcomingEvents = upcomingEvents.length > 0;
-  const visibleUpcomingEvents = upcomingEvents.slice(
+  const hasUpcomingEvents = filteredUpcoming.length > 0;
+  const visibleUpcomingEvents = filteredUpcoming.slice(
     (upcomingPage - 1) * UPCOMING_PER_PAGE,
     upcomingPage * UPCOMING_PER_PAGE
   );
-  const visibleLaterEvents = laterEvents.slice(
+  const visibleLaterEvents = filteredLater.slice(
     (laterPage - 1) * LATER_PER_PAGE,
     laterPage * LATER_PER_PAGE
   );
@@ -243,10 +265,17 @@ export default function EventsScreen() {
             <Text style={styles.inspirationText}>{todayInspiration}</Text>
           </View>
 
+          <SearchBar
+            value={query}
+            onChangeText={handleSearch}
+            placeholder="Search events by name, place, host, or date"
+            style={styles.searchBar}
+          />
+
           {/* Upcoming Events - Carousel */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              Events in the Next {UPCOMING_WINDOW_DAYS} Days ({upcomingEvents.length})
+              Events in the Next {UPCOMING_WINDOW_DAYS} Days ({filteredUpcoming.length})
             </Text>
 
             {hasUpcomingEvents ? (
@@ -276,13 +305,15 @@ export default function EventsScreen() {
               </>
             ) : (
               <Text style={styles.noEventsText}>
-                No events in the next {UPCOMING_WINDOW_DAYS} days. Create one to get started!
+                {searching
+                  ? `No upcoming events match "${query.trim()}".`
+                  : `No events in the next ${UPCOMING_WINDOW_DAYS} days. Create one to get started!`}
               </Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Events More Than {UPCOMING_WINDOW_DAYS} Days Away ({laterEvents.length})</Text>
+            <Text style={styles.sectionTitle}>Events More Than {UPCOMING_WINDOW_DAYS} Days Away ({filteredLater.length})</Text>
             {visibleLaterEvents.length ? (
               <>
               <View style={styles.laterEventsGrid}>
@@ -311,7 +342,9 @@ export default function EventsScreen() {
               </>
             ) : (
               <Text style={styles.noEventsText}>
-                No events scheduled more than {UPCOMING_WINDOW_DAYS} days away yet.
+                {searching
+                  ? `No later events match "${query.trim()}".`
+                  : `No events scheduled more than ${UPCOMING_WINDOW_DAYS} days away yet.`}
               </Text>
             )}
           </View>
@@ -519,6 +552,10 @@ const styles = StyleSheet.create({
     color: Colors.DARK_GRAY,
     lineHeight: 24,
     fontStyle: 'italic',
+  },
+  searchBar: {
+    marginBottom: 20,
+    marginHorizontal: 4,
   },
   section: {
     marginBottom: 30,
