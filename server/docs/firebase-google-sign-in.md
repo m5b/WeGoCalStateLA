@@ -25,34 +25,40 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
 EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
 ```
 
-These are public web settings. They must be available when the frontend is built.
-The deployed frontend is built by GitHub Actions, so configure the four values as
-GitHub variables in the `production` environment and pass them to the existing
-build step in `.github/workflows/deploy.yml`:
-
-```yaml
-      - run: npm run build:web
-        working-directory: client
-        env:
-          EXPO_PUBLIC_FIREBASE_API_KEY: ${{ vars.EXPO_PUBLIC_FIREBASE_API_KEY }}
-          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          EXPO_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.EXPO_PUBLIC_FIREBASE_PROJECT_ID }}
-          EXPO_PUBLIC_FIREBASE_APP_ID: ${{ vars.EXPO_PUBLIC_FIREBASE_APP_ID }}
-```
-
-Adding variables alone does not pass them to the build; the workflow mapping is
-also required. Workflow changes follow the repository's approval rules.
-A client environment file on the server does not configure a GitHub Actions build.
+These are public web settings. The deployment workflow passes the same four
+settings from GitHub Actions variables into the frontend build. Configure them
+as repository variables or in the `production` environment before deployment.
+A client environment file on the server does not configure that GitHub build.
 Keep the deployed API URL pointing to the public HTTPS backend; the client
 uses the website's own origin when `EXPO_PUBLIC_API_URL` is unset.
 
 ## Backend configuration
 
-Set these values in the backend environment (`server/.env.development` locally
-or `.env.prototype` for the prototype stack):
+Set the project ID in the backend environment (`server/.env.development` locally
+or `.env.prototype` for the prototype stack), then choose one credential method.
+
+### Environment variables
+
+Copy `project_id`, `client_email`, and `private_key` from the service-account JSON
+into these backend variables:
 
 ```env
 FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=service-account@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="paste-the-private_key-value-from-the-service-account-json"
+```
+
+Keep the private key quoted and preserve its `\n` sequences. Both literal `\n`
+sequences and actual line breaks are supported. The backend constructs the
+credential in memory; no separate JSON file or Docker credential mount is needed.
+Both email and private key must be supplied together.
+
+### JSON file or Application Default Credentials
+
+Leave `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` empty to use Application
+Default Credentials. For a service-account JSON file, also set:
+
+```env
 GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/firebase-admin.json
 ```
 
@@ -73,7 +79,9 @@ services:
 
 Replace the source with the actual host path and ensure the backend container's
 runtime user can read the file. Include the override whenever recreating the
-backend. Keep credentials and environment files out of Git. Service-account
+backend. Environment credentials take precedence when both methods are configured.
+
+Keep private credentials and environment files out of Git. Service-account
 credentials must never be included in the frontend.
 
 ## Deployment and verification
