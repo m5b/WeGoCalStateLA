@@ -14,7 +14,9 @@ import { fileToDataUrl, shrinkImageUri } from "../utils/imageData";
 
 // Lets a reply attach one image, either uploaded from the photo library or
 // pasted from the clipboard (Paste button, or Ctrl/Cmd+V on web).
-export default function ReplyImagePicker({ imageUri, onChange }) {
+// pasteEnabled: whether Ctrl/Cmd+V attaches a copied image. Only one picker on a page should have it
+// on, otherwise a pasted image would be attached to all of them.
+export default function ReplyImagePicker({ imageUri, onChange, pasteEnabled = true }) {
   const [error, setError] = useState("");
 
   async function setImage(uri) {
@@ -26,7 +28,7 @@ export default function ReplyImagePicker({ imageUri, onChange }) {
   // Web: Ctrl/Cmd+V attaches a copied image. Text pastes are left alone so
   // the reply input still works normally.
   useEffect(() => {
-    if (Platform.OS !== "web") return undefined;
+    if (Platform.OS !== "web" || !pasteEnabled) return undefined;
     const onPaste = async (e) => {
       const item = Array.from(e.clipboardData?.items ?? []).find((i) =>
         i.type.startsWith("image/")
@@ -46,7 +48,7 @@ export default function ReplyImagePicker({ imageUri, onChange }) {
     // setImage only calls the latest onChange prop, which parents pass as a
     // stable state setter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pasteEnabled]);
 
   async function upload() {
     try {

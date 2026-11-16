@@ -16,6 +16,7 @@ import {
   BookOpen,
   User,
   Clock,
+  Heart,
   MessageSquare,
   LogIn,
 } from 'lucide-react-native';
@@ -26,36 +27,28 @@ import { useAuth } from '../../context/AuthContext';
 
 const quickActions = [
   {
+    id: 'threads',
+    title: 'Community',
+    subtitle: 'Connect with other families, ask questions, and share advice.',
+    icon: MessageSquare,
+    color: Colors.SECONDARY,
+    route: 'threads',
+  },
+  {
     id: 'events',
-    title: 'Community Events',
-    subtitle: 'Find ways to connect and participate',
+    title: 'Events',
+    subtitle: 'Discover upcoming events for families and students, or share your own.',
     icon: Calendar,
     color: Colors.SECONDARY,
     route: 'events',
   },
   {
     id: 'resources',
-    title: 'Family Resources',
-    subtitle: 'Find campus and community support',
+    title: 'Resources',
+    subtitle: 'Explore financial, health, career, and other resources from Cal State LA and beyond.',
     icon: BookOpen,
     color: Colors.PRIMARY,
     route: 'resources',
-  },
-  {
-    id: 'threads',
-    title: 'Community Conversations',
-    subtitle: 'Share encouragement with a public alias',
-    icon: MessageSquare,
-    color: Colors.SECONDARY,
-    route: 'threads',
-  },
-  {
-    id: 'profile',
-    title: 'Your Profile',
-    subtitle: 'Manage your community alias and interests',
-    icon: User,
-    color: Colors.PRIMARY,
-    route: 'profile',
   },
 ];
 
@@ -196,6 +189,33 @@ export default function HomeScreen() {
       textAlign: 'center',
       lineHeight: 20,
     },
+    
+webInfoRow: {
+  flexDirection: 'column',
+  gap: 24,
+  alignItems: 'stretch',
+},
+
+
+webAboutText: {
+  fontSize: 16,
+  lineHeight: 26,
+  color: Colors.PRIMARY,
+  textAlign: 'left',
+  fontStyle: 'normal',
+},
+
+webInfoCard: {
+  width: '100%',
+  backgroundColor: '#f8fafc',
+  borderRadius: 16,
+  padding: width < 640 ? 24 : 28,
+  borderWidth: 1,
+  borderColor: '#e2e8f0',
+  borderLeftWidth: 4,
+  borderLeftColor: Colors.SECONDARY,
+},
+
     webHighlightCard: {
       backgroundColor: '#f8fafc',
       borderRadius: 16,
@@ -218,6 +238,12 @@ export default function HomeScreen() {
       fontWeight: '700',
       color: Colors.PRIMARY,
     },
+    webHighlightSubtitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: Colors.PRIMARY,
+  marginBottom: 12,
+},
     webHighlightText: {
       fontSize: 18,
       color: '#374151',
@@ -283,25 +309,60 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Today's Highlight */}
-          <View style={webStyles.webSection}>
-            <Text style={webStyles.webSectionTitle}>Community reminder</Text>
-            <View style={webStyles.webHighlightCard}>
-              <View style={webStyles.webHighlightHeader}>
-                <Clock size={20} color={Colors.SECONDARY} />
-                <Text style={webStyles.webHighlightTitle}>
-                  A place to listen and learn
-                </Text>
-              </View>
-              <Text style={webStyles.webHighlightText}>
-                Every family brings different experience. Share what has helped,
-                ask thoughtful questions, and protect one another’s privacy.
-              </Text>
-              <Text style={webStyles.webHighlightAuthor}>
-                WeGoToCSULA community guidelines
-              </Text>
-            </View>
-          </View>
+{/* About & Community Reminder */}
+<View style={webStyles.webSection}>
+  <View style={webStyles.webInfoRow}>
+
+    {/* About WeGoToCSULA */}
+    <View style={webStyles.webInfoCard}>
+      <View style={webStyles.webHighlightHeader}>
+        <Heart size={20} color={Colors.SECONDARY} />
+        <Text style={webStyles.webHighlightTitle}>
+          About WeGoToCSULA
+        </Text>
+      </View>
+
+      <Text style={webStyles.webAboutText}>
+        College is a journey for students and the people who support them.
+        {'\n\n'}
+        WeGoToCSULA brings together parents, family members, and other
+        supporters of Cal State LA students to connect, share experiences,
+        and build a welcoming community.
+        {'\n\n'}
+        Through conversations, events, and helpful resources, we aim to
+        strengthen the connections among those who support Cal State LA
+        students throughout their college journey.
+      </Text>
+    </View>
+
+    {/* Community Reminder */}
+    <View style={webStyles.webInfoCard}>
+      <View style={webStyles.webHighlightHeader}>
+        <Clock size={20} color={Colors.SECONDARY} />
+        <Text style={webStyles.webHighlightTitle}>
+          Community Reminder
+        </Text>
+      </View>
+
+      
+<Text style={webStyles.webHighlightSubtitle}>
+  A place to listen and learn
+</Text>
+
+<Text style={webStyles.webHighlightText}>
+  Every family brings different experiences. Share what has helped,
+  ask thoughtful questions, and protect one another's privacy.
+</Text>
+
+
+      <Text style={webStyles.webHighlightAuthor}>
+        WeGoToCSULA community guidelines
+      </Text>
+    </View>
+
+  </View>
+</View>
+
         </ScrollView>
       </WebLayout>
     );

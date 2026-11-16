@@ -25,6 +25,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
         getByUserId,
         postByUserId,
         patchByEventUuid,
+        deleteByEventUuid,
     }
 
     function toStartEnd(date, time) {
@@ -63,7 +64,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
     }
 
     // imageFile is multer's req.file (undefined if no image was sent).
-    async function postByUserId(userId, { title, description, date, time }, imageFile) {
+    async function postByUserId(userId, { title, description, date, time, isPublic = false }, imageFile) {
         const { startedAt: safeStartedAt, endedAt } = toStartEnd(date, time)
         const photoUrl = imageFile ? await savePhoto(imageFile) : null
 
@@ -73,6 +74,7 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             title: `${title} — Event`,
             content: description || title,
             category: 'events',
+            isPublic,
         })
 
         const eventUuid = uuidv4()
@@ -85,20 +87,21 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             createdByUserId: userId,
             threadId: thread.threadId,
             photoUrl,
+            isPublic,
         })
 
         return await getByEventUuid(eventUuid)
     }
 
-    // Only the event's creator can edit it. A new image (if sent) replaces
-    // the old one. Title/description changes are mirrored onto the linked
-    // community post so the two stay in sync.
-    async function patchByEventUuid(userId, eventUuid, { title, description, date, time }, imageFile) {
+    // Only the event's creator (or an admin) can edit it. A new image (if sent) replaces
+    // the old one. Title/description/visibility changes are mirrored onto the
+    // linked community post so the two stay in sync.
+    async function patchByEventUuid(userId, eventUuid, { title, description, date, time, isPublic }, imageFile, { isAdmin = false } = {}) {
         const existing = await eventRepo.findByEventUuid(eventUuid)
         if (!existing) {
             throw new NotFoundError({ event: 'Not Found' }, 'Event not found.')
         }
-        if (String(existing.created_by_user_id) !== String(userId)) {
+        if (!isAdmin && String(existing.created_by_user_id) !== String(userId)) {
             throw new UnauthorizedError(null, 'You do not have permission to change this event')
         }
 
@@ -111,20 +114,25 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
             fields.ended_at = endedAt
         }
         if (imageFile) fields.photo_url = await savePhoto(imageFile)
+        if (isPublic !== undefined) fields.is_public = isPublic
 
-        await eventRepo.updateByEventUuid({ eventUuid, userId, fields })
+        await eventRepo.updateByEventUuid({ eventUuid, userId, fields, isAdmin })
 
-        if (existing.thread_id && (title !== undefined || description !== undefined)) {
+        if (existing.thread_id && (title !== undefined || description !== undefined || isPublic !== undefined)) {
             const newTitle = title ?? existing.event_title
             const newDescription = description ?? existing.event_description
+            const threadPayload = {
+                title: `${newTitle} — Event`,
+                content: newDescription || newTitle,
+            }
+            if (isPublic !== undefined) threadPayload.isPublic = isPublic
             try {
+                // The linked post belongs to the event's creator, so edit it as them (this is
+                // also what lets an admin's edit reach the post).
                 await threadService.patchByThreadId({
-                    userId,
+                    userId: existing.created_by_user_id,
                     threadId: existing.thread_id,
-                    payload: {
-                        title: `${newTitle} — Event`,
-                        content: newDescription || newTitle,
-                    },
+                    payload: threadPayload,
                 })
             } catch (err) {
                 // The linked community post was deleted -- the event edit
@@ -134,5 +142,30 @@ export function createEventService({eventRepo, threadService, uploadBuffer}) {
         }
 
         return await getByEventUuid(eventUuid)
+    }
+
+        // Deletes an event and its linked community post. Only the event's creator or an admin.
+    async function deleteByEventUuid(userId, eventUuid, { isAdmin = false } = {}) {
+        const existing = await eventRepo.findByEventUuid(eventUuid)
+        if (!existing) {
+            throw new NotFoundError({ event: 'Not Found' }, 'Event not found.')
+        }
+        if (!isAdmin && String(existing.created_by_user_id) !== String(userId)) {
+            throw new UnauthorizedError(null, 'You do not have permission to delete this event')
+        }
+
+        await eventRepo.deleteByEventUuid({ eventUuid, userId, isAdmin })
+
+        if (existing.thread_id) {
+            try {
+                await threadService.deleteByThreadId({
+                    threadId: existing.thread_id,
+                    userId: existing.created_by_user_id,
+                })
+            } catch (err) {
+                // The linked post was already deleted -- the event is gone either way.
+                if (!(err instanceof UnauthorizedError)) throw err
+            }
+        }
     }
 }

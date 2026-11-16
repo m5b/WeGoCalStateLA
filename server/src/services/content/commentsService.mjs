@@ -3,8 +3,12 @@ import { NotFoundError } from '../../errors/notFoundError.mjs'
 import {UnauthorizedError} from "../../errors/unauthorizedError.mjs";
 import { v4 as uuidv4 } from 'uuid';
 import buildPatchQuery from "../../util/buildPatchQuery.mjs";
+import { assertCanView } from '../../util/visibility.mjs'
+import { BadRequestError } from '../../errors/badRequestError.mjs'
+import { IMAGE_EXTENSIONS } from '../../lib/imageTypes.mjs'
 
-export function createCommentService({commentRepo, threadService}) {
+// uploadBuffer saves an attached picture and returns its URL (see lib/localStorage.mjs).
+export function createCommentService({commentRepo, threadService, uploadBuffer}) {
     return{
         getByCommentId,
         getByCommentUuid,
@@ -17,6 +21,8 @@ export function createCommentService({commentRepo, threadService}) {
         postComment,
         deleteByCommentId,
         deleteByCommentUuid,
+        markLikedBy,
+        toggleLike,
     }
 
     async function getByCommentId(commentId) {
@@ -65,9 +71,40 @@ export function createCommentService({commentRepo, threadService}) {
         return comments
     }
 
-    async function postComment({userId, threadUuid, payload, parentCommentUuid}) {
+    // Adds likedByMe to each reply for the signed-in user. With no userId nothing is marked as liked.
+    async function markLikedBy(comments, userId) {
+        const liked = userId ? new Set(await commentRepo.findLikedCommentIds(userId)) : new Set()
+        for (const comment of comments) comment.likedByMe = liked.has(comment.commentId)
+        return comments
+    }
+
+    // Likes the reply if the user hasn't, un-likes it if they have.
+    async function toggleLike({ commentUuid, userId }) {
+        const comment = await getByCommentUuid(commentUuid)
+        if (comment.deletedAt) {
+            throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
+        }
+        const liked = await commentRepo.toggleLike({ commentId: comment.commentId, userId })
+        const likeCount = await commentRepo.countLikes(comment.commentId)
+        return { liked, likeCount }
+    }
+
+        // imageFile is multer's req.file (undefined when no picture was attached).
+    async function postComment({userId, threadUuid, payload, parentCommentUuid, imageFile}) {
         const thread = await threadService.getByThreadUuid(threadUuid)
+        // Replying anonymously is only allowed on public threads.
+        if (userId == null) assertCanView(thread, null)
         const { content } = payload
+        // A reply needs some text or a picture (or both).
+        if (!content.trim() && !imageFile) {
+            throw new BadRequestError({ content: 'Write a reply or attach a picture.' }, 'Write a reply or attach a picture.')
+        }
+        let photoUrl = null
+        if (imageFile) {
+            // Name the file from its type, never from the uploaded file name.
+            const ext = IMAGE_EXTENSIONS[imageFile.mimetype] ?? 'jpg'
+            photoUrl = await uploadBuffer({ buffer: imageFile.buffer, key: `comments/${uuidv4()}.${ext}` })
+        }
         let inserted, insertId
         if(parentCommentUuid == null){
             const result = await commentRepo.insertComment({
@@ -75,6 +112,7 @@ export function createCommentService({commentRepo, threadService}) {
                 threadId: thread.threadId,
                 content: content,
                 commentUuid: uuidv4(),
+                photoUrl,
             })
             insertId = result.insertId
             inserted = result.inserted
@@ -86,6 +124,7 @@ export function createCommentService({commentRepo, threadService}) {
                 content: content,
                 commentUuid: uuidv4(),
                 parentCommentUuid,
+                photoUrl,
             })
             insertId = result.insertId
             inserted = result.inserted
@@ -96,7 +135,6 @@ export function createCommentService({commentRepo, threadService}) {
         const comment = await getByCommentId(insertId)
         return comment
     }
-
 
     async function patchByCommentId({commentId, userId, payload}) {
         const { sqlQuery, dataList } = buildPatchQuery(
@@ -113,15 +151,17 @@ export function createCommentService({commentRepo, threadService}) {
         return comment
     }
 
-    async function patchByCommentUuid({commentUuid, userId, payload}){
+    // isAdmin lets an admin edit any reply, not only their own.
+    async function patchByCommentUuid({commentUuid, userId, payload, isAdmin = false}){
         const { sqlQuery, dataList } = buildPatchQuery(
             'comments',
             dbMapper.toDb(payload)
         )
-        const{existed, changed} = await commentRepo.updateByCommentUuid({
-            commentUuid, userId, sqlQuery, dataList
-        })
+        const{existed, changed} = isAdmin
+            ? await commentRepo.updateAnyByCommentUuid({ commentUuid, sqlQuery, dataList })
+            : await commentRepo.updateByCommentUuid({ commentUuid, userId, sqlQuery, dataList })
         if(!existed){
+            if (isAdmin) throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
         const comment = await getByCommentUuid(commentUuid)
@@ -139,11 +179,13 @@ export function createCommentService({commentRepo, threadService}) {
         }
     }
 
-    async function deleteByCommentUuid({commentUuid, userId}) {
-        const deleted = await commentRepo.deleteByCommentUuid({
-            commentUuid, userId
-        })
+    // isAdmin lets an admin delete any reply, not only their own.
+    async function deleteByCommentUuid({commentUuid, userId, isAdmin = false}) {
+        const deleted = isAdmin
+            ? await commentRepo.deleteAnyByCommentUuid({ commentUuid })
+            : await commentRepo.deleteByCommentUuid({ commentUuid, userId })
         if(!deleted){
+            if (isAdmin) throw new NotFoundError({ comment: 'Cannot find reply with the given identifier' })
             throw new UnauthorizedError(null, "You do not have permission to change this thread")
         }
     }

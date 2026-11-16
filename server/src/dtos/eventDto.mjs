@@ -36,6 +36,7 @@ export default class EventDto {
         this.authorUsername = event.authorUsername || null
         this.authorUuid = event.authorUuid || null
         this.threadId = event.threadUuid || null
+        this.isPublic = Boolean(event.isPublic)
         this.createdAt = event.createdAt ? new Date(event.createdAt).getTime() : Date.now()
     }
 }
