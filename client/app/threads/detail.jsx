@@ -165,7 +165,9 @@ export default function ThreadDetail() {
         ListHeaderComponent={
           <View style={styles.threadCard}>
             {thread.imageUri ? (
-              <FlexibleImage uri={thread.imageUri} maxHeight={340} style={[styles.image, styles.imageCapped]} />
+              <View style={styles.threadImageBleed}>
+                <FlexibleImage uri={thread.imageUri} maxHeight={640} style={[styles.image]} />
+              </View>
             ) : null}
 
             <View style={styles.tagRow}>
@@ -253,7 +255,10 @@ export default function ThreadDetail() {
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
 
-        contentContainerStyle={{ paddingBottom: replyImage ? 300 : 180 }}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: replyImage ? 300 : 180 },
+        ]}
       />
       
       {/*<View style={styles.replyBox}>
@@ -312,14 +317,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   threadCard: {
-    margin: 14,
+    marginVertical: 14,
     backgroundColor: Colors.GRAY_900,
     borderRadius: 16,
     padding: 14,
+    overflow: "hidden",
+  },
+  threadImageBleed: {
+    marginHorizontal: -14,
+    marginTop: -14,
+  },
+  listContent: {
+    width: "100%",
+    maxWidth: 860,
+    alignSelf: "center",
+    paddingHorizontal: 16,
   },
   image: {
     width: "100%",
-    borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
   // Keeps a big photo from filling the whole screen: at most 520px wide and 340px tall, centered.
