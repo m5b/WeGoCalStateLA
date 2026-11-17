@@ -1,14 +1,9 @@
-FROM node:25-alpine AS builder
+FROM node:25-alpine
 WORKDIR /server
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY . .
-
-FROM node:25-alpine AS runner
-WORKDIR /server
-ENV NODE_ENV=production
 RUN adduser --disabled-password dev
-COPY --from=builder --chown=dev:dev /server/. ./
+COPY package.json package-lock.json ./
+RUN npm install
+COPY --chown=dev:dev . .
 RUN mkdir -p /server/uploads && chown -R dev:dev /server/uploads
 USER dev
 
