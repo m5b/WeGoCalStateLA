@@ -11,7 +11,7 @@ import {
 import { useThreads } from "./threadStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../../constant/Colors";
-import { formatTimestamp } from "../../utils/formatTimestamp";
+import ThreadByline from "../../components/ThreadByline";
 import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
@@ -203,12 +203,6 @@ export default function ThreadDetail() {
               <Text style={styles.threadBody}>{thread.text}</Text>
             )}
 
-            {thread.createdAt ? (
-              <Text style={styles.timestamp}>
-                {formatTimestamp(thread.createdAt)}
-              </Text>
-            ) : null}
-
             <View style={styles.metaRow}>
               {thread.date ? (
                 <Text style={styles.metaText}>{thread.date}</Text>
@@ -224,12 +218,12 @@ export default function ThreadDetail() {
               ) : null}
             </View>
 
-            <TouchableOpacity
-              onPress={handleLike}
-              style={{ marginTop: 10 }}
-            >
-              <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
-            </TouchableOpacity>
+            <View style={styles.footerRow}>
+              <ThreadByline thread={thread} />
+              <TouchableOpacity onPress={handleLike}>
+                <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         }
         data={thread.replies ?? []}
@@ -238,6 +232,7 @@ export default function ThreadDetail() {
           <ReplyNode
             reply={item}
             user={user}
+            originalAuthorUuid={thread.authorUuid}
             onLike={handleReplyLike}
             //onReply={(parent, { text, imageUri }) => actions.addReply(thread.id, { text, imageUri, parentId: parent.id })}
             // Replying needs an account; signed-out visitors can only read.
@@ -375,18 +370,15 @@ const styles = StyleSheet.create({
   threadBody: {
     color: Colors.WHITE,
     fontSize: 15,
+    lineHeight: 23,
     marginTop: 6,
   },
   threadCaption: {
     color: Colors.WHITE,
     fontSize: 18,
+    lineHeight: 26,
     fontWeight: "700",
     marginTop: 10,
-  },
-  timestamp: {
-    color: Colors.TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 4,
   },
   metaRow: {
     flexDirection: "row",
@@ -397,9 +389,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   likesText: {
-    color: Colors.SECONDARY,
+    color: Colors.BRAND_GOLD,
     fontWeight: "700",
   },
+  footerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 12 },
   replyCard: {
     marginHorizontal: 14,
     marginVertical: 6,

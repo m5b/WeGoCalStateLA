@@ -17,16 +17,14 @@ export default function UserLink({ name, userUuid, style, numberOfLines, canMess
   if (!isAuthenticated || !userUuid) {
     return <Text style={style} numberOfLines={numberOfLines}>{name}</Text>;
   }
-  if (userUuid === user?.userUuid) {
-    return (
-      <Text style={[style, styles.link]} numberOfLines={numberOfLines} accessibilityRole="link" onPress={() => router.push("/profile")}>
-        {name}
-      </Text>
-    );
-  }
+  const openProfile = (event) => {
+    event.stopPropagation();
+    if (userUuid === user?.userUuid) router.push("/profile");
+    else setOpen(true);
+  };
   return (
     <>
-      <Text style={[style, styles.link]} numberOfLines={numberOfLines} accessibilityRole="link" onPress={() => setOpen(true)}>
+      <Text style={[style, styles.link]} numberOfLines={numberOfLines} accessibilityRole="link" onPress={openProfile}>
         {name}
       </Text>
       <ProfilePopout visible={open} userUuid={userUuid} canMessage={canMessage} onClose={() => setOpen(false)} />

@@ -14,7 +14,7 @@ import { Lock, MessageCircle } from "lucide-react-native";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
-import { formatTimestamp } from "../../utils/formatTimestamp";
+import ThreadByline from "../../components/ThreadByline";
 import { matchesSearch } from "../../utils/searchMatch";
 import SearchBar from "../../components/SearchBar";
 
@@ -55,10 +55,6 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
         ) : null}
       </View>
 
-      {item.createdAt ? (
-        <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
-      ) : null}
-
       <View style={styles.metaRow}>
         {item.date ? (
           <Text style={styles.metaText}>{item.date}</Text>
@@ -78,15 +74,18 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
       <View style={{ flexGrow: 1 }} />
 
       <View style={styles.footerRow}>
-        <TouchableOpacity
-          onPress={onLike}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
-          <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
-        </TouchableOpacity>
-        <Text style={styles.metaText}>
-          {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
-        </Text>
+        <ThreadByline thread={item} />
+        <View style={styles.footerActions}>
+          <TouchableOpacity
+            onPress={onLike}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
+          </TouchableOpacity>
+          <Text style={styles.metaText}>
+            {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -349,27 +348,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 4,
   },
-  timestamp: {
-    color: Colors.TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 4,
-  },
   metaRow: {
     flexDirection: "row",
     marginTop: 6,
   },
   metaText: {
-    color: Colors.TEXT_MUTED,
+    color: Colors.GRAY_400,
     fontSize: 13,
   },
   footerRow: {
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: 12,
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
+  footerActions: { flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 0 },
   likesText: {
-    color: Colors.SECONDARY,
+    color: Colors.BRAND_GOLD,
     fontWeight: "700",
   },
   centered: {
