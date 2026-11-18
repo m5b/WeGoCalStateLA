@@ -246,6 +246,7 @@ export function buildDemoSet(base, ex = extra, tp = topics) {
             ...ex.EXTRA_DIRECT_REPORTS.map((r) => ({ ...r, conversation: r.conversation + base.DIRECT_MESSAGES.length })),
         ],
         DIRECT_BLOCKS: ex.DIRECT_BLOCKS,
+        DIRECT_CLOSED: ex.DIRECT_CLOSED ?? [],
     }
 }
 
@@ -371,6 +372,16 @@ export function checkDemoSet(set, { images = null } = {}) {
     for (const b of set.DIRECT_BLOCKS) {
         known(b.blocker, 'block')
         known(b.blocked, 'block')
+    }
+
+    // A closure is made one hour before the seed runs, so a conversation only stays closed if its newest message
+    // is at least an hour old.
+    for (const c of set.DIRECT_CLOSED ?? []) {
+        known(c.user, 'closed conversation')
+        known(c.other, 'closed conversation')
+        const convo = set.DIRECT_MESSAGES.find((m) => m.between.includes(c.user) && m.between.includes(c.other))
+        if (!convo) problems.push(`closed conversation ${c.user} / ${c.other}: they have no conversation`)
+        else if (Math.min(...convo.messages.map((m) => hoursOf(m.ago))) < 1) problems.push(`closed conversation ${c.user} / ${c.other}: has a message newer than the closure, so it would show again`)
     }
     return problems
 }

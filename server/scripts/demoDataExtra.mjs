@@ -461,6 +461,14 @@ export const DIRECT_BLOCKS = [
     { blocker: 'Noah', blocked: 'Quinn' },
 ]
 
+// Conversations a person has closed. They are off that person's list, but every message is still there: they
+// come back when the person opens the chat again (for example with Message on the other person's profile) or
+// when a new message arrives. Each closure must be newer than the conversation's last message.
+export const DIRECT_CLOSED = [
+    { user: 'Dean', other: 'Priya' },
+    { user: 'Admin', other: 'Marcus' },
+]
+
 // How many short background chats between other people to generate (from DM_POOL).
 export const GENERATED_CONVERSATIONS = 44
 

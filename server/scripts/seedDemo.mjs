@@ -15,7 +15,7 @@ import { buildDemoSet } from './demoMerge.mjs'
 
 // The original demo data (demoData.mjs) plus the extra data and everything generated from the topic banks
 // (demoMerge.mjs).
-const { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED, DIRECT_MESSAGES, DIRECT_REPORTS, DIRECT_BLOCKS } = buildDemoSet(baseData)
+const { USERS, POSTS, EVENTS, FAQS, POST_NESTED, EVENT_NESTED, DIRECT_MESSAGES, DIRECT_REPORTS, DIRECT_BLOCKS, DIRECT_CLOSED } = buildDemoSet(baseData)
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const IMAGE_DIR = path.resolve(HERE, '../demo/images')
@@ -66,6 +66,8 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         return Number(rows[0].n) > 0
     }
     const messagesReady = (await hasTable('direct_messages')) && (await hasTable('user_blocks')) && (await hasTable('message_reports'))
+    // Closed conversations came later than the other message tables, so an older demo database may not have it yet.
+    const closuresReady = messagesReady && (await hasTable('conversation_closures'))
     const threadPublic = await hasColumn('threads', 'is_public')
     const eventPublic = await hasColumn('events', 'is_public')
     const [[nullRow]] = await conn.execute(
@@ -105,7 +107,8 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
         // Messages point at users, so they go before the demo people do.
         if (messagesReady) {
-            for (const table of ['message_reports', 'user_blocks', 'direct_messages']) {
+            for (const table of ['conversation_closures', 'message_reports', 'user_blocks', 'direct_messages']) {
+                if (table === 'conversation_closures' && !closuresReady) continue
                 await conn.execute(`DELETE FROM ${table}`)
             }
         }
@@ -158,7 +161,7 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
         }
 
         // ---- helpers ----
-        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0, messages: 0, reports: 0, blocks: 0 }
+        const counts = { users: USERS.length, posts: 0, replies: 0, events: 0, faqs: 0, photos: 0, likes: 0, publicThreads: 0, nested: 0, replyLikes: 0, messages: 0, reports: 0, blocks: 0, closed: 0 }
         // Likes: each post gets a steady, made-up number of likes from the demo people (never the
         // author, the admin, or the dean's account, so the dean can like and un-like to see it work).
         const LIKE_COUNTS = [24, 31, 18, 40, 12, 27, 35, 9, 22, 30, 16, 38, 14, 26, 33, 11, 29, 20, 36, 15]
@@ -343,7 +346,13 @@ export async function seedDemo({ conn, hashPassword, password, deanPassword = pa
                 await conn.execute('INSERT INTO user_blocks (blocker_id, blocked_id) VALUES (?, ?)', [idFor(b.blocker), idFor(b.blocked)])
                 counts.blocks++
             }
-            log(`Direct messages: ${counts.messages} messages in ${DIRECT_MESSAGES.length} conversations, ${counts.reports} reports for the admins, ${counts.blocks} blocks.`)
+            if (closuresReady) {
+                for (const c of DIRECT_CLOSED) {
+                   await conn.execute('INSERT INTO conversation_closures (user_id, other_id, closed_at) VALUES (?, ?, ?)', [idFor(c.user), idFor(c.other), ago([0, 1])])
+                    counts.closed++
+                }
+            }
+            log(`Direct messages: ${counts.messages} messages in ${DIRECT_MESSAGES.length} conversations, ${counts.reports} reports for the admins, ${counts.blocks} blocks, ${counts.closed} closed conversations.`)
         }
 
         await conn.commit()

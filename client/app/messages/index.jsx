@@ -91,6 +91,13 @@ export default function MessagesScreen() {
   const open = wide ? active ?? conversations[0] ?? null : active;
   const paneHeight = Math.max(520, height - 170);
 
+  // A closed conversation leaves the list right away; on a wide screen the next one opens, like Discord.
+  const handleClosed = (uuid) => {
+    setConversations((current) => current.filter((c) => c.userUuid !== uuid));
+    setActiveUuid(null);
+    setPicked(null);
+  };
+
   const select = (uuid) => {
     setActiveUuid(uuid);
     setPicked(null);
@@ -133,6 +140,7 @@ export default function MessagesScreen() {
       person={open}
       onBack={wide ? undefined : () => setActiveUuid(null)}
       onChanged={refresh}
+      onClosed={handleClosed}
     />
   ) : (
     <View style={styles.emptyPane}>

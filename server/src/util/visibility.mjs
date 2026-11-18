@@ -13,7 +13,7 @@ export function canView(item, viewer) {
 // the start of the body (padded with dots to 20 characters, or cut off with
 // "..."). Showing that on a private thread would give away its content, so
 // only a title the author actually wrote counts.
-function hasOwnTitle(title, body) {
+export function hasOwnTitle(title, body) {
     if (!title || title === '[Deleted]') return false
     const text = (body || '').trim()
     const generated =

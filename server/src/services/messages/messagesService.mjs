@@ -142,8 +142,26 @@ export function createMessagesService({ messagesRepo, savePrivate, privatePath, 
         return file
     }
 
+    // Closing a conversation takes it off your list; every message is kept, and opening it again (or a new
+    // message in it) brings it back.
+    async function closeConversation({ userId, personUuid }) {
+        const person = await personOrThrow(personUuid)
+        if (person.user_id === userId) throw new BadRequestError(null, "You can't close a conversation with yourself.")
+        await messagesRepo.closeConversation({ userId, otherId: person.user_id })
+    }
+    async function openConversation({ userId, personUuid }) {
+        const person = await personOrThrow(personUuid)
+        await messagesRepo.reopenConversation({ userId, otherId: person.user_id })
+    }
+
+    async function listBlocked(userId) {
+        const rows = await messagesRepo.listBlocked(userId)
+        return rows.map((row) => toPersonDto(row))
+    }
+
     return {
         searchPeople, listConversations, getConversation, send, deleteMessage, unreadCount, block, unblock,
+        closeConversation, openConversation, listBlocked,
         getPhotoFile, report, listReports, resolveReport, getReportPhotoFile,
     }
 }

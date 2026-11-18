@@ -14,7 +14,9 @@ import { Lock, MessageCircle } from "lucide-react-native";
 import { useThreads } from "./threadStore";
 import { THREAD_CATEGORIES } from "../../services/threads";
 import { Colors } from "../../constant/Colors";
-import { formatTimestamp } from "../../utils/formatTimestamp";
+import ThreadByline from "../../components/ThreadByline";
+import { matchesSearch } from "../../utils/searchMatch";
+import SearchBar from "../../components/SearchBar";
 
 function ThreadItem({ item, onPress, onLike, compact = false }) {
   // An empty slot that keeps the last row's cards the same width as the rows above it.
@@ -53,10 +55,6 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
         ) : null}
       </View>
 
-      {item.createdAt ? (
-        <Text style={styles.timestamp}>{formatTimestamp(item.createdAt)}</Text>
-      ) : null}
-
       <View style={styles.metaRow}>
         {item.date ? (
           <Text style={styles.metaText}>{item.date}</Text>
@@ -76,15 +74,18 @@ function ThreadItem({ item, onPress, onLike, compact = false }) {
       <View style={{ flexGrow: 1 }} />
 
       <View style={styles.footerRow}>
-        <TouchableOpacity
-          onPress={onLike}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
-          <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
-        </TouchableOpacity>
-        <Text style={styles.metaText}>
-          {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
-        </Text>
+        <ThreadByline thread={item} />
+        <View style={styles.footerActions}>
+          <TouchableOpacity
+            onPress={onLike}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <Text style={styles.likesText}>{item.likedByMe ? "❤" : "♡"} {item.likes ?? 0}</Text>
+          </TouchableOpacity>
+          <Text style={styles.metaText}>
+            {replyTotal} {replyTotal === 1 ? "reply" : "replies"}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -110,8 +111,13 @@ export default function ThreadFeed() {
       ? params.category
       : "general"
   );
+  const [query, setQuery] = useState("");
 
-  const visibleThreads = state.threads
+  // Threads that match the search box (all of them when it's empty).
+  const matchingThreads = state.threads.filter((t) =>
+    matchesSearch(query, [t.caption, t.text, t.author])
+  );
+  const visibleThreads = matchingThreads
     .filter((t) => (t.category ?? "general") === category)
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     // Fill out the last row with empty slots so a lone card doesn't stretch across the whole row.
@@ -145,10 +151,17 @@ export default function ThreadFeed() {
         </TouchableOpacity>
       </View>
 
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search conversations by title, text, or author"
+        style={styles.searchBar}
+      />
+
       <View style={styles.tabRow}>
         {THREAD_CATEGORIES.map((c) => {
           const selected = category === c.key;
-          const count = state.threads.filter(
+          const count = matchingThreads.filter(
             (t) => (t.category ?? "general") === c.key
           ).length;
           return (
@@ -189,7 +202,9 @@ export default function ThreadFeed() {
         ListEmptyComponent={() => (
           <View style={{ padding: 16 }}>
             <Text style={{ color: Colors.TEXT_MUTED }}>
-              No threads in this category yet. Be the first to post!
+              {query.trim()
+                ? `No conversations match "${query.trim()}".`
+                : "No threads in this category yet. Be the first to post!"}
             </Text>
           </View>
         )}
@@ -227,6 +242,10 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     fontWeight: "600",
     fontSize: 14,
+  },
+  searchBar: {
+    marginHorizontal: 12,
+    marginBottom: 10,
   },
   tabRow: {
     flexDirection: "row",
@@ -329,27 +348,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 4,
   },
-  timestamp: {
-    color: Colors.TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 4,
-  },
   metaRow: {
     flexDirection: "row",
     marginTop: 6,
   },
   metaText: {
-    color: Colors.TEXT_MUTED,
+    color: Colors.GRAY_400,
     fontSize: 13,
   },
   footerRow: {
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: 12,
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
+  footerActions: { flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 0 },
   likesText: {
-    color: Colors.SECONDARY,
+    color: Colors.BRAND_GOLD,
     fontWeight: "700",
   },
   centered: {

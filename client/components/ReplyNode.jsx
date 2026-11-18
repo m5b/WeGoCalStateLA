@@ -5,6 +5,7 @@ import { formatTimestamp } from "../utils/formatTimestamp";
 import { canManage } from "../utils/permissions";
 import { countReplies } from "../utils/replyTree";
 import FlexibleImage from "./FlexibleImage";
+import UserLink from "./UserLink";
 
 const INDENT = 16;
 const MAX_INDENTED_LEVELS = 3; // deeper replies line up with level 3 so they don't squeeze to nothing
@@ -26,6 +27,7 @@ export default function ReplyNode({
   reply,
   depth = 0,
   user,
+  originalAuthorUuid,
   onLike,
   onReplyTo,
   replyingToId,
@@ -87,7 +89,10 @@ export default function ReplyNode({
             >
               <Text style={styles.foldText}>{collapsed ? "+" : "\u2212"}</Text>
             </TouchableOpacity>
-            <Text style={styles.author}>{reply.author || "Anonymous"}</Text>
+            <UserLink name={reply.author || "Anonymous"} userUuid={reply.authorUuid} style={styles.author} />
+            {originalAuthorUuid && reply.authorUuid && reply.author !== "[Deleted]" && String(reply.authorUuid).toLowerCase() === String(originalAuthorUuid).toLowerCase() ? (
+              <Text style={styles.authorBadge}>Author</Text>
+            ) : null}
           </View>
           {reply.createdAt ? (
             <Text style={styles.timestamp}>
@@ -171,6 +176,7 @@ export default function ReplyNode({
               reply={child}
               depth={depth + 1}
               user={user}
+              originalAuthorUuid={originalAuthorUuid}
               onLike={onLike}
               onReplyTo={onReplyTo}
               replyingToId={replyingToId}
@@ -200,6 +206,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     gap: 8,
@@ -209,6 +216,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     flexShrink: 1,
+    maxWidth: "100%",
+    minWidth: 0,
   },
   fold: {
     width: 22,
@@ -229,6 +238,17 @@ const styles = StyleSheet.create({
     color: Colors.TEXT,
     fontWeight: "700",
     flexShrink: 1,
+  },
+  authorBadge: {
+    flexShrink: 0,
+    color: Colors.BLACK,
+    backgroundColor: Colors.BRAND_GOLD,
+    fontSize: 11,
+    fontWeight: "600",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
+    overflow: "hidden",
   },
   timestamp: {
     color: Colors.TEXT_MUTED,

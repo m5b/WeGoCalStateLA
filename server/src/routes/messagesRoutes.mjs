@@ -28,6 +28,20 @@ export function createMessagesRouter({ userService, messagesService }) {
         res.json(jsend.success({ conversations: await messagesService.listConversations(req.user.userId) }))
     })
 
+    // Close a conversation: it leaves your list but nothing is deleted. It comes back when you open it
+    // again (the second route) or when a new message is sent in it.
+    router.post('/conversations/:userUuid/close', auth, async (req, res) => {
+        const personUuid = uuidSchema.parse(req.params.userUuid)
+        await messagesService.closeConversation({ userId: req.user.userId, personUuid })
+        res.json(jsend.success(null))
+    })
+
+    router.post('/conversations/:userUuid/open', auth, async (req, res) => {
+        const personUuid = uuidSchema.parse(req.params.userUuid)
+        await messagesService.openConversation({ userId: req.user.userId, personUuid })
+        res.json(jsend.success(null))
+    })
+
     // Open a conversation (marks their messages to you as read).
     router.get('/with/:userUuid', auth, async (req, res) => {
         const otherUuid = uuidSchema.parse(req.params.userUuid)
@@ -43,6 +57,11 @@ export function createMessagesRouter({ userService, messagesService }) {
             senderId: req.user.userId, recipientUuid, content, imageFile: req.file,
         })
         res.json(jsend.success({ message }))
+    })
+
+    // The people you have blocked.
+    router.get('/blocks', auth, async (req, res) => {
+        res.json(jsend.success({ blocked: await messagesService.listBlocked(req.user.userId) }))
     })
 
     router.put('/blocks/:userUuid', auth, async (req, res) => {

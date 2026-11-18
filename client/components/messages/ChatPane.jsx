@@ -16,10 +16,13 @@ import Avatar from "../Avatar";
 import ReplyImagePicker from "../ReplyImagePicker";
 import { confirmAction } from "../../utils/confirmAction";
 import { formatMessageTime } from "../../utils/formatMessageTime";
+import UserLink from "../UserLink";
 import {
   blockUser,
+  closeConversation,
   deleteMessage,
   getConversation,
+  openConversation,
   reportMessage,
   sendMessage,
   unblockUser,
@@ -37,7 +40,8 @@ function sendErrorMessage(error) {
 //   person     { userUuid, displayName } of who you are talking to
 //   onBack     (narrow screens) go back to the list
 //   onChanged  called after something changed, so the list can refresh its unread counts
-export default function ChatPane({ person, onBack, onChanged }) {
+//   onClosed   called with the person's id after the conversation was closed (it leaves your list; nothing is deleted)
+export default function ChatPane({ person, onBack, onChanged, onClosed }) {
   const [info, setInfo] = useState(person);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +81,8 @@ export default function ChatPane({ person, onBack, onChanged }) {
     setMessages([]);
     setInfo(person);
     shownCount.current = 0;
-    load();
+    // Opening a conversation you had closed puts it back in your list (its messages were never deleted).
+    openConversation(person.userUuid).catch(() => {}).then(load);
     const timer = setInterval(load, 6000);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,6 +131,15 @@ export default function ChatPane({ person, onBack, onChanged }) {
       },
     });
 
+  const close = async () => {
+    try {
+      await closeConversation(person.userUuid);
+      onClosed?.(person.userUuid);
+    } catch (err) {
+      console.warn("Failed to close conversation", err);
+    }
+  };
+
   const toggleBlock = () =>
     confirmAction({
       title: blocked ? "Unblock" : "Block",
@@ -154,6 +168,10 @@ export default function ChatPane({ person, onBack, onChanged }) {
         ) : null}
         <Avatar name={name} size={34} />
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <UserLink name={name} userUuid={person.userUuid} style={styles.name} numberOfLines={1} canMessage={false} />
+        <TouchableOpacity onPress={close} accessibilityLabel="Close conversation">
+          <Text style={styles.link}>Close</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={toggleBlock}>
           <Text style={blocked ? styles.link : styles.danger}>{blocked ? "Unblock" : "Block"}</Text>
         </TouchableOpacity>
