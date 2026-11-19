@@ -5,7 +5,7 @@ import { Colors } from '../constant/Colors';
 const OPTIONS = [
   { id: 'all', label: 'All' },
   { id: 'csula', label: 'Cal State LA' },
-  { id: 'other', label: 'Outside CSULA' },
+  { id: 'other', label: 'External Resources' },
 ];
 
 // Lets families narrow a list of resources by who provides them.
@@ -36,8 +36,13 @@ export default function ProviderFilter({ resources, value, onChange }) {
   );
 }
 
+// Under "All", outside resources come first and Cal State LA resources after them.
+// Within each group, resources keep the order they have in ResourceCategories.js.
 export function filterByProvider(resources, value) {
-  return value === 'all' ? resources : resources.filter((resource) => resource.provider === value);
+  if (value !== 'all') return resources.filter((resource) => resource.provider === value);
+  const outside = resources.filter((resource) => resource.provider !== 'csula');
+  const csula = resources.filter((resource) => resource.provider === 'csula');
+  return [...outside, ...csula];
 }
 
 const styles = StyleSheet.create({

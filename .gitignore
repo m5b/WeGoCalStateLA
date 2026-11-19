@@ -6,3 +6,6 @@ npm-debug.log
 .env.prototype
 *.pem
 .idea
+
+# Machine-specific Firebase credential mount (contains a local host path).
+/compose.firebase.local.yml

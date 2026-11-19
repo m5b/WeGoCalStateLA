@@ -7,7 +7,6 @@ export function createJWTTokenService(){
 
     return{
         issueAccessToken,
-        issueOIDCToken,
         issueSignupToken,
         issueLoginToken,
         issueOTPToken,
@@ -28,10 +27,6 @@ export function createJWTTokenService(){
     }
     function issueAccessToken(userUuid){
         return signJWTToken({ sub: userUuid, expiresIn: '1h', audience: 'access' })
-    }
-
-    function issueOIDCToken(key){
-        return signJWTToken( {sub: key, expiresIn: '5h', audience: 'oidc'})
     }
 
     function issueSignupToken(key){

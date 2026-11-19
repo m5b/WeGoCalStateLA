@@ -17,7 +17,7 @@ export function createSignupRouter({voprfService, userService, passwordService, 
         let username
 
         if (isEmail) {
-            emailHash = await voprfService.handleServerVOPRF(identifier)
+            emailHash = await voprfService.handleServerVOPRF(identifier.trim().toLowerCase())
             const existing = await authRepo.findByEmailHash(emailHash)
             if (existing) {
                 throw new ConflictError(

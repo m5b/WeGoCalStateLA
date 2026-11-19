@@ -25,14 +25,15 @@ export function createCommentRouter({userService, commentService}) {
     })
 
     //tested
+    // Replying needs an account; signed-out visitors can only read.
     router.post(
         '/me/thread/:threadUuid',
+        requireAuth(userService),
         upload.single('image'),
-        optionalAuth(userService),
         async (req, res) => {
-            const userId = req.user ? req.user.userId : null
+            const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
-            const payload = commentSchema.parse(req.body)
+            const payload = commentPostSchema.parse(req.body)
             const comment = await commentService.postComment({
                 userId,
                 threadUuid,
@@ -50,10 +51,10 @@ export function createCommentRouter({userService, commentService}) {
     //tested
     router.post(
         '/me/thread/:threadUuid/comment/:parentCommentUuid',
-        optionalAuth(userService),
+        requireAuth(userService),
         upload.single('image'),
         async (req, res) => {
-            const userId = req.user ? req.user.userId : null
+            const userId = req.user.userId
             const threadUuid = uuidSchema.parse(req.params.threadUuid)
             const parentCommentUuid = uuidSchema.parse(
                 req.params.parentCommentUuid

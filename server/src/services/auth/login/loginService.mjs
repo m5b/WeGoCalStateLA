@@ -11,10 +11,10 @@ export function createLoginService({authRepo, passwordService, jwtTokenService, 
     }
 
     async function authenticateUser(identifier, password) {
-        const isEmail = /^\S@\S\.\S$/.test(identifier)
+        const isEmail = /^\S+@\S+\.\S+$/.test(identifier)
         const user = dbMapper.fromDb(
             isEmail
-                ? await authRepo.findByEmailHash(await voprfService.handleServerVOPRF(identifier))
+                ? await authRepo.findByEmailHash(await voprfService.handleServerVOPRF(identifier.trim().toLowerCase()))
                 : await authRepo.findByUsername(identifier)
         )
         if (!user) {

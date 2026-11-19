@@ -16,3 +16,25 @@ export async function uploadBuffer({ buffer, key }) {
     await fs.writeFile(destPath, buffer)
     return `/api/uploads/${key}`
 }
+
+
+// Pictures in private messages must not be reachable through the public /api/uploads route, so they are
+// written under this folder, which app.mjs refuses to serve. The messages API hands them out only to
+// the two people in the conversation.
+export const PRIVATE_DIR = '_private'
+
+// Writes a private file and returns its path relative to the uploads folder (not a URL).
+export async function uploadPrivateBuffer({ buffer, key }) {
+    const relative = `${PRIVATE_DIR}/${key}`
+    const destPath = path.join(UPLOAD_ROOT, relative)
+    await fs.mkdir(path.dirname(destPath), { recursive: true })
+    await fs.writeFile(destPath, buffer)
+    return relative
+}
+
+// The file for a stored private path, or null if it points outside the private folder.
+export function privateFilePath(relative) {
+    const privateRoot = path.join(UPLOAD_ROOT, PRIVATE_DIR)
+    const resolved = path.resolve(UPLOAD_ROOT, relative)
+    return resolved.startsWith(privateRoot + path.sep) ? resolved : null
+}

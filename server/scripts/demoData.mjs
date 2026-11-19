@@ -562,3 +562,47 @@ export const EVENT_NESTED = {
     1: { 1: [{ user: 'David', later: 5, text: 'Notes in the thread would help us too. Thank you!' }] },
     3: { 0: [{ user: 'Sam', later: 3, text: 'I will come too, so we can sit together.' }] },
 }
+
+
+// Private conversations for the Messages page. `between` are the two people; each message says who sent
+// it, when (`ago` is [days, hours] ago), and whether it has been read. `photo` is a file from
+// server/demo/images. Dean has three unread messages, so the badge shows in the demo.
+export const DIRECT_MESSAGES = [
+    {
+        between: ['Rosa', 'Dean'],
+        messages: [
+            { from: 'Rosa', ago: [2, 5], read: true, text: 'Hi Dean, welcome to the group! I am one of the parents here.' },
+            { from: 'Dean', ago: [2, 4], read: true, text: 'Thank you, Rosa. Glad to be here.' },
+            { from: 'Rosa', ago: [0, 6], read: false, text: 'Did you see the Family Welcome Night event? I am bringing my son.' },
+            { from: 'Rosa', ago: [0, 5], read: false, text: 'It would be great to meet you there!' },
+        ],
+    },
+    {
+        between: ['Keiko', 'Dean'],
+        messages: [
+            { from: 'Keiko', ago: [4, 2], read: true, text: 'Hello! I saw your name in the study group thread.' },
+            { from: 'Dean', ago: [4, 1], read: true, text: 'Hi Keiko! Yes, we are trying to find a good time to meet.' },
+            { from: 'Keiko', ago: [3, 20], read: true, photo: 'care-package.jpg', text: 'This is the care package I put together for my daughter. Maybe it gives you ideas!' },
+            { from: 'Dean', ago: [3, 19], read: true, text: 'That is wonderful, thank you for sharing.' },
+        ],
+    },
+    {
+        between: ['Admin', 'Dean'],
+        messages: [
+            { from: 'Admin', ago: [0, 3], read: false, text: 'Welcome to the WeGo preview. This is the Messages page: you can message members, block someone, and report a message to the admins.' },
+        ],
+    },
+    {
+        between: ['Tom', 'Rosa'],
+        messages: [
+            { from: 'Tom', ago: [1, 8], read: true, text: 'Hi Rosa, could you send me your phone number? It would be easier to talk.' },
+            { from: 'Rosa', ago: [1, 7], read: true, text: 'I would rather keep chatting here, thank you.' },
+        ],
+    },
+]
+
+// Messages reported to the admins, so the Message reports page has something to show.
+// `conversation` and `message` are positions in DIRECT_MESSAGES.
+export const DIRECT_REPORTS = [
+    { conversation: 3, message: 0, reporter: 'Rosa', reason: 'Asked for my phone number. I would rather not share it.' },
+]

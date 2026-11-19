@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
-import { MapPin, Phone, Globe, Bookmark } from 'lucide-react-native';
+import { MapPin, Phone, Globe, Bookmark, Clock } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
+import ResourceGuide from './ResourceGuide';
 
 const ACTION_LABELS = { call: 'Call', website: 'Visit website' };
 
@@ -43,11 +44,29 @@ export default function ResourceCard({ resource, category, saved, onToggleSave }
 
       <View style={styles.body}>
         <Text style={[styles.badge, isCsula ? styles.badgeCsula : styles.badgeOther]}>
-          {isCsula ? 'Cal State LA' : 'Outside CSULA'}
+          {isCsula ? 'Cal State LA' : 'External Resources'}
         </Text>
         <Text style={styles.title}>{resource.title}</Text>
         <Text style={styles.name}>{resource.name}</Text>
         <Text style={styles.description}>{resource.description}</Text>
+        {/* Key info users shouldn't miss, like VITA's hours. */}
+        {resource.highlight ? (
+          <View style={styles.highlight}>
+            <Clock size={18} color={Colors.PRIMARY} style={{ flexShrink: 0 }} />
+            <Text style={styles.highlightText}>{resource.highlight}</Text>
+          </View>
+        ) : null}
+        {resource.dates ? (
+          <View style={styles.dates}>
+            <Text style={styles.datesTitle}>Key dates</Text>
+            {resource.dates.map((item) => (
+              <View key={item.label} style={styles.dateRow}>
+                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.dateLabel}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {resource.address ? (
           <TouchableOpacity
@@ -87,7 +106,14 @@ export default function ResourceCard({ resource, category, saved, onToggleSave }
           </TouchableOpacity>
         ) : null}
 
+        {/* The spacer pushes the guide and buttons to the bottom, so they line up across cards. */}
         <View style={styles.spacer} />
+
+        <ResourceGuide
+          resource={resource}
+          actionLabel={ACTION_LABELS[resource.action]}
+          onAction={() => openAction(resource)}
+        />
 
         <TouchableOpacity
           style={styles.actionButton}
@@ -176,6 +202,57 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     marginTop: 12,
     marginBottom: 14,
+  },
+  highlight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 14,
+    borderRadius: 10,
+    backgroundColor: Colors.PRIMARY_50,
+    borderWidth: 1,
+    borderColor: Colors.PRIMARY_200,
+  },
+  highlightText: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+  },
+  dates: {
+    padding: 12,
+    marginBottom: 14,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  datesTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.SECONDARY,
+    marginBottom: 8,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 10,
+    marginBottom: 6,
+  },
+  date: {
+    width: 104,
+    flexShrink: 0,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.PRIMARY,
+  },
+  dateLabel: {
+    flexShrink: 1,
+    fontSize: 15,
+    color: '#1e293b',
   },
   detail: {
     flexDirection: 'row',

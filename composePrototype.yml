@@ -52,9 +52,6 @@ services:
       CLIENT_URL: https://wegotocalstatela.org,http://localhost:8081,http://localhost:3000
       KEYCLOAK_ISSUER: https://placeholder.invalid/realms/wegoapp
       KEYCLOAK_AUDIENCE: placeholder
-      GOOGLE_CLIENT_ID: placeholder
-      GOOGLE_CLIENT_SECRET: placeholder
-      GOOGLE_CALLBACK_URL: /auth/google/callback
     depends_on:
       db:
         condition: service_healthy

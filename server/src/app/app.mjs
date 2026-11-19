@@ -5,19 +5,17 @@ import { createAPIRouter } from '../routes/index.mjs'
 import errorHandler from '../middlewares/errorHandler.mjs'
 import { createLoginTokenStore } from '../repositories/redis/loginTokenStore.mjs'
 import { redisKeysConfig } from '../config/redisKeysConfig.mjs'
-import { createOIDCStore } from '../repositories/redis/oidcStore.mjs'
 import { createSignupTokenStore } from '../repositories/redis/signupTokenStore.mjs'
 import { createAuthRepo } from '../repositories/authRepository.mjs'
 import { createCommentRepo } from '../repositories/commentsRepository.mjs'
+import { createMessagesRepo } from '../repositories/messagesRepository.mjs'
 import { createThreadRepo } from '../repositories/threadsRepository.mjs'
 import { createUserRepo } from '../repositories/userRepository.mjs'
 import { createUserService } from '../services/users/userService.mjs'
 import { createLoginTokenService } from '../services/auth/login/loginTokenService.mjs'
 import { createSignupTokenService } from '../services/auth/signup/signupTokenService.mjs'
-import { createOIDCService } from '../services/auth/oidc/oidcService.mjs'
-import { createGoogleAuthService } from '../services/auth/oidc/googleAuthServices.mjs'
-import { openIdClient } from '../lib/openIdClient.mjs'
-import { openIdConfig } from '../config/openIdConfig.mjs'
+import { createFirebaseIdentityRepo } from '../repositories/firebaseIdentityRepository.mjs'
+import { createFirebaseGoogleService } from '../services/auth/firebaseGoogleService.mjs'
 import { createPasswordService } from '../services/users/passwordService.mjs'
 import { createVOPRFService } from '../services/auth/voprf/voprfService.mjs'
 import { evaluator, voprfClient } from '../lib/voprf.mjs'
@@ -26,6 +24,8 @@ import { createOTPStore } from '../repositories/redis/otpStore.mjs'
 import { createEmailService } from '../services/auth/email/emailService.mjs'
 import { createThreadService } from '../services/content/threadsService.mjs'
 import { createCommentService } from '../services/content/commentsService.mjs'
+import { createMessagesService } from '../services/messages/messagesService.mjs'
+import { createMessagesRouter } from '../routes/messagesRoutes.mjs'
 import { createEmailOTPRouter } from '../routes/auth/emailOTP.mjs'
 import { createGoogleAuthRouter } from '../routes/auth/googleAuth.mjs'
 import { createLoginRouter } from '../routes/auth/login.mjs'
@@ -44,7 +44,7 @@ import { createAdminRouter } from '../routes/adminRoutes.mjs'
 import { createEventsRepo } from '../repositories/eventsRepository.mjs'
 import { createEventService } from '../services/events/eventService.mjs'
 import { createEventsRouter } from '../routes/eventsRoutes.mjs'
-import { uploadBuffer, UPLOAD_ROOT } from '../lib/localStorage.mjs'
+import { uploadBuffer, uploadPrivateBuffer, privateFilePath, UPLOAD_ROOT, PRIVATE_DIR } from '../lib/localStorage.mjs'
 import { createAIRouter } from '../routes/aiRoutes.mjs'
 import { createEventExtractionService } from '../services/ai/eventExtractionService.mjs'
 
@@ -63,10 +63,11 @@ export function createApp(db, redis, emailService){
     app.use(cookieParser())
     // Serves uploaded event photos back out, under /api/ so nginx's
     // existing proxy rule forwards these requests here too.
+    // Private message pictures live under _private and are only served by the messages API.
+    app.use(`/api/uploads/${PRIVATE_DIR}`, (req, res) => res.sendStatus(404))
     app.use('/api/uploads', express.static(UPLOAD_ROOT))
     //launch up the store / repo
     const loginTokenStore = createLoginTokenStore({redis, loginTokenPrefix: redisKeysConfig.loginToken})
-    const oidcStore = createOIDCStore({redis, oidcPrefix: redisKeysConfig.oidc})
     const signupTokenStore = createSignupTokenStore({redis, signupTokenPrefix: redisKeysConfig.signupToken})
     const otpStore = createOTPStore({redis, otpPrefix: redisKeysConfig.otp})
     const resetTokenStore = createResetTokenStore({redis, resetTokenPrefix: redisKeysConfig.resetToken})
@@ -76,6 +77,7 @@ export function createApp(db, redis, emailService){
     const threadRepo = createThreadRepo(db)
     const eventsRepo = createEventsRepo(db)
     const userRepo = createUserRepo(db)
+    const messagesRepo = createMessagesRepo(db)
 
 
     //launch up the service
@@ -88,20 +90,19 @@ export function createApp(db, redis, emailService){
     const usernameService = createUsernameService(userRepo)
     const passwordService = createPasswordService(12)
 
-    const googleAuthService = createGoogleAuthService(createOIDCService(
-        {oidcStore: oidcStore, openIdClient : openIdClient.googleClient, openIdConfig: openIdConfig, provider: "google", jwtTokenService}
-    ))
+    const googleAuthService = createFirebaseGoogleService({ identityRepo: createFirebaseIdentityRepo(db), voprfService, passwordService })
     const loginService= createLoginService({authRepo, passwordService, jwtTokenService, voprfService})
     const resetPasswordService = createResetPasswordService({resetTokenStore, jwtTokenService})
 
     const userService = createUserService({userRepo: userRepo, usernameService:usernameService})
     const threadService = createThreadService(threadRepo, { uploadBuffer })
     const commentService = createCommentService({commentRepo: commentRepo, threadService: threadService, userService, uploadBuffer})
+    const messagesService = createMessagesService({messagesRepo, savePrivate: uploadPrivateBuffer, privatePath: privateFilePath})
     const eventService = createEventService({eventRepo: eventsRepo, threadService, uploadBuffer})
     const eventExtractionService = createEventExtractionService()
     //launch up the router
     const emailOTPRouter = createEmailOTPRouter({emailService: emailService, otpService:otpService,signupTokenService:signupTokenService})
-    const googleAuthRouter = createGoogleAuthRouter({googleAuthService:googleAuthService, signupTokenService: signupTokenService})
+    const googleAuthRouter = createGoogleAuthRouter({ googleAuthService, userService, jwtTokenService, allowedOrigins })
     const voprfRouter= createVOPRFRouter(voprfService)
     const loginRouter = createLoginRouter({voprfService: voprfService, loginService:loginService, loginTokenService})
     const signupRouter = createSignupRouter({voprfService, userService, passwordService, usernameService, authRepo, jwtTokenService})
@@ -112,6 +113,7 @@ export function createApp(db, redis, emailService){
     const eventsRouter = createEventsRouter({userService, eventService})
     const aiRouter = createAIRouter({userService, eventExtractionService})
     const commentRouter = createCommentRouter({commentService, userService})
+    const messagesRouter = createMessagesRouter({userService, messagesService})
     const router = createAPIRouter({
         emailOTPRouter: emailOTPRouter,
         googleAuthRouter: googleAuthRouter,
@@ -120,6 +122,7 @@ export function createApp(db, redis, emailService){
         userRouter: userRouter,
         threadRouter: threadRouter,
         commentRouter: commentRouter,
+        messagesRouter,
         voprfRouter,
         resetPasswordRouter,
         adminRouter,

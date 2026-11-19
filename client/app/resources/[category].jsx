@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Pressable, StyleSheet, ScrollView, Linking } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Info, Users, MapPin, Phone, Globe, Calendar, ChevronRight, Bookmark } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
 import { Colors } from '../../constant/Colors';
 import { resourceCategories } from '../../constant/ResourceCategories';
+import { upcomingCategoryEvents, eventUrl, formatEventDate } from '../../constant/CategoryEvents';
 import ResourceCard from '../../components/ResourceCard';
 import ProviderFilter, { filterByProvider } from '../../components/ProviderFilter';
 import { useSavedResources } from '../../hooks/useSavedResources';
@@ -44,30 +45,33 @@ function PlaceholderCard({ resource }) {
   );
 }
 
-const templateEvent = {
-  title: '[Insert event title here]',
-  date: '[Insert date and time here]',
-  location: '[Insert location here]',
-  description: '[Insert event description here]',
-};
-const templateEvents = [templateEvent, templateEvent, templateEvent];
-
-function TemplateEventCard({ event, color }) {
+// One event from the live site's Events tab. Tapping it opens that event's page.
+function CategoryEventCard({ event, color }) {
   return (
-    <View style={styles.eventCard}>
+    <Pressable
+      style={({ hovered, pressed }) => [styles.eventCard, (hovered || pressed) && styles.eventCardHover]}
+      onPress={() => Linking.openURL(eventUrl(event))}
+      accessibilityRole="link"
+    >
       <View style={[styles.eventAccent, { backgroundColor: color }]} />
       <View style={styles.eventInner}>
-        <Text style={styles.templateBadge}>TEMPLATE</Text>
         <Text style={styles.eventTitle}>{event.title}</Text>
-        <Text style={styles.eventDate}>{event.date}</Text>
-        <Text style={styles.eventLocation}>{event.location}</Text>
+        <Text style={styles.eventDate}>
+          {formatEventDate(event.date)} at {event.time}
+        </Text>
         <Text style={styles.eventDescription}>{event.description}</Text>
+        <View style={styles.eventMore}>
+          <Text style={styles.eventMoreText}>View event</Text>
+          <ChevronRight size={16} color={Colors.PRIMARY} />
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 function CategoryEvents({ category }) {
+  const events = upcomingCategoryEvents(category.id);
+
   return (
     <View style={styles.eventsSection}>
       <View style={styles.eventsHeader}>
@@ -83,14 +87,15 @@ function CategoryEvents({ category }) {
           <ChevronRight size={18} color={Colors.PRIMARY} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.eventsNote}>
-        Preview only: events tagged with this category will appear here.
-      </Text>
-      <View style={styles.grid}>
-        {templateEvents.map((event, index) => (
-          <TemplateEventCard key={index} event={event} color={category.color} />
-        ))}
-      </View>
+      {events.length > 0 ? (
+        <View style={[styles.grid, styles.eventsGrid]}>
+          {events.map((event) => (
+            <CategoryEventCard key={event.id} event={event} color={category.color} />
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.eventsNote}>No upcoming {category.title.toLowerCase()} events right now.</Text>
+      )}
     </View>
   );
 }
@@ -381,18 +386,22 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
   },
-  templateBadge: {
-    alignSelf: 'flex-start',
-    fontSize: 10,
+  eventCardHover: {
+    backgroundColor: Colors.PRIMARY_100,
+  },
+  eventsGrid: {
+    marginTop: 12,
+  },
+  eventMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginTop: 10,
+  },
+  eventMoreText: {
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 1,
-    color: Colors.SECONDARY,
-    backgroundColor: 'white',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginBottom: 8,
-    overflow: 'hidden',
+    color: Colors.PRIMARY,
   },
   eventTitle: {
     fontSize: 16,
@@ -405,11 +414,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     marginBottom: 4,
-  },
-  eventLocation: {
-    fontSize: 13,
-    color: '#000',
-    marginBottom: 8,
   },
   eventDescription: {
     fontSize: 13,

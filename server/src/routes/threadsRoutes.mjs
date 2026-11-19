@@ -84,6 +84,18 @@ export function createThreadRouter({userService, threadService}){
         res.send(jsend.success(null))
     })
 
+    // Adds a picture to a thread, or replaces it (multipart, field "image"). The thread's author or an admin.
+    router.put('/me/:threadUuid/photo', requireAuth(userService), upload.single('image'), async (req, res) => {
+        const threadUuid = uuidSchema.parse(req.params.threadUuid)
+        const thread = await threadService.setPhotoByThreadUuid({
+            userId: req.user.userId,
+            threadUuid,
+            imageFile: req.file,
+            isAdmin: Boolean(req.user.isAdmin),
+        })
+        res.send(jsend.success({ thread: new ThreadDto(thread) }))
+    })
+
     // Like or un-like a post. Needs an account so one person can't like it many times.
     router.post('/:threadUuid/like', requireAuth(userService), async (req, res) => {
         const threadUuid = uuidSchema.parse(req.params.threadUuid)

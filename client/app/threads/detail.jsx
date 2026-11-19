@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -11,11 +11,12 @@ import {
 import { useThreads } from "./threadStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../../constant/Colors";
-import { formatTimestamp } from "../../utils/formatTimestamp";
+import ThreadByline from "../../components/ThreadByline";
 import { THREAD_CATEGORIES, isRealThread } from "../../services/threads";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import ReplyNode from "../../components/ReplyNode";
+import ReplyingToBar from "../../components/ReplyingToBar";
 import { confirmAction } from "../../utils/confirmAction";
 import { GatedContent } from "../../components/SignInGate";
 import { useAuth } from "../../context/AuthContext";
@@ -26,10 +27,13 @@ export default function ThreadDetail() {
   const { state, actions } = useThreads();
   const { threadId } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [text, setText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [replyError, setReplyError] = useState("");
+  // The reply the bottom bar is answering (null = answering the thread itself), like Discord's reply.
+  const [replyTarget, setReplyTarget] = useState(null);
+  const inputRef = useRef(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
   const [deleting, setDeleting] = useState(false);
@@ -110,19 +114,33 @@ export default function ThreadDetail() {
     confirmAction({
       title: "Delete reply",
       message: "Delete this reply? This can't be undone.",
-      onConfirm: () =>
-        actions
+      onConfirm: () => {
+        // Don't leave the bar answering a reply that is gone.
+        if (replyTarget?.id === replyId) setReplyTarget(null);
+        return actions
           .removeReply(thread.id, replyId)
-          .catch((err) => console.warn("Failed to delete reply", err)),
+          .catch((err) => console.warn("Failed to delete reply", err));
+      },
     });
+
+  // "Reply" on a reply points the bottom bar at it, so typing, uploading and Ctrl+V all go there.
+  const startReplyTo = (reply) => {
+    setReplyTarget(reply);
+    inputRef.current?.focus();
+  };
 
   const submit = async () => {
     if (!text.trim() && !replyImage) return;
     setReplyError("");
     try {
-      await actions.addReply(thread.id, { text: text.trim(), imageUri: replyImage });
+      await actions.addReply(thread.id, {
+        text: text.trim(),
+        imageUri: replyImage,
+        parentId: replyTarget?.id,
+      });
       setText("");
       setReplyImage(null);
+      setReplyTarget(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
       setReplyError(replyErrorMessage(error));
@@ -187,12 +205,6 @@ export default function ThreadDetail() {
               <Text style={styles.threadBody}>{thread.text}</Text>
             )}
 
-            {thread.createdAt ? (
-              <Text style={styles.timestamp}>
-                {formatTimestamp(thread.createdAt)}
-              </Text>
-            ) : null}
-
             <View style={styles.metaRow}>
               {thread.date ? (
                 <Text style={styles.metaText}>{thread.date}</Text>
@@ -208,12 +220,12 @@ export default function ThreadDetail() {
               ) : null}
             </View>
 
-            <TouchableOpacity
-              onPress={handleLike}
-              style={{ marginTop: 10 }}
-            >
-              <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
-            </TouchableOpacity>
+            <View style={styles.footerRow}>
+              <ThreadByline thread={thread} />
+              <TouchableOpacity onPress={handleLike}>
+                <Text style={styles.likesText}>{thread.likedByMe ? "❤" : "♡"} {thread.likes ?? 0}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         }
         data={thread.replies ?? []}
@@ -222,8 +234,12 @@ export default function ThreadDetail() {
           <ReplyNode
             reply={item}
             user={user}
+            originalAuthorUuid={thread.authorUuid}
             onLike={handleReplyLike}
-            onReply={(parent, text) => actions.addReply(thread.id, { text, parentId: parent.id })}
+            //onReply={(parent, { text, imageUri }) => actions.addReply(thread.id, { text, imageUri, parentId: parent.id })}
+            // Replying needs an account; signed-out visitors can only read.
+            onReplyTo={isAuthenticated ? startReplyTo : undefined}
+            replyingToId={replyTarget?.id}
             onEdit={(reply, text) => actions.editReply(thread.id, reply.id, text)}
             onDelete={(reply) => confirmDeleteReply(reply.id)}
           />
@@ -254,27 +270,41 @@ export default function ThreadDetail() {
         }
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
-
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: replyImage ? 300 : 180 },
-        ]}
+        contentContainerStyle={{
+          paddingBottom: isAuthenticated ? (replyImage ? 300 : 180) + (replyTarget ? 60 : 0) : 100,
+        }}
+        
       />
       
-      {/*<View style={styles.replyBox}>
+      {isAuthenticated ? (
+      <View style={styles.replyBox}>
+        <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
         {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
         <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
         <TextInput
-          placeholder="Write a reply..."
+          ref={inputRef}
+          placeholder={replyTarget ? `Reply to ${replyTarget.author || "Anonymous"}...` : "Write a reply..."}
           placeholderTextColor={Colors.TEXT_MUTED}
           value={text}
           onChangeText={setText}
+          onSubmitEditing={submit}
           style={styles.replyInput}
         />
         <TouchableOpacity style={styles.replyButton} onPress={submit}>
           <Text style={styles.replyButtonText}>Reply</Text>
         </TouchableOpacity>
-      </View>*/}
+      </View>
+      ) : (
+      <View style={styles.replyBox}>
+        <Text style={styles.signInText}>Sign in or create an account to reply.</Text>
+        <TouchableOpacity
+          style={styles.replyButton}
+          onPress={() => router.push("/authentication/login")}
+        >
+          <Text style={styles.replyButtonText}>Sign in to reply</Text>
+        </TouchableOpacity>
+      </View>
+      )}
     </View>
     </GatedContent>
   );
@@ -371,18 +401,15 @@ const styles = StyleSheet.create({
   threadBody: {
     color: Colors.WHITE,
     fontSize: 15,
+    lineHeight: 23,
     marginTop: 6,
   },
   threadCaption: {
     color: Colors.WHITE,
     fontSize: 18,
+    lineHeight: 26,
     fontWeight: "700",
     marginTop: 10,
-  },
-  timestamp: {
-    color: Colors.TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 4,
   },
   metaRow: {
     flexDirection: "row",
@@ -393,9 +420,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   likesText: {
-    color: Colors.SECONDARY,
+    color: Colors.BRAND_GOLD,
     fontWeight: "700",
   },
+  footerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 12 },
   replyCard: {
     marginHorizontal: 14,
     marginVertical: 6,
@@ -459,6 +487,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.BORDER,
     padding: 12,8*/
+  },
+  signInText: {
+    color: Colors.TEXT_MUTED,
+    textAlign: "center",
+    marginBottom: 10,
   },
   replyInput: {
     backgroundColor: Colors.WHITE,

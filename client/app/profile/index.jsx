@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronDown, ShieldCheck, UserRound } from 'lucide-react-native';
+import { Check, ChevronDown, ShieldCheck } from 'lucide-react-native';
 import WebLayout from '../../components/WebLayout';
+import Avatar from '../../components/Avatar';
+import ProfileCard from '../../components/ProfileCard';
+import ProfileActivity from '../../components/ProfileActivity';
 import { Colors } from '../../constant/Colors';
-import { getProfile, updateProfile } from '../../services/userService';
+import { getProfile, getPublicProfile, updateProfile } from '../../services/userService';
+import { disconnectGoogle, getGoogleConnection, initiateGoogleLogin } from '../../services/authService';
+import { listBlocked, unblockUser } from '../../services/messages';
 
 const DEFAULT_PROFILE = {
   alias: '',
@@ -45,6 +50,20 @@ export default function ProfileScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [relationshipPickerOpen, setRelationshipPickerOpen] = useState(false);
   const [interestsPickerOpen, setInterestsPickerOpen] = useState(false);
+  const [googleConnection, setGoogleConnection] = useState(null);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleMessage, setGoogleMessage] = useState('');
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [disconnectPassword, setDisconnectPassword] = useState('');
+
+  // How others see you (the same card they get when they click your name), and the people you have blocked.
+  const [preview, setPreview] = useState(null);
+  const [blocked, setBlocked] = useState([]);
+
+  const loadPreview = (userUuid) =>
+    getPublicProfile(userUuid)
+      .then(setPreview)
+      .catch(() => {});
 
   useEffect(() => {
     let isMounted = true;
@@ -56,6 +75,7 @@ export default function ProfileScreen() {
           relationship: user.relationship || '',
           interests: user.interests || '',
         });
+        if (user.userUuid) loadPreview(user.userUuid);
       })
       .catch(() => {
         if (isMounted) setErrorMessage('Could not load your profile. Please try again.');
@@ -63,10 +83,53 @@ export default function ProfileScreen() {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
+    if (Platform.OS === 'web') {
+      getGoogleConnection()
+        .then((connection) => { if (isMounted) setGoogleConnection(connection); })
+        .catch(() => {});
+    }
+    listBlocked()
+      .then((people) => {
+        if (isMounted) setBlocked(people);
+      })
+      .catch(() => {});
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const connectGoogle = async () => {
+    setGoogleBusy(true);
+    setGoogleMessage('');
+    try {
+      if (!await initiateGoogleLogin({ link: true })) return;
+      setGoogleConnection(await getGoogleConnection());
+      setGoogleMessage('Google is connected. You can use it to sign in to this account.');
+    } catch (error) {
+      setGoogleMessage(error.message || 'Could not connect Google. Please try again.');
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
+
+  const removeGoogle = async () => {
+    if (!disconnectPassword) {
+      setGoogleMessage('Enter your current WeGo password to disconnect Google.');
+      return;
+    }
+    setGoogleBusy(true);
+    setGoogleMessage('');
+    try {
+      setGoogleConnection(await disconnectGoogle(disconnectPassword));
+      setDisconnectOpen(false);
+      setGoogleMessage('Google is disconnected. You can still sign in with your WeGo password.');
+    } catch (error) {
+      setGoogleMessage(error.status ? error.message : 'Could not disconnect Google. Please try again.');
+    } finally {
+      setDisconnectPassword('');
+      setGoogleBusy(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -79,6 +142,7 @@ export default function ProfileScreen() {
         interests: updated.interests || '',
       });
       setSaved(true);
+      if (updated.userUuid) loadPreview(updated.userUuid);
     } catch (err) {
       if (err.status === 400 && err.data) {
         setErrorMessage(Object.values(err.data).join('\n'));
@@ -92,6 +156,16 @@ export default function ProfileScreen() {
     }
   };
 
+  const unblock = async (person) => {
+    try {
+      await unblockUser(person.userUuid);
+      setBlocked((current) => current.filter((p) => p.userUuid !== person.userUuid));
+    } catch {
+      setErrorMessage('Could not unblock that person. Please try again.');
+    }
+  };
+
+  const { linked, canDisconnect } = googleConnection || {};
   const selectedInterests = parseInterests(profile.interests);
 
   const toggleInterest = (option) => {
@@ -107,32 +181,43 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.page}>
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={[Colors.PRIMARY, '#111827']} style={styles.header}>
-          <View style={styles.avatar}><UserRound size={32} color={Colors.PRIMARY} /></View>
+          <View style={styles.avatar}><Avatar name={profile.alias || preview?.displayName || '?'} size={70} /></View>
           <Text style={styles.title}>Your profile</Text>
-          <Text style={styles.subtitle}>Share a public alias without sharing identifying information.</Text>
+          <Text style={styles.subtitle}>Choose a public username for your threads, replies, and events.</Text>
         </LinearGradient>
 
         <View style={styles.notice}>
           <ShieldCheck size={24} color="#92400e" />
           <Text style={styles.noticeText}>
-            Your profile is saved to your account and visible to the community by alias only.
+            Your community username is public. Use a pseudonym to protect your privacy.
           </Text>
         </View>
 
+        {preview ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>How others see you</Text>
+            <Text style={styles.cardHint}>This is the card people get when they click your name.</Text>
+            <ProfileCard profile={preview} large>
+              <ProfileActivity profile={preview} />
+            </ProfileCard>
+          </View>
+        ) : null}
+
         <View style={styles.card}>
+          <Text style={styles.cardTitle}>Edit your profile</Text>
           {loading ? (
             <ActivityIndicator color={Colors.PRIMARY} style={{ marginVertical: 24 }} />
           ) : (
             <>
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-              <Text style={styles.label}>Community alias</Text>
+              <Text style={styles.label}>Community username</Text>
               <TextInput
                 value={profile.alias}
                 onChangeText={(alias) => { setSaved(false); setProfile({ ...profile, alias }); }}
                 style={styles.input}
                 maxLength={40}
-                placeholder="Choose a public alias"
+                placeholder="Choose a public username"
               />
 
               <Text style={styles.label}>Connection to the community</Text>
@@ -208,7 +293,69 @@ export default function ProfileScreen() {
                   <Text style={styles.buttonText}>{saved ? 'Saved' : 'Save profile'}</Text>
                 )}
               </TouchableOpacity>
+              {Platform.OS === 'web' && googleConnection ? (
+                <View style={{ marginTop: 28 }}>
+                  <Text style={styles.label}>Google sign-in</Text>
+                  <Text style={{ marginBottom: 12, color: '#475569' }}>
+                    {linked ? 'Google is connected to this account.' : 'Connect Google to sign in to your existing WeGo account.'}
+                  </Text>
+                  {!linked ? (
+                    <TouchableOpacity style={styles.button} onPress={connectGoogle} disabled={googleBusy}>
+                      {googleBusy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Connect Google</Text>}
+                    </TouchableOpacity>
+                  ) : null}
+                  {linked && canDisconnect && !disconnectOpen ? (
+                    <TouchableOpacity style={styles.button} onPress={() => { setGoogleMessage(''); setDisconnectOpen(true); }}>
+                      <Text style={styles.buttonText}>Disconnect Google</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {linked && !canDisconnect ? (
+                    <Text style={{ color: '#475569' }}>Google is your only sign-in method. Keep it connected to retain access.</Text>
+                  ) : null}
+                  {disconnectOpen ? (
+                    <View>
+                      <Text style={{ marginVertical: 12 }}>Disconnect Google from this WeGo account? Your profile and password login will stay available.</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={disconnectPassword}
+                        onChangeText={setDisconnectPassword}
+                        placeholder="Current WeGo password"
+                        accessibilityLabel="Current WeGo password"
+                        autoComplete="current-password"
+                        autoCapitalize="none"
+                        secureTextEntry
+                        editable={!googleBusy}
+                      />
+                      <TouchableOpacity style={styles.button} onPress={removeGoogle} disabled={googleBusy}>
+                        {googleBusy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirm disconnect</Text>}
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ padding: 14, alignItems: 'center' }} disabled={googleBusy}
+                        onPress={() => { setDisconnectPassword(''); setDisconnectOpen(false); setGoogleMessage(''); }}>
+                        <Text>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  {googleMessage ? <Text accessibilityLiveRegion="polite" style={{ marginTop: 12 }}>{googleMessage}</Text> : null}
+                </View>
+              ) : null}
             </>
+          )}
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Blocked people</Text>
+          <Text style={styles.cardHint}>People you block can&apos;t message you. You can unblock them any time.</Text>
+          {blocked.length ? (
+            blocked.map((person) => (
+              <View key={person.userUuid} style={styles.blockedRow}>
+                <Avatar name={person.displayName} size={34} />
+                <Text style={styles.blockedName} numberOfLines={1}>{person.displayName}</Text>
+                <TouchableOpacity onPress={() => unblock(person)}>
+                  <Text style={styles.unblock}>Unblock</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.cardHint}>You haven&apos;t blocked anyone.</Text>
           )}
         </View>
       </ScrollView>
@@ -222,12 +369,17 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#f8fafc' },
   content: { paddingBottom: 48 },
   header: { alignItems: 'center', paddingHorizontal: 24, paddingVertical: 46 },
-  avatar: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#fef3c7', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  avatar: { marginBottom: 16 },
   title: { color: '#fff', fontSize: 30, fontWeight: '850', textAlign: 'center' },
   subtitle: { color: '#dbeafe', fontSize: 16, lineHeight: 24, textAlign: 'center', maxWidth: 560, marginTop: 8 },
   notice: { flexDirection: 'row', gap: 14, width: '100%', maxWidth: 720, alignSelf: 'center', marginTop: 28, padding: 18, backgroundColor: '#fffbeb', borderColor: '#fde68a', borderWidth: 1, borderRadius: 12 },
   noticeText: { flex: 1, color: '#92400e', fontSize: 14, lineHeight: 21 },
   card: { width: '100%', maxWidth: 720, alignSelf: 'center', marginTop: 20, padding: 24, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0' },
+  cardTitle: { color: '#0f172a', fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  cardHint: { color: '#64748b', fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  blockedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  blockedName: { flex: 1, color: '#0f172a', fontSize: 15, fontWeight: '600' },
+  unblock: { color: Colors.PRIMARY, fontWeight: '800', fontSize: 14 },
   label: { color: '#334155', fontSize: 14, fontWeight: '700', marginTop: 14, marginBottom: 7 },
   input: { backgroundColor: '#f8fafc', borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#0f172a', fontSize: 15 },
   multiline: { minHeight: 100, textAlignVertical: 'top' },

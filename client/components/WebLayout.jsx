@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { House as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut } from 'lucide-react-native';
+import { House as Home, Calendar, BookOpen, User, MessagesSquare, Menu, X, Sparkles, ChevronDown, Shield, LogIn, LogOut, Mail, Flag } from 'lucide-react-native';
 import { Colors } from '../constant/Colors';
 import { responsive, width } from '../utils/responsive';
 import { useAuth } from '../context/AuthContext';
 import { GatedContent } from './SignInGate';
+import { getUnreadCount } from '../services/messages';
+import { badgeText } from '../utils/messagePreview';
 
 export default function WebLayout({ children, requireSignIn }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -20,8 +22,30 @@ export default function WebLayout({ children, requireSignIn }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
+  const [unread, setUnread] = useState(0);
   const pathname = usePathname();
   const showSignInGate = Boolean(requireSignIn) && !isLoading && !isAuthenticated;
+
+  // How many direct messages are waiting, shown as a badge on the account menu. Checked now and every 30 seconds.
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) {
+      setUnread(0);
+      return undefined;
+    }
+    let cancelled = false;
+    const check = () =>
+      getUnreadCount()
+        .then((count) => {
+          if (!cancelled) setUnread(count);
+        })
+        .catch(() => {});
+    check();
+    const timer = setInterval(check, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [isLoading, isAuthenticated]);
 
   const navigationItems = [
     { name: 'Home', icon: Home, route: '/home_screen/home', active: pathname === '/home_screen/home' || pathname === '/' },
@@ -117,6 +141,11 @@ export default function WebLayout({ children, requireSignIn }) {
                   <User size={16} color={Colors.WHITE} />
                 </View>
                 <Text style={styles.userName}>{user?.username || 'My account'}</Text>
+                {unread > 0 ? (
+                  <View style={styles.unreadDot}>
+                    <Text style={styles.unreadDotText}>{badgeText(unread)}</Text>
+                  </View>
+                ) : null}
                 <ChevronDown size={16} color="#64748b" />
               </TouchableOpacity>
             ) : (
@@ -143,16 +172,41 @@ export default function WebLayout({ children, requireSignIn }) {
                   <User size={16} color="#64748b" />
                   <Text style={styles.dropdownText}>Profile</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  activeOpacity={0.8}
+                  style={styles.dropdownItem}
+                  onPress={() => navigateToScreen('/messages')}
+                >
+                  <Mail size={16} color="#64748b" />
+                  <Text style={styles.dropdownText}>Messages</Text>
+                  {unread > 0 ? (
+                    <View style={styles.unreadDot}>
+                      <Text style={styles.unreadDotText}>{badgeText(unread)}</Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
                 {user?.isAdmin ? (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    activeOpacity={0.8}
-                    style={styles.dropdownItem}
-                    onPress={() => navigateToScreen('/admin/users')}
-                  >
-                    <Shield size={16} color="#64748b" />
-                    <Text style={styles.dropdownText}>Manage Users</Text>
-                  </TouchableOpacity>
+                  <>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      activeOpacity={0.8}
+                      style={styles.dropdownItem}
+                      onPress={() => navigateToScreen('/admin/users')}
+                    >
+                      <Shield size={16} color="#64748b" />
+                      <Text style={styles.dropdownText}>Manage Users</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      activeOpacity={0.8}
+                      style={styles.dropdownItem}
+                      onPress={() => navigateToScreen('/admin/reports')}
+                    >
+                      <Flag size={16} color="#64748b" />
+                      <Text style={styles.dropdownText}>Message reports</Text>
+                    </TouchableOpacity>
+                  </>
                 ) : null}
                 <View style={styles.dropdownDivider} />
                 <TouchableOpacity
@@ -411,6 +465,21 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+
+  unreadDot: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 5,
+    backgroundColor: Colors.ERROR,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadDotText: {
+    color: Colors.WHITE,
+    fontSize: 11,
+    fontWeight: '700',
   },
   dropdownText: {
     fontSize: 14,

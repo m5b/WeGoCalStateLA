@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,6 +14,7 @@ import WebLayout from "../../components/WebLayout";
 import ReplyImagePicker from "../../components/ReplyImagePicker";
 import FlexibleImage from "../../components/FlexibleImage";
 import ReplyNode from "../../components/ReplyNode";
+import ReplyingToBar from "../../components/ReplyingToBar";
 import { addReplyToTree, removeReplyFromTree, updateReplyInTree } from "../../utils/replyTree";
 import { Colors } from "../../constant/Colors";
 import { getEvent, deleteEvent } from "../../services/events";
@@ -23,6 +24,7 @@ import { useAuth } from "../../context/AuthContext";
 import { canManage } from "../../utils/permissions";
 import { formatEventDate } from "../../utils/formatEventDate";
 import { replyErrorMessage } from "../../utils/replyError";
+import UserLink from "../../components/UserLink";
 
 const EVENT_CARD_BACKGROUND = '#fff8d6';
 const EVENT_TEXT_COLOR = '#000000';
@@ -34,12 +36,16 @@ function getEventTitle(event) {
 export default function EventDetails() {
   const { eventId } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [event, setEvent] = useState(null);
   const [thread, setThread] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [replyError, setReplyError] = useState("");
+  // The reply the reply bar is answering (null = answering the event's discussion itself), like Discord.
+  const [replyTarget, setReplyTarget] = useState(null);
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,26 +99,28 @@ export default function EventDetails() {
     if ((!text && !replyImage) || !thread) return;
     setReplyError("");
     try {
-      const reply = await createReply(thread.id, { text, imageUri: replyImage });
+      const reply = await createReply(thread.id, { text, imageUri: replyImage, parentId: replyTarget?.id });
       setThread((current) => ({
         ...current,
-        replies: addReplyToTree(current.replies ?? [], reply, null),
+        replies: addReplyToTree(current.replies ?? [], reply, replyTarget?.id ?? null),
       }));
       setReplyText("");
       setReplyImage(null);
+      setReplyTarget(null);
     } catch (error) {
       console.warn("Failed to post reply", error);
       setReplyError(replyErrorMessage(error));
     }
   };
 
-  // Posts a reply under another reply.
-  const replyTo = async (parent, text) => {
-    const reply = await createReply(thread.id, { text, parentId: parent.id });
-    setThread((current) => ({
-      ...current,
-      replies: addReplyToTree(current.replies ?? [], reply, parent.id),
-    }));
+  // "Reply" on a reply points the reply bar at it: scroll down to the bar, and typing, uploading and
+  // Ctrl+V all go there.
+  const startReplyTo = (reply) => {
+    setReplyTarget(reply);
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      inputRef.current?.focus();
+    }, 50);
   };
 
   // Changes the text of a reply you wrote and marks it edited.
@@ -157,6 +165,8 @@ export default function EventDetails() {
       message: "Delete this reply? This can't be undone.",
       onConfirm: async () => {
         try {
+          // Don't leave the bar answering a reply that is gone.
+          if (replyTarget?.id === replyId) setReplyTarget(null);
           await deleteReply(thread.id, replyId);
           setThread((current) => ({
             ...current,
@@ -205,6 +215,7 @@ export default function EventDetails() {
         </View>
 
         <ScrollView
+          ef={scrollRef}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
         >
@@ -222,7 +233,10 @@ export default function EventDetails() {
               ) : null}
               <Text style={styles.eventTitle}>{title}</Text>
               {event.author ? (
-                <Text style={styles.postedBy}>Posted by {event.author}</Text>
+                <View style={styles.postedByRow}>
+                  <Text style={styles.postedBy}>Posted by </Text>
+                  <UserLink name={event.author} userUuid={event.authorUuid} style={styles.postedBy} />
+                </View>
               ) : null}
 
               <View style={styles.metaGrid}>
@@ -289,18 +303,23 @@ export default function EventDetails() {
                     inset={0}
                     cardColor={Colors.LIGHT_GRAY}
                     onLike={likeReply}
-                    onReply={replyTo}
+                    // Replying needs an account; signed-out visitors can only read.
+                    onReplyTo={isAuthenticated ? startReplyTo : undefined}
+                    replyingToId={replyTarget?.id}
                     onEdit={editReply}
                     onDelete={(r) => confirmDeleteReply(r.id)}
                   />
                 ))
               )}
 
+              {isAuthenticated ? (
               <View style={styles.replyBox}>
+                <ReplyingToBar reply={replyTarget} onCancel={() => setReplyTarget(null)} />
                 {replyError ? <Text style={styles.replyError}>{replyError}</Text> : null}
                 <ReplyImagePicker imageUri={replyImage} onChange={setReplyImage} />
                 <TextInput
-                  placeholder="Write a reply..."
+                  ref={inputRef}
+                  placeholder={replyTarget ? `Reply to ${replyTarget.author || "Anonymous"}...` : "Write a reply..."}
                   placeholderTextColor={Colors.TEXT_MUTED}
                   value={replyText}
                   onChangeText={setReplyText}
@@ -311,6 +330,17 @@ export default function EventDetails() {
                   <Text style={styles.replyButtonText}>Reply</Text>
                 </TouchableOpacity>
               </View>
+              ) : (
+              <View style={styles.replyBox}>
+                <Text style={styles.signInText}>Sign in or create an account to reply.</Text>
+                <TouchableOpacity
+                  style={styles.replyButton}
+                  onPress={() => router.push("/authentication/login")}
+                >
+                  <Text style={styles.replyButtonText}>Sign in to reply</Text>
+                </TouchableOpacity>
+              </View>
+              )}
             </View>
           ) : null}
         </ScrollView>
@@ -400,6 +430,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     marginBottom: 16,
+  },
+  postedByRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
   },
   postedBy: {
     color: EVENT_TEXT_COLOR,
@@ -543,6 +578,11 @@ const styles = StyleSheet.create({
   replyButtonText: {
     color: Colors.WHITE,
     fontWeight: "700",
+  },
+  signInText: {
+    color: Colors.TEXT_MUTED,
+    textAlign: "center",
+    marginBottom: 10,
   },
   backButton: {
     backgroundColor: Colors.PRIMARY,

@@ -8,14 +8,6 @@ export const cookieConfig = {
 }
 
 
-export const oidcCookieConfig = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 5 * 60000,
-    path: "/",
-    sameSite: 'lax',
-}
-
 export const otpTokenCookieConfig = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
