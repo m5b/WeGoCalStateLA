@@ -323,15 +323,18 @@ webInfoCard: {
       </View>
 
       <Text style={webStyles.webAboutText}>
-        College is a journey for students and the people who support them.
+        Student success goes beyond the individual. When families and
+        support networks are thriving, they are better equipped to
+        help students succeed in college.
         {'\n\n'}
         WeGoToCSULA brings together parents, family members, and other
-        supporters of Cal State LA students to connect, share experiences,
-        and build a welcoming community.
+        supporters of Cal State LA students to share experiences,
+        build connections, and foster a welcoming community.
         {'\n\n'}
-        Through conversations, events, and helpful resources, we aim to
-        strengthen the connections among those who support Cal State LA
-        students throughout their college journey.
+        Through meaningful conversations, community events, and
+        accessible resources, we aim to strengthen these support
+        networks and empower those who help students navigate
+        their educational journeys.
       </Text>
     </View>
 
