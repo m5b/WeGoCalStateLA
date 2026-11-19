@@ -50,6 +50,7 @@ export default function ProfileScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [relationshipPickerOpen, setRelationshipPickerOpen] = useState(false);
   const [interestsPickerOpen, setInterestsPickerOpen] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState('loading');
   const [googleLinked, setGoogleLinked] = useState(false);
   const [connectingGoogle, setConnectingGoogle] = useState(false);
   const [googleMessage, setGoogleMessage] = useState('');
@@ -69,11 +70,9 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([getProfile(), getGoogleConnection()])
-      .then(([user, connection]) => {
+    getProfile()
+      .then((user) => {
         if (!isMounted) return;
-        setGoogleLinked(connection.linked);
-        setCanDisconnectGoogle(connection.canDisconnect);
         setProfile({
           alias: user.alias || '',
           relationship: user.relationship || '',
@@ -87,7 +86,17 @@ export default function ProfileScreen() {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
-      listBlocked()
+    getGoogleConnection()
+      .then((connection) => {
+        if (!isMounted) return;
+        setGoogleLinked(connection.linked);
+        setCanDisconnectGoogle(connection.canDisconnect);
+        setGoogleStatus('ready');
+      })
+      .catch(() => {
+        if (isMounted) setGoogleStatus('error');
+      });
+    listBlocked()
       .then((people) => {
         if (isMounted) setBlocked(people);
       })
@@ -300,46 +309,54 @@ export default function ProfileScreen() {
               {Platform.OS === 'web' ? (
                 <View style={{ marginTop: 28 }}>
                   <Text style={styles.label}>Google sign-in</Text>
-                  <Text style={{ marginBottom: 12, color: '#475569' }}>
-                    {googleLinked ? 'Google is connected to this account.' : 'Connect Google to sign in to your existing WeGo account.'}
-                  </Text>
-                  {!googleLinked ? (
-                    <TouchableOpacity style={styles.button} onPress={connectGoogle} disabled={connectingGoogle}>
-                      {connectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Connect Google</Text>}
-                    </TouchableOpacity>
+                  {googleStatus === 'loading' ? <ActivityIndicator color={Colors.PRIMARY} /> : null}
+                  {googleStatus === 'error' ? (
+                    <Text style={{ color: '#475569' }}>Could not load Google sign-in settings. Please try again later.</Text>
                   ) : null}
-                  {googleLinked && canDisconnectGoogle && !disconnectOpen ? (
-                    <TouchableOpacity style={styles.button} onPress={() => { setGoogleMessage(''); setDisconnectOpen(true); }}>
-                      <Text style={styles.buttonText}>Disconnect Google</Text>
-                    </TouchableOpacity>
+                  {googleStatus === 'ready' ? (
+                    <>
+                      <Text style={{ marginBottom: 12, color: '#475569' }}>
+                        {googleLinked ? 'Google is connected to this account.' : 'Connect Google to sign in to your existing WeGo account.'}
+                      </Text>
+                      {!googleLinked ? (
+                        <TouchableOpacity style={styles.button} onPress={connectGoogle} disabled={connectingGoogle}>
+                          {connectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Connect Google</Text>}
+                        </TouchableOpacity>
+                      ) : null}
+                      {googleLinked && canDisconnectGoogle && !disconnectOpen ? (
+                        <TouchableOpacity style={styles.button} onPress={() => { setGoogleMessage(''); setDisconnectOpen(true); }}>
+                          <Text style={styles.buttonText}>Disconnect Google</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      {googleLinked && !canDisconnectGoogle ? (
+                        <Text style={{ color: '#475569' }}>Google is your only sign-in method. Keep it connected to retain access.</Text>
+                      ) : null}
+                      {disconnectOpen ? (
+                        <View>
+                          <Text style={{ marginVertical: 12 }}>Disconnect Google from this WeGo account? Your profile and password login will stay available.</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={disconnectPassword}
+                            onChangeText={setDisconnectPassword}
+                            placeholder="Current WeGo password"
+                            accessibilityLabel="Current WeGo password"
+                            autoComplete="current-password"
+                            autoCapitalize="none"
+                            secureTextEntry
+                            editable={!disconnectingGoogle}
+                          />
+                          <TouchableOpacity style={styles.button} onPress={removeGoogle} disabled={disconnectingGoogle}>
+                            {disconnectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirm disconnect</Text>}
+                          </TouchableOpacity>
+                          <TouchableOpacity style={{ padding: 14, alignItems: 'center' }} disabled={disconnectingGoogle}
+                            onPress={() => { setDisconnectPassword(''); setDisconnectOpen(false); setGoogleMessage(''); }}>
+                            <Text>Cancel</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : null}
+                      {googleMessage ? <Text accessibilityLiveRegion="polite" style={{ marginTop: 12 }}>{googleMessage}</Text> : null}
+                    </>
                   ) : null}
-                  {googleLinked && !canDisconnectGoogle ? (
-                    <Text style={{ color: '#475569' }}>Google is your only sign-in method. Keep it connected to retain access.</Text>
-                  ) : null}
-                  {disconnectOpen ? (
-                    <View>
-                      <Text style={{ marginVertical: 12 }}>Disconnect Google from this WeGo account? Your profile and password login will stay available.</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={disconnectPassword}
-                        onChangeText={setDisconnectPassword}
-                        placeholder="Current WeGo password"
-                        accessibilityLabel="Current WeGo password"
-                        autoComplete="current-password"
-                        autoCapitalize="none"
-                        secureTextEntry
-                        editable={!disconnectingGoogle}
-                      />
-                      <TouchableOpacity style={styles.button} onPress={removeGoogle} disabled={disconnectingGoogle}>
-                        {disconnectingGoogle ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirm disconnect</Text>}
-                      </TouchableOpacity>
-                      <TouchableOpacity style={{ padding: 14, alignItems: 'center' }} disabled={disconnectingGoogle}
-                        onPress={() => { setDisconnectPassword(''); setDisconnectOpen(false); setGoogleMessage(''); }}>
-                        <Text>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
-                  {googleMessage ? <Text accessibilityLiveRegion="polite" style={{ marginTop: 12 }}>{googleMessage}</Text> : null}
                 </View>
               ) : null}
             </>
