@@ -64,11 +64,14 @@ export default function SignupScreen() {
   const handleGoogleSignup = async () => {
     try {
       setOauthLoading(true);
-
-      await initiateGoogleLogin();
+      setErrorMessage('');
+      const response = await initiateGoogleLogin();
+      if (response?.data?.user) {
+        login(response.data.user);
+        router.replace('/home_screen/home');
+      }
     } catch (error) {
-      console.error('OAuth error:', error);
-      Alert.alert('Error', 'An error occurred during sign-up. Please try again.');
+      setErrorMessage(error.message || 'Could not sign in with Google. Please try again.');
     } finally {
       setOauthLoading(false);
     }
@@ -120,7 +123,7 @@ export default function SignupScreen() {
                 style={[styles.googleAltButton, oauthLoading && styles.buttonDisabled]}
                 onPress={handleGoogleSignup}
                 activeOpacity={0.85}
-                disabled={oauthLoading}
+                disabled={oauthLoading || isLoading}
               >
                 {oauthLoading ? (
                   <ActivityIndicator color={Colors.PRIMARY} />
@@ -202,7 +205,7 @@ export default function SignupScreen() {
               <TouchableOpacity
                 style={[styles.signupButton, isLoading && styles.buttonDisabled]}
                 onPress={handleSignup}
-                disabled={isLoading}
+                disabled={isLoading || oauthLoading}
               >
                 <LinearGradient
                   colors={[Colors.PRIMARY, Colors.SECONDARY_900]}
@@ -308,7 +311,7 @@ export default function SignupScreen() {
             <TouchableOpacity
               style={[styles.mobileLoginButton, isLoading && styles.buttonDisabled]}
               onPress={handleSignup}
-              disabled={isLoading}
+              disabled={isLoading || oauthLoading}
               activeOpacity={0.8}
             >
               <Text style={styles.mobileLoginButtonText}>
@@ -326,7 +329,7 @@ export default function SignupScreen() {
                 style={[styles.mobileGoogleButton, oauthLoading && styles.buttonDisabled]}
                 onPress={handleGoogleSignup}
                 activeOpacity={0.85}
-                disabled={oauthLoading}
+                disabled={oauthLoading || isLoading}
               >
                 {oauthLoading ? (
                   <ActivityIndicator color={Colors.PRIMARY} />

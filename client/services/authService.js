@@ -1,23 +1,39 @@
-import { Platform } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import { API_BASE_URL, apiGet, apiJson } from './api';
+import { apiGet, apiJson } from './api';
+import { getGoogleIdToken, clearFirebaseSession } from './firebase';
+import { normalizeGoogleError } from './googleAuthErrors';
 
-export async function initiateGoogleLogin() {
-  if (Platform.OS === 'web') {
-    window.location.href = `${API_BASE_URL}/api/auth/google`;
-    return { type: 'redirect' };
-  } else {
-    try {
-      const result = await WebBrowser.openAuthSessionAsync(
-        `${API_BASE_URL}/api/auth/google`,
-        'wegotocalstatela://auth/callback'
-      );
-      return result;
-    } catch (error) {
-      console.error('OAuth error:', error);
-      return { type: 'error', error };
-    }
+async function clearGoogleState() {
+  try {
+    await clearFirebaseSession();
+  } catch {
+    // A cleanup failure must not replace a completed login or popup cancellation.
+    console.warn('Could not clear Google sign-in state.');
   }
+}
+
+export async function initiateGoogleLogin({ link = false } = {}) {
+  try {
+    const idToken = await getGoogleIdToken();
+    if (!idToken) return null;
+    return await apiJson(link ? '/api/auth/google/link' : '/api/auth/google', 'POST', { idToken });
+  } catch (error) {
+    const friendlyError = normalizeGoogleError(error);
+    if (!friendlyError) return null;
+    throw friendlyError;
+  } finally {
+    // WeGo's HTTP-only cookie owns the session; Firebase supplies only the proof.
+    await clearGoogleState();
+  }
+}
+
+export async function getGoogleConnection() {
+  const response = await apiGet('/api/auth/google');
+  return response.data;
+}
+
+export async function disconnectGoogle(password) {
+  const response = await apiJson('/api/auth/google', 'DELETE', { password });
+  return response.data;
 }
 
 // identifier can be a username or an email — the server figures out which.
@@ -30,7 +46,9 @@ export async function signupWithIdentifier(identifier, password) {
 }
 
 export async function signOut() {
-  return apiJson('/api/auth/logout', 'POST', {});
+  const response = await apiJson('/api/auth/logout', 'POST', {});
+  await clearGoogleState();
+  return response;
 }
 
 export async function checkAuth() {
