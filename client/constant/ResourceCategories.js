@@ -19,6 +19,18 @@ export const resourceCategories = [
           location: "Adult schools across Los Angeles, and online",
           website: "https://adulted.lausd.org",
           action: "website",
+          guide: {
+            note: "Classes are tuition-free for adults 18 and older.",
+            checklist: [
+              "Photo ID",
+              "An email address or phone number, so the school can reach you",
+            ],
+            steps: [
+              "Find an adult school near you on the website.",
+              "Sign up online or in person at the school.",
+              "For English (ESL) classes, take a short placement test so you start at the right level.",
+            ],
+          },
         },
         {
           id: "edd-unemployment",
@@ -30,6 +42,20 @@ export const resourceCategories = [
           phone: "(800) 300-5616",
           website: "https://edd.ca.gov/en/unemployment",
           action: "website",
+          guide: {
+            checklist: [
+              "Social Security number",
+              "Your last employer's name, address, and phone number",
+              "The last day you worked and the reason you are no longer working",
+              "Your work history for the past 18 months, including dates and pay",
+              "If you are not a U.S. citizen, your work authorization information",
+            ],
+            steps: [
+              "Create a myEDD account and file your claim on UI Online.",
+              "Watch your mail and email for notices from EDD, and answer any questions by the deadline.",
+              "Certify for benefits every two weeks to keep getting paid.",
+            ],
+          },
         },
         {
           id: "la-county-ajcc",
@@ -40,6 +66,19 @@ export const resourceCategories = [
           location: "Offices across LA County",
           website: "https://ajcc.lacounty.gov",
           action: "website",
+          guide: {
+            checklistTitle: "What to bring",
+            checklist: [
+              "Photo ID",
+              "Documents that show you can work in the U.S.",
+              "A resume, if you have one",
+            ],
+            steps: [
+              "Find the job center closest to you on the website.",
+              "Visit or call to sign up. Services are free.",
+              "Meet with staff to talk about job leads, training, and workshops.",
+            ],
+          },
         },
         {
           id: "caljobs",
@@ -50,6 +89,18 @@ export const resourceCategories = [
           location: "Online",
           website: "https://www.caljobs.ca.gov",
           action: "website",
+          guide: {
+            checklist: [
+              "An email address",
+              "Your work history: employers, job titles, and dates",
+              "A resume, if you have one (you can also build one on the site)",
+            ],
+            steps: [
+              "Create a free account.",
+              "Build or upload your resume.",
+              "Search for jobs and apply.",
+            ],
+          },
         },
         {
           id: "la-county-youth-at-work",
@@ -60,6 +111,20 @@ export const resourceCategories = [
           location: "Job sites across LA County",
           website: "https://ajcc.lacounty.gov/job-seekers/population-specific-placement-services/youth-work-ages-14-24",
           action: "website",
+          guide: {
+            note: "For LA County residents ages 14 to 24.",
+            checklistTitle: "What your student will need",
+            checklist: [
+              "Proof of age, such as a birth certificate or ID",
+              "Proof that they live in LA County",
+              "Documents that show they can work in the U.S.",
+            ],
+            steps: [
+              "Apply online, or at an America's Job Center.",
+              "Complete the paid job-readiness training.",
+              "Get matched with a local employer for paid work experience.",
+            ],
+          },
         }
       ]
     },
@@ -81,6 +146,14 @@ export const resourceCategories = [
           phone: "(855) 427-2736",
           website: "https://caparentyouthhelpline.org",
           action: "call",
+          guide: {
+            note: "Free and confidential. You do not have to give your name.",
+            steps: [
+              "Call or text (855) 427-2736, or use the live chat on the website.",
+              "Talk with a trained counselor about what is going on.",
+              "Ask about the free weekly online support groups for parents.",
+            ],
+          },
         },
         {
           id: "nami-family-to-family",
@@ -92,6 +165,14 @@ export const resourceCategories = [
           phone: "(323) 294-7814",
           website: "https://www.namiurbanla.org/nami-family-to-family-class",
           action: "website",
+          guide: {
+            note: "The class is free, but you need to sign up ahead of time.",
+            steps: [
+              "Check the website for the next class dates.",
+              "Sign up online or call (323) 294-7814.",
+              "Attend the 8 weekly sessions with other families.",
+            ],
+          },
         },
         {
           id: "csula-family-academy",
@@ -102,6 +183,13 @@ export const resourceCategories = [
           location: "Cal State LA campus",
           website: "https://www.calstatela.edu/students-families/family-programs",
           action: "website",
+          guide: {
+            steps: [
+              "Check the Family Programs page for upcoming sessions and events.",
+              "Sign up for the ones you want to attend.",
+              "Come to campus or join online, depending on the event.",
+            ],
+          },
         },
         {
           id: "csula-luckman",
@@ -113,6 +201,13 @@ export const resourceCategories = [
           phone: "(323) 343-6600",
           website: "https://luckmanarts.org",
           action: "website",
+          guide: {
+            steps: [
+              "Check the calendar on the website for upcoming shows and exhibits.",
+              "Buy tickets online or at the box office. Ask about discounts.",
+              "Come to the Luckman on campus. Art exhibits in the gallery are free.",
+            ],
+          },
         },
         {
           id: "csula-dreamers-center",
@@ -124,6 +219,14 @@ export const resourceCategories = [
           phone: "(323) 343-3219",
           website: "https://www.calstatela.edu/gfdrc",
           action: "website",
+          guide: {
+            note: "Services are free and confidential.",
+            steps: [
+              "Visit the center in the Student Services Building, Room 4310, or call (323) 343-3219.",
+              "Tell the staff what you need help with.",
+              "For legal help, such as DACA renewals, ask how to book an appointment with an immigration attorney.",
+            ],
+          },
         }
       ]
     },
@@ -147,6 +250,22 @@ export const resourceCategories = [
           phone: '(866) 613-3777',
           website: 'https://benefitscal.com',
           action: 'website',
+          highlight: "Prefer to talk to someone? Apply by phone.",
+          guide: {
+            note: "One application covers food (CalFresh), health care (Medi-Cal), and cash aid (CalWORKs). Households with low or limited income usually qualify, and college students have extra rules for CalFresh.",
+            checklist: [
+              "Photo ID",
+              "Social Security numbers for the people applying (if they have one)",
+              "Proof of income, such as recent pay stubs",
+              "Your rent, utility, and child care costs",
+            ],
+            steps: [
+              "Create a BenefitsCal account, or call (866) 613-3777 to apply by phone.",
+              "Fill out one application for food, health, and cash aid.",
+              "Upload your documents, or have them ready for your interview.",
+              "LA County calls you for a short interview.",
+            ],
+          },
         },
         {
           id: '211-la',
@@ -158,6 +277,14 @@ export const resourceCategories = [
           phone: '211',
           website: 'https://www.211la.org',
           action: 'call',
+          guide: {
+            inline: true,
+            steps: [
+              "Call 211, or search on 211la.org.",
+              "Tell them what you need help with and your ZIP code.",
+              "They connect you with programs near you.",
+            ],
+          },
         },
         {
           id: 'csula-financial-aid',
@@ -170,6 +297,34 @@ export const resourceCategories = [
           phone: '(323) 343-6260',
           website: 'https://www.calstatela.edu/financialaid',
           action: 'website',
+          dates: [
+            {
+              date: "October 1",
+              label: "FAFSA and California Dream Act Application open for next school year",
+            },
+            {
+              date: "March 2",
+              label: "California priority deadline for Cal Grants",
+            },
+            {
+              date: "June 30",
+              label: "Last day to submit the FAFSA",
+            },
+          ],
+          guide: {
+            checklist: [
+              "Student's Social Security number (or ITIN)",
+              "Parents' tax return from two years before the school year",
+              "Current bank and savings balances",
+              "A StudentAid.gov account for the student and one parent",
+            ],
+            steps: [
+              "Create StudentAid.gov accounts for the student and one parent.",
+              "Fill out the FAFSA, or the California Dream Act Application if the student is undocumented.",
+              "Add Cal State LA (school code 001140) to the application.",
+              "Watch the student's Cal State LA email for requests for more documents.",
+            ],
+          },
         },
         {
           id: 'csula-emergency-grants',
@@ -182,6 +337,20 @@ export const resourceCategories = [
           phone: '(323) 343-3000',
           website: 'https://www.calstatela.edu/deanofstudents/emergency-financial-and-housing-assistance',
           action: 'website',
+          guide: {
+            note: "Your student has to apply themselves, but you can help them get ready using this checklist.",
+            checklistTitle: "What your student will need",
+            checklist: [
+              "Their Cal State LA ID number and login",
+              "A short explanation of what happened",
+              "Bills, notices, or receipts that show the cost (for example, an eviction notice)",
+            ],
+            steps: [
+              "Gather the items in the checklist together.",
+              "Your student signs in and fills out the request on the Dean of Students website.",
+              "The Dean of Students office follows up by your student's Cal State LA email.",
+            ],
+          },
         },
         {
           id: 'csula-vita',
@@ -193,6 +362,18 @@ export const resourceCategories = [
           phone: '',
           website: 'https://www.calstatela.edu/programs/vita',
           action: 'website',
+          highlight: "Saturday mornings, February to April",
+          guide: {
+            note: "Free for households with low to moderate income.",
+            checklistTitle: "What to bring",
+            checklist: [
+              "Photo ID",
+              "Social Security cards or ITIN letters for everyone on the return",
+              "W-2, 1099, and other income forms",
+              "Last year's tax return, if you have it",
+              "Bank account and routing numbers, for direct deposit",
+            ],
+          },
         },
       ],
     },
@@ -213,6 +394,21 @@ export const resourceCategories = [
           location: "Clinics near you",
           website: "https://findahealthcenter.hrsa.gov",
           action: "website",
+          guide: {
+            note: "Health centers see everyone, with or without insurance, and regardless of immigration status.",
+            checklistTitle: "What to bring",
+            checklist: [
+              "Photo ID, if you have one",
+              "Proof of income, such as pay stubs, to get lower fees",
+              "Your insurance card, if you have one",
+              "A list of any medicines you take",
+            ],
+            steps: [
+              "Enter your ZIP code on the website to find clinics near you.",
+              "Call the clinic to make an appointment.",
+              "Ask about the sliding fee, which lowers the cost based on your income.",
+            ],
+          },
         },
         {
           id: "parks-after-dark",
@@ -223,6 +419,14 @@ export const resourceCategories = [
           location: "LA County parks",
           website: "https://parks.lacounty.gov/pad",
           action: "website",
+          guide: {
+            note: "Free, and you do not need to sign up.",
+            steps: [
+              "Check the website for the list of parks and this summer's schedule.",
+              "Pick a park near you.",
+              "Show up and join in. All ages are welcome.",
+            ],
+          },
         },
         {
           id: "la-county-dmh-helpline",
@@ -234,6 +438,14 @@ export const resourceCategories = [
           phone: "(800) 854-7771",
           website: "https://dmh.lacounty.gov",
           action: "call",
+          guide: {
+            note: "If someone is in immediate danger, call 911. For thoughts of suicide, call or text 988.",
+            steps: [
+              "Call (800) 854-7771, any time of day or night.",
+              "Tell them what is going on. Help is available in many languages.",
+              "They can offer support on the phone and connect you with services near you.",
+            ],
+          },
         },
         {
           id: "covered-california",
@@ -245,6 +457,34 @@ export const resourceCategories = [
           phone: "(800) 300-1506",
           website: "https://www.coveredca.com",
           action: "website",
+          dates: [
+            {
+              date: "November 1",
+              label: "Open enrollment starts",
+            },
+            {
+              date: "December 31",
+              label: "Sign up by this date for coverage that starts January 1",
+            },
+            {
+              date: "January 31",
+              label: "Last day of open enrollment",
+            },
+          ],
+          guide: {
+            note: "Lost your job or health coverage, or had a baby? You can sign up at other times of the year. Medi-Cal is open all year.",
+            checklist: [
+              "Your ZIP code and how many people are in your household",
+              "Proof of income, such as pay stubs or a tax return",
+              "Social Security numbers, or immigration document numbers, for the people applying",
+              "Birth dates for everyone in the household",
+            ],
+            steps: [
+              "Use \"Shop and Compare\" on the website to see plans and prices.",
+              "Apply online, by phone, or with free help from a certified enroller.",
+              "Pick a plan and pay your first bill to start coverage.",
+            ],
+          },
         }
       ]
     },
@@ -265,6 +505,19 @@ export const resourceCategories = [
           location: "Vote centers across LA County",
           website: "https://www.lavote.gov",
           action: "website",
+          guide: {
+            checklistTitle: "Who can sign up",
+            checklist: [
+              "You are 18 or older (high school students 16 and older can apply through a student program)",
+              "You are a U.S. citizen registered to vote in California, or a lawful permanent resident",
+              "You can attend training before the election",
+            ],
+            steps: [
+              "Apply on the LA County elections website.",
+              "Complete the paid training.",
+              "Work at a vote center near you during the election.",
+            ],
+          },
         },
         {
           id: "empowerla",
@@ -275,6 +528,13 @@ export const resourceCategories = [
           location: "Neighborhoods across Los Angeles",
           website: "https://neighborhoodempowerment.lacity.gov",
           action: "website",
+          guide: {
+            steps: [
+              "Enter your address on the website to find your neighborhood council.",
+              "Check its calendar for the next meeting. Meetings are open to everyone.",
+              "Speak during public comment, or ask about joining a committee.",
+            ],
+          },
         },
         {
           id: "la-works",
@@ -286,6 +546,14 @@ export const resourceCategories = [
           phone: "(323) 224-6510",
           website: "https://www.laworks.com",
           action: "website",
+          guide: {
+            note: "Some projects have a minimum age. Check the project page before bringing children.",
+            steps: [
+              "Create a free account on the website.",
+              "Browse the calendar and pick a project.",
+              "Sign up, then show up on the day.",
+            ],
+          },
         },
         {
           id: "la-county-library",
@@ -296,6 +564,18 @@ export const resourceCategories = [
           location: "Libraries across LA County, or online",
           website: "https://lacountylibrary.org",
           action: "website",
+          guide: {
+            note: "Library cards are free.",
+            checklist: [
+              "Photo ID",
+              "Proof of your current address, if it is not on your ID",
+            ],
+            steps: [
+              "Apply online, or visit any LA County Library.",
+              "Pick up your card, or start right away with e-books and online resources.",
+              "Ask a librarian about homework help, classes, and events.",
+            ],
+          },
         },
         {
           id: "register-to-vote",
@@ -306,6 +586,19 @@ export const resourceCategories = [
           location: "Online",
           website: "https://registertovote.ca.gov",
           action: "website",
+          guide: {
+            note: "You can register if you are a U.S. citizen, live in California, and will be 18 or older on Election Day. Register at least 15 days before an election. After that, you can still register and vote in person at a vote center.",
+            checklist: [
+              "Your California driver license or ID card number",
+              "The last four digits of your Social Security number",
+              "Your date of birth",
+            ],
+            steps: [
+              "Fill out the form on the website. It takes a few minutes.",
+              "Watch your mail for a voter notification card.",
+              "Check your registration any time at voterstatus.sos.ca.gov.",
+            ],
+          },
         }
       ]
     }
