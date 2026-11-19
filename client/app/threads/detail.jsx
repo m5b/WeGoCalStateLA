@@ -183,7 +183,9 @@ export default function ThreadDetail() {
         ListHeaderComponent={
           <View style={styles.threadCard}>
             {thread.imageUri ? (
-              <FlexibleImage uri={thread.imageUri} maxHeight={340} style={[styles.image, styles.imageCapped]} />
+              <View style={styles.threadImageBleed}>
+                <FlexibleImage uri={thread.imageUri} maxHeight={640} style={[styles.image]} />
+              </View>
             ) : null}
 
             <View style={styles.tagRow}>
@@ -243,9 +245,28 @@ export default function ThreadDetail() {
           />
         )}
         ListFooterComponent={
-          loadingReplies ? (
-            <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
-          ) : null
+          <View>
+            {loadingReplies ? (
+              <ActivityIndicator color={Colors.PRIMARY} style={{ marginTop: 12 }} />
+            ) : null}
+
+            <View style={styles.replyBox}>
+              {replyError ? (
+                <Text style={styles.replyError}>{replyError}</Text>
+              ) : null}
+              <TextInput
+                placeholder="Write a reply..."
+                placeholderTextColor={Colors.TEXT_MUTED}
+                value={text}
+                onChangeText={setText}
+                onSubmitEditing={submit}
+                style={styles.replyInput}
+              />
+              <TouchableOpacity style={styles.replyButton} onPress={submit}>
+                <Text style={styles.replyButtonText}>Reply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         }
         // Leaves room for the reply box pinned to the bottom, which grows when
         // an image preview is attached.
@@ -326,14 +347,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   threadCard: {
-    margin: 14,
+    marginVertical: 14,
     backgroundColor: Colors.GRAY_900,
     borderRadius: 16,
     padding: 14,
+    overflow: "hidden",
+  },
+  threadImageBleed: {
+    marginHorizontal: -14,
+    marginTop: -14,
+  },
+  listContent: {
+    width: "100%",
+    maxWidth: 860,
+    alignSelf: "center",
+    paddingHorizontal: 16,
   },
   image: {
     width: "100%",
-    borderRadius: 12,
     backgroundColor: Colors.GRAY_800,
   },
   // Keeps a big photo from filling the whole screen: at most 520px wide and 340px tall, centered.
@@ -444,7 +475,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   replyBox: {
-    position: "absolute",
+    marginTop: 6,
+    gap: 10,
+    backgroundColor: Colors.WHITE,
+    /*position: "absolute",
     left: 14,
     right: 14,
     bottom: 14,
@@ -452,7 +486,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.BORDER,
-    padding: 12,
+    padding: 12,8*/
   },
   signInText: {
     color: Colors.TEXT_MUTED,

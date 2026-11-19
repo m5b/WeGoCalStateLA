@@ -16,5 +16,8 @@
   "scripts": {
     "dev-docker": "docker compose -f composeCore.yml -f composeDev.yml up",
     "dev-docker-down": "docker compose -f composeCore.yml down"
+  },
+  "dependencies": {
+    "expo": "^58.0.25"
   }
 }

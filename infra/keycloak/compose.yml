@@ -38,6 +38,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: "xforwarded"
       KC_HOSTNAME: "http://auth.localhost"
+      KEYCLOAK_IMPORT_STRATEGY: IGNORE_EXISTING
     command:
       - start-dev
       - --import-realm
